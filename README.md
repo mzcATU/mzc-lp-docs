@@ -1,6 +1,6 @@
 # MZRUN - LMS (Learning Management System)
 
-![MZRUN Main](dist/images/readme_main.png)
+![MZRUN Main](public/images/readme_main.png)
 
 온라인 강의 플랫폼 MZRUN의 프론트엔드 프로젝트입니다.
 
