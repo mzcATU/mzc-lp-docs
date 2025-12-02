@@ -1,29 +1,30 @@
 # MZRUN - LMS (Learning Management System)
 
-![MZRUN Main](public/images/readme_main.png)
+![MZRUN Main](apps/web/public/images/readme_main.png)
 
 온라인 강의 플랫폼 MZRUN의 프론트엔드 프로젝트입니다.
 
 ## 기술 스택
 
-- **Framework**: React 18 + TypeScript
+- **Framework**: React 19 + TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS
 - **Routing**: React Router DOM
 - **Icons**: Lucide React
+- **Package Manager**: pnpm (Monorepo)
 
 ## 시작하기
 
 ### 설치
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 개발 서버 실행
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 개발 서버가 `http://localhost:5173`에서 실행됩니다.
@@ -31,34 +32,57 @@ npm run dev
 ### 빌드
 
 ```bash
-npm run build
+pnpm build
 ```
 
 ## 프로젝트 구조
 
 ```
-src/
-├── components/          # 재사용 가능한 컴포넌트
-│   ├── Header.tsx       # 네비게이션 헤더 (검색, 장바구니, 알림)
-│   ├── Footer.tsx       # 푸터
-│   ├── CourseCard.tsx   # 강의 카드 컴포넌트
-│   ├── HeroSection.tsx  # 메인 히어로 섹션 (슬라이드 배너)
-│   └── ...
-├── pages/               # 페이지 컴포넌트
-│   ├── LoginPage.tsx    # 로그인 페이지
-│   ├── SignupPage.tsx   # 회원가입 페이지
-│   ├── CoursesPage.tsx  # 강의 목록 페이지
-│   ├── CourseDetailPage.tsx  # 강의 상세 페이지
-│   ├── RoadmapPage.tsx  # 로드맵 페이지
-│   ├── MentoringPage.tsx # 멘토링 페이지
-│   ├── CommunityPage.tsx # 커뮤니티 페이지
-│   ├── JobsPage.tsx     # 채용 페이지
-│   ├── CartPage.tsx     # 장바구니 페이지
-│   └── NotificationsPage.tsx # 알림 페이지
-├── App.tsx              # 메인 앱 컴포넌트
-├── main.tsx             # 앱 진입점 및 라우팅 설정
-└── index.css            # 글로벌 스타일
+figma_front/
+├── apps/
+│   └── web/                     # 메인 웹 애플리케이션 (@lms/web)
+│       ├── src/
+│       │   ├── components/      # 재사용 가능한 컴포넌트
+│       │   │   ├── Header.tsx
+│       │   │   ├── Footer.tsx
+│       │   │   ├── CourseCard.tsx
+│       │   │   └── HeroSection.tsx
+│       │   ├── pages/           # 페이지 컴포넌트
+│       │   │   ├── LoginPage.tsx
+│       │   │   ├── SignupPage.tsx
+│       │   │   ├── CoursesPage.tsx
+│       │   │   ├── CourseDetailPage.tsx
+│       │   │   ├── RoadmapPage.tsx
+│       │   │   ├── MentoringPage.tsx
+│       │   │   ├── CommunityPage.tsx
+│       │   │   ├── JobsPage.tsx
+│       │   │   ├── CartPage.tsx
+│       │   │   └── NotificationsPage.tsx
+│       │   ├── data/            # Mock 데이터
+│       │   ├── App.tsx
+│       │   ├── main.tsx
+│       │   └── index.css
+│       ├── public/
+│       ├── index.html
+│       ├── vite.config.ts
+│       └── package.json
+├── packages/
+│   ├── ui/                      # 공유 UI 컴포넌트 (@lms/ui)
+│   │   └── src/
+│   └── shared/                  # 공유 유틸리티/타입 (@lms/shared)
+│       └── src/
+├── package.json                 # 루트 워크스페이스 설정
+├── pnpm-workspace.yaml
+└── tsconfig.json
 ```
+
+## 워크스페이스 패키지
+
+| 패키지 | 설명 |
+|--------|------|
+| `@lms/web` | 메인 웹 애플리케이션 |
+| `@lms/ui` | 공유 UI 컴포넌트 라이브러리 |
+| `@lms/shared` | 공유 유틸리티 및 타입 |
 
 ## 주요 기능
 
