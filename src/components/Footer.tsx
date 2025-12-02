@@ -4,60 +4,6 @@ export function Footer() {
   return (
     <footer className="bg-[#000000] border-t border-white/5 text-gray-400 text-sm py-16">
       <div className="w-full px-4 md:px-8 lg:px-16">
-        {/* Top Section - Links */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-12">
-          <div>
-            <h4 className="text-white font-bold mb-5 text-[15px]">PRODUCTS</h4>
-            <ul className="space-y-3 text-[13px]">
-              <li><a href="#" className="hover:text-white transition-colors">SpaceONE</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">HyperBilling</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Private AI</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-5 text-[15px]">SOLUTIONS</h4>
-            <ul className="space-y-3 text-[13px]">
-              <li><a href="#" className="hover:text-white transition-colors">Cloud Migration</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">MSP</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Consulting</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-5 text-[15px]">PARTNERS</h4>
-            <ul className="space-y-3 text-[13px]">
-              <li><a href="#" className="hover:text-white transition-colors">AWS</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Google Cloud</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Microsoft Azure</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Naver Cloud</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-5 text-[15px]">COMPANY</h4>
-            <ul className="space-y-3 text-[13px]">
-              <li><a href="#" className="hover:text-white transition-colors">회사 소개</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">뉴스룸</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">채용</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-5 text-[15px]">RESOURCES</h4>
-            <ul className="space-y-3 text-[13px]">
-              <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Case Studies</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Webinar</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-5 text-[15px]">FAMILY SITE</h4>
-            <ul className="space-y-3 text-[13px]">
-              <li><a href="#" className="hover:text-white transition-colors">메가존</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">메가존디지털</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">클라우드원</a></li>
-            </ul>
-          </div>
-        </div>
-
         {/* Middle Section - Company Info */}
         <div className="border-t border-white/10 pt-8 pb-8">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-8">

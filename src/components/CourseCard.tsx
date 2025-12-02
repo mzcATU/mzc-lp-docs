@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 
 interface CourseCardProps {
+  id: number;
   title: string;
   instructor: string;
   price: string;
@@ -11,9 +13,9 @@ interface CourseCardProps {
   category: string;
 }
 
-export function CourseCard({ title, instructor, price, rating, reviewCount, image, tags }: CourseCardProps) {
+export function CourseCard({ id, title, instructor, price, rating, reviewCount, image, tags }: CourseCardProps) {
   return (
-    <a href="#" className="group block h-full">
+    <Link to={`/course/${id}`} className="group block h-full">
       <div className="h-full card-hover rounded-xl overflow-hidden bg-white/5 border border-white/10">
         {/* Image Container */}
         <div className="relative aspect-[16/10] overflow-hidden">
@@ -74,6 +76,6 @@ export function CourseCard({ title, instructor, price, rating, reviewCount, imag
           </div>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
