@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter @lms/web dev",
+    "dev:api": "pnpm --filter @lms/api dev",
+    "dev:all": "pnpm run dev & pnpm run dev:api",
     "build": "pnpm --filter @lms/web build",
+    "build:api": "pnpm --filter @lms/api build",
     "lint": "pnpm -r lint",
     "preview": "pnpm --filter @lms/web preview"
   },

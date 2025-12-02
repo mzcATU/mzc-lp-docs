@@ -1,16 +1,44 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
+const API_BASE = 'http://localhost:4000';
+
 export function LoginPage() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 로그인 로직 구현
-    console.log('Login:', { email, password });
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || '로그인에 실패했습니다.');
+        return;
+      }
+
+      localStorage.setItem('token', data.data.token);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+      navigate('/');
+    } catch {
+      setError('서버 연결에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -87,12 +115,20 @@ export function LoginPage() {
               </a>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full btn-primary text-white font-semibold py-3 rounded-xl text-lg"
+              disabled={isLoading}
+              className="w-full btn-primary text-white font-semibold py-3 rounded-xl text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              로그인
+              {isLoading ? '로그인 중...' : '로그인'}
             </button>
           </form>
 

@@ -13,6 +13,7 @@ import { JobsPage } from './pages/JobsPage.tsx'
 import { CartPage } from './pages/CartPage.tsx'
 import { NotificationsPage } from './pages/NotificationsPage.tsx'
 import { CourseDetailPage } from './pages/CourseDetailPage.tsx'
+import { MyPage } from './pages/MyPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -29,6 +30,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/jobs" element={<JobsPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/mypage" element={<MyPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

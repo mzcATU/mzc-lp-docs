@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Check } from 'lucide-react';
 
+const API_BASE = 'http://localhost:4000';
+
 export function SignupPage() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -13,15 +16,47 @@ export function SignupPage() {
   });
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeMarketing, setAgreeMarketing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 회원가입 로직 구현
-    console.log('Signup:', formData);
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          agreeMarketing,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || '회원가입에 실패했습니다.');
+        return;
+      }
+
+      localStorage.setItem('token', data.data.token);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+      alert('회원가입이 완료되었습니다!');
+      navigate('/');
+    } catch {
+      setError('서버 연결에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const passwordMatch = formData.password === formData.confirmPassword && formData.confirmPassword !== '';
@@ -175,13 +210,20 @@ export function SignupPage() {
               </label>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!agreeTerms || !passwordMatch}
+              disabled={!agreeTerms || !passwordMatch || isLoading}
               className="w-full btn-primary text-white font-semibold py-3 rounded-xl text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              가입하기
+              {isLoading ? '가입 중...' : '가입하기'}
             </button>
           </form>
 
