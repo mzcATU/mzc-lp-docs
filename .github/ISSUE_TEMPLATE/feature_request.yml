@@ -1,0 +1,76 @@
+name: Feature Request
+description: 새로운 기능 요청
+title: "[Feat] "
+labels: ["feat"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 기능 요청
+        새로운 기능에 대해 설명해주세요.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 기능 설명
+      description: 어떤 기능이 필요한지 설명해주세요.
+      placeholder: 사용자가 로그인할 수 있는 기능이 필요합니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: 필요한 이유
+      description: 왜 이 기능이 필요한지 설명해주세요.
+      placeholder: 사용자 인증이 필요한 기능들을 사용하기 위해서입니다.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 우선순위
+      description: 기능의 우선순위를 선택해주세요.
+      options:
+        - "Must - 필수 (릴리스 필수)"
+        - "Should - 권장 (중요하나 필수 아님)"
+        - "Could - 선택 (시간 허락시)"
+        - "Won't - 제외 (이번 버전 제외)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 카테고리
+      description: 기능이 속하는 카테고리를 선택해주세요.
+      options:
+        - "Backend"
+        - "Frontend"
+        - "Infra"
+        - "Database"
+        - "기타"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: 완료 조건 (Acceptance Criteria)
+      description: 이 기능이 완료되었다고 판단할 수 있는 조건을 나열해주세요.
+      placeholder: |
+        - [ ] 사용자가 이메일/비밀번호로 로그인할 수 있다
+        - [ ] 로그인 성공 시 JWT 토큰이 발급된다
+        - [ ] 로그인 실패 시 에러 메시지가 표시된다
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 추가 정보
+      description: 참고할 만한 추가 정보가 있다면 작성해주세요.
+      placeholder: 디자인 시안, 참고 링크 등
+    validations:
+      required: false
