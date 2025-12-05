@@ -8,7 +8,7 @@
 
 ### 예상 아키텍처 참고
 
-https://github.com/shsh99/lms-architecture
+https://lms-architecture.vercel.app/
 
 ### 모듈 구조
 
@@ -38,13 +38,167 @@ https://github.com/shsh99/lms-architecture
 | **Backend** | Spring Boot / Java | 3.2.11 / 21 |
 | **Frontend** | React / TypeScript / Vite | 19.x / 5.x / 7.x |
 | **Styling** | TailwindCSS | - |
-| **Database** | MySQL (prod) / H2 (dev) | 8.0 |
+| **Database** | MySQL | 8.0 |
 | **Infra** | AWS (ECS, RDS, S3, CloudFront) | - |
 | **인증** | JWT (Access + Refresh Token) | - |
 
 ---
 
-## 3. 저장소 구조 (분리형)
+## 3. 저장소 구조
+
+### Option A: 모노레포 예상 구조(권장)
+
+```
+mzc-lp/
+├── backend/                              # Spring Boot API
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/mzc/lp/
+│   │   │   │   ├── domain/
+│   │   │   │   │   ├── user/
+│   │   │   │   │   │   ├── controller/
+│   │   │   │   │   │   │   └── UserController.java
+│   │   │   │   │   │   ├── service/
+│   │   │   │   │   │   │   └── UserService.java
+│   │   │   │   │   │   ├── repository/
+│   │   │   │   │   │   │   └── UserRepository.java
+│   │   │   │   │   │   ├── entity/
+│   │   │   │   │   │   │   └── User.java
+│   │   │   │   │   │   ├── dto/
+│   │   │   │   │   │   │   ├── UserRequest.java
+│   │   │   │   │   │   │   └── UserResponse.java
+│   │   │   │   │   │   └── exception/
+│   │   │   │   │   │       └── UserNotFoundException.java
+│   │   │   │   │   ├── course/
+│   │   │   │   │   │   └── (동일 구조)
+│   │   │   │   │   └── enrollment/
+│   │   │   │   │       └── (동일 구조)
+│   │   │   │   │
+│   │   │   │   ├── global/
+│   │   │   │   │   ├── config/
+│   │   │   │   │   │   ├── SecurityConfig.java
+│   │   │   │   │   │   ├── CorsConfig.java
+│   │   │   │   │   │   └── JpaConfig.java
+│   │   │   │   │   ├── exception/
+│   │   │   │   │   │   ├── GlobalExceptionHandler.java
+│   │   │   │   │   │   ├── ErrorCode.java
+│   │   │   │   │   │   └── ErrorResponse.java
+│   │   │   │   │   ├── security/
+│   │   │   │   │   │   ├── JwtTokenProvider.java
+│   │   │   │   │   │   └── JwtAuthenticationFilter.java
+│   │   │   │   │   └── common/
+│   │   │   │   │       ├── BaseEntity.java
+│   │   │   │   │       └── PageResponse.java
+│   │   │   │   │
+│   │   │   │   └── MzcLpApplication.java
+│   │   │   │
+│   │   │   └── resources/
+│   │   │       ├── application.yml
+│   │   │       ├── application-local.yml
+│   │   │       ├── application-dev.yml
+│   │   │       └── application-prod.yml
+│   │   │
+│   │   └── test/
+│   │       └── java/com/mzc/lp/
+│   │           └── domain/user/
+│   │               ├── controller/UserControllerTest.java
+│   │               └── service/UserServiceTest.java
+│   │
+│   ├── build.gradle
+│   ├── settings.gradle
+│   └── Dockerfile
+│
+├── frontend/                             # React Web App
+│   ├── src/
+│   │   ├── pages/                        # 페이지 컴포넌트
+│   │   │   ├── auth/
+│   │   │   │   ├── LoginPage.tsx
+│   │   │   │   └── SignupPage.tsx
+│   │   │   ├── course/
+│   │   │   │   ├── CourseListPage.tsx
+│   │   │   │   └── CourseDetailPage.tsx
+│   │   │   └── user/
+│   │   │       └── ProfilePage.tsx
+│   │   │
+│   │   ├── components/                   # 재사용 컴포넌트
+│   │   │   ├── common/
+│   │   │   │   ├── Button.tsx
+│   │   │   │   ├── Input.tsx
+│   │   │   │   ├── Modal.tsx
+│   │   │   │   └── Loading.tsx
+│   │   │   └── layout/
+│   │   │       ├── Header.tsx
+│   │   │       ├── Sidebar.tsx
+│   │   │       └── Footer.tsx
+│   │   │
+│   │   ├── hooks/                        # Custom Hooks
+│   │   │   ├── useAuth.ts
+│   │   │   ├── useCourses.ts
+│   │   │   └── useUser.ts
+│   │   │
+│   │   ├── services/                     # API 호출
+│   │   │   ├── api.ts                    # Axios Instance
+│   │   │   ├── authService.ts
+│   │   │   ├── courseService.ts
+│   │   │   └── userService.ts
+│   │   │
+│   │   ├── stores/                       # 전역 상태 (필요시)
+│   │   │   └── authStore.ts
+│   │   │
+│   │   ├── types/                        # TypeScript 타입
+│   │   │   ├── auth.types.ts
+│   │   │   ├── course.types.ts
+│   │   │   └── user.types.ts
+│   │   │
+│   │   ├── utils/                        # 유틸리티
+│   │   │   ├── format.ts
+│   │   │   └── validation.ts
+│   │   │
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── index.css
+│   │
+│   ├── public/
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   └── .env.development
+│
+├── docs/                                 # 문서
+│   ├── CLAUDE.md
+│   ├── MONOREPO.md
+│   ├── SEPARATED-REPOS.md
+│   ├── conventions/
+│   └── templates/
+│
+├── .github/                              # GitHub 설정
+│   ├── ISSUE_TEMPLATE/
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── workflows/
+│       ├── backend-ci.yml
+│       └── frontend-ci.yml
+│
+├── docker-compose.yml                    # 로컬 개발용 Docker
+├── .gitignore
+└── README.md
+```
+
+**개발 서버 실행:**
+```bash
+# Backend (Port 8080)
+cd backend && ./gradlew bootRun
+
+# Frontend (Port 3000) - 별도 터미널
+cd frontend && npm run dev
+
+# Docker로 MySQL 실행 (최초 1회)
+docker-compose up -d mysql
+```
+
+---
+
+### Option B: 분리형
 
 ```
 mzc-lp-backend/     # Backend 전용
@@ -58,11 +212,13 @@ mzc-lp-frontend/    # Frontend 전용
 └── README.md
 ```
 
-### 환경별 배포
+---
+
+### 환경별 구성
 
 | 환경 | Backend | Frontend | Database |
 |------|---------|----------|----------|
-| **Local** | Port 8080 | Port 3000 | H2 (In-memory) |
+| **Local** | `./gradlew bootRun` (8080) | Vite Dev Server (3000) | MySQL (Docker) |
 | **Dev** | ECS (Private Subnet) | S3 + CloudFront | RDS db.t3.micro |
 | **Prod** | ECS Multi-AZ | S3 + CloudFront | RDS Multi-AZ |
 
@@ -143,7 +299,7 @@ git branch -d feat/123-user-login
 
 ## 5. 개발 컨벤션
 
-> 컨벤션 문서: `C:\Users\MZC01-\Desktop\docs`
+> 컨벤션 문서: `docs/conventions/`
 
 ### 컨벤션 목록
 
@@ -160,6 +316,18 @@ git branch -d feat/123-user-login
 | 07 | DTO | Request/Response, Record |
 | 08 | EXCEPTION | 예외 처리, ErrorCode |
 | 09 | GIT-SUBMODULE | 민감 정보 관리 |
+
+#### Frontend (10-16)
+
+| # | 컨벤션 | 설명 |
+|---|--------|------|
+| 10 | REACT-TYPESCRIPT-CORE | TypeScript 기본, any 금지 |
+| 11 | REACT-PROJECT-STRUCTURE | 폴더 구조, 파일 규칙 |
+| 12 | REACT-COMPONENT | 컴포넌트 설계, Props |
+| 13 | REACT-STATE-MANAGEMENT | React Query, 상태 관리 |
+| 14 | REACT-API-INTEGRATION | Axios, API 연동 |
+| 15 | BACKEND-TEST | JUnit, 테스트 전략 |
+| 16 | FRONTEND-TEST | Jest, React Testing Library |
 
 #### Infrastructure & 품질 (17-24)
 
@@ -231,6 +399,9 @@ cd frontend && npm run dev
 
 | 문서 | 위치 |
 |------|------|
-| 컨벤션 | `C:\Users\MZC01-\Desktop\docs\conventions\` |
-| 인프라 | `C:\Users\MZC01-\Desktop\set\` |
-| 아키텍처 | https://github.com/shsh99/lms-architecture |
+| AI 가이드 | [docs/CLAUDE.md](docs/CLAUDE.md) |
+| 모노레포 | [docs/MONOREPO.md](docs/MONOREPO.md) |
+| 분리형 | [docs/SEPARATED-REPOS.md](docs/SEPARATED-REPOS.md) |
+| 컨벤션 | [docs/conventions/](docs/conventions/) |
+| 템플릿 | [docs/templates/](docs/templates/) |
+| 아키텍처 | https://lms-architecture.vercel.app/ |
