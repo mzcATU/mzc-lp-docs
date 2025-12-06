@@ -1,5 +1,7 @@
 # 14. React API Integration
 
+> 📌 **먼저 읽기**: [10-REACT-TYPESCRIPT-CORE.md](./10-REACT-TYPESCRIPT-CORE.md)
+
 > API 통신 규칙 (Axios 설정, React Query 사용법, 에러 처리)
 
 ---
@@ -204,4 +206,54 @@ try {
   const errorMessage = handleApiError(error);
   alert(errorMessage);
 }
+```
+
+---
+
+## 6. 자주 하는 실수
+
+### ❌ Bad
+
+```typescript
+// 1. any 타입 사용
+const { data } = await axiosInstance.get('/users');  // data: any
+
+// 2. 에러 처리 누락
+const users = await userService.getUsers();  // try-catch 없음
+
+// 3. queryKey 불일치
+useQuery({ queryKey: ['user'], ... });      // 조회
+queryClient.invalidateQueries(['users']);   // 무효화 (불일치!)
+
+// 4. 하드코딩된 baseURL
+axios.create({ baseURL: 'http://localhost:8080' });  // 환경변수 미사용
+
+// 5. mutateAsync 후 로딩 상태 미처리
+await createUser.mutateAsync(data);  // isPending 체크 안함
+```
+
+### ✅ Good
+
+```typescript
+// 1. 명시적 타입 지정
+const { data } = await axiosInstance.get<User[]>('/users');
+
+// 2. 에러 처리 포함
+try {
+  const users = await userService.getUsers();
+} catch (error) {
+  handleApiError(error);
+}
+
+// 3. queryKey 일관성
+useQuery({ queryKey: ['users', userId], ... });
+queryClient.invalidateQueries({ queryKey: ['users', userId] });
+
+// 4. 환경변수 사용
+axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL });
+
+// 5. 로딩 상태 처리
+<button disabled={createUser.isPending}>
+  {createUser.isPending ? '저장 중...' : '저장'}
+</button>
 ```

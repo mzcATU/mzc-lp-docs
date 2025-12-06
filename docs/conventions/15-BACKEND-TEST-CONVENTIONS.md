@@ -1,5 +1,7 @@
 # 15. Backend Test Conventions
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > Backend 테스트 규칙 (JUnit5, MockMvc, Given-When-Then 패턴)
 
 ---
@@ -184,6 +186,81 @@ void createUser_WhenEmailDuplicated_ThrowsException() { }
 assertThat(user.getEmail())
     .as("사용자 이메일은 john@example.com이어야 함")
     .isEqualTo("john@example.com");
+```
+
+---
+
+## 자주 하는 실수
+
+### ❌ Bad
+
+```java
+// 1. 테스트 간 데이터 공유
+@BeforeAll
+static void setup() {
+    sharedUser = new User("John");  // 다른 테스트에 영향
+}
+
+// 2. 여러 검증을 하나의 테스트에
+@Test
+void testUser() {
+    // 생성, 수정, 삭제를 한 테스트에서 검증 → 실패 시 원인 파악 어려움
+}
+
+// 3. Mock 검증 누락
+@Test
+void findById() {
+    given(userRepository.findById(1L)).willReturn(Optional.of(user));
+    userService.findById(1L);
+    // verify() 누락 → 실제로 호출됐는지 확인 안함
+}
+
+// 4. 실제 외부 서비스 호출
+@Test
+void sendEmail() {
+    emailService.send(user.getEmail());  // 실제 메일 발송됨!
+}
+
+// 5. @DisplayName 미사용
+@Test
+void test1() { }  // 무슨 테스트인지 알 수 없음
+```
+
+### ✅ Good
+
+```java
+// 1. 각 테스트에서 독립적으로 데이터 생성
+@Test
+void findById() {
+    User user = User.create("John", "john@example.com");
+    // ...
+}
+
+// 2. 하나의 테스트, 하나의 검증
+@Test
+@DisplayName("사용자 생성")
+void createUser() { }
+
+@Test
+@DisplayName("사용자 수정")
+void updateUser() { }
+
+// 3. Mock 검증 포함
+@Test
+void findById() {
+    given(userRepository.findById(1L)).willReturn(Optional.of(user));
+    userService.findById(1L);
+    verify(userRepository).findById(1L);  // 호출 검증
+}
+
+// 4. 외부 서비스 Mock 처리
+@MockBean
+private EmailService emailService;
+
+// 5. 명확한 DisplayName
+@Test
+@DisplayName("이메일 중복 시 UserDuplicateException 발생")
+void createUser_WhenEmailDuplicated_ThrowsException() { }
 ```
 
 ---

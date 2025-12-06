@@ -1,5 +1,7 @@
 # 16. Frontend Test Conventions
 
+> 📌 **먼저 읽기**: [10-REACT-TYPESCRIPT-CORE.md](./10-REACT-TYPESCRIPT-CORE.md)
+
 > Frontend 테스트 규칙 (React Testing Library, Jest, MSW)
 
 ---

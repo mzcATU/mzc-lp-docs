@@ -1,7 +1,8 @@
 # 22. Performance Conventions
 
-> 성능 최적화 규칙 및 패턴
-> **핵심**: N+1 방지, 캐싱, 불필요한 연산 제거
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
+> 성능 최적화 규칙 및 패턴 (N+1 방지, 캐싱, 불필요한 연산 제거)
 
 ---
 

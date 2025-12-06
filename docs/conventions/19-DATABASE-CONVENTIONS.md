@@ -1,5 +1,7 @@
 # 19. Database Conventions (MySQL)
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > MySQL 데이터베이스 설계 및 운영 컨벤션
 
 ---

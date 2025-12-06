@@ -1,5 +1,7 @@
 # 01. Project Structure
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > Spring Boot 3.2.x + Java 21 프로젝트 구조
 
 ---

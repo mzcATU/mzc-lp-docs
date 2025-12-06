@@ -1,5 +1,7 @@
 # 10. React + TypeScript Core Conventions
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > React + TypeScript 핵심 규칙 (Airbnb Style Guide 기반)
 
 ---

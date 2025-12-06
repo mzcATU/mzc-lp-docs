@@ -1,5 +1,7 @@
 # 24. Multi-Tenancy 구현 컨벤션
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > 멀티테넌시 구현 시 코드 패턴 가이드
 > **개요/설계 → [multi-tenancy.md](../docs/context/multi-tenancy.md)**
 

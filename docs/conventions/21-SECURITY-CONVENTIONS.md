@@ -1,7 +1,8 @@
 # 21. Security Conventions
 
-> 보안 관련 구현 규칙 및 패턴
-> **핵심**: 인증/인가, 데이터 보호, 취약점 방지
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
+> 보안 관련 구현 규칙 및 패턴 (인증/인가, 데이터 보호, 취약점 방지)
 
 ---
 

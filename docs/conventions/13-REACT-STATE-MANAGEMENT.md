@@ -1,5 +1,7 @@
 # 13. React State Management
 
+> 📌 **먼저 읽기**: [10-REACT-TYPESCRIPT-CORE.md](./10-REACT-TYPESCRIPT-CORE.md)
+
 > 상태 관리 규칙 (useState, Context, Zustand, React Query)
 
 ---

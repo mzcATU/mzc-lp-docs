@@ -1,20 +1,8 @@
 # 20. AWS Infrastructure Conventions
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > AWS 인프라 구성 및 배포 컨벤션
-
----
-
-## 빠른 탐색
-
-| 섹션 | 내용 |
-|------|------|
-| [핵심 규칙](#핵심-규칙) | 5가지 AWS 원칙 |
-| [아키텍처 패턴](#아키텍처-패턴) | 기본 구성, VPC |
-| [서비스별 설정](#서비스별-설정) | ECS, RDS, S3+CloudFront |
-| [태깅 전략](#태깅-전략) | 리소스 태깅 |
-| [비밀 관리](#비밀-관리) | Secrets Manager |
-| [CI/CD](#cicd-파이프라인) | GitHub Actions |
-| [비용 최적화](#비용-최적화) | 프리티어, 절감 |
 
 ---
 
@@ -32,264 +20,81 @@
 
 ## 아키텍처 패턴
 
-### 기본 구성 (소규모)
-
 ```
-Internet
-    ↓
-Route 53 (DNS)
-    ↓
-CloudFront (CDN) ─→ S3 (Frontend Static)
-    ↓
-ALB (Application Load Balancer)
-    ↓
-ECS Fargate (Backend Containers)
-    ↓
-RDS MySQL (Database)
-    ↓
-ElastiCache Redis (Session/Cache) [선택]
+Internet → Route 53 → CloudFront → S3 (Frontend)
+                    → ALB → ECS Fargate → RDS MySQL
 ```
 
 ### VPC 구성
 
-```
-VPC (10.0.0.0/16)
-├── Public Subnet A (10.0.1.0/24, AZ-a)
-│   ├── ALB
-│   ├── NAT Gateway
-│   └── Bastion Host
-├── Public Subnet B (10.0.2.0/24, AZ-c)
-│   └── ALB (Multi-AZ)
-├── Private Subnet A (10.0.11.0/24, AZ-a)
-│   └── ECS Tasks (App)
-├── Private Subnet B (10.0.12.0/24, AZ-c)
-│   └── ECS Tasks (App - Multi-AZ)
-├── Private Subnet C (10.0.21.0/24, AZ-a)
-│   └── RDS Primary
-└── Private Subnet D (10.0.22.0/24, AZ-c)
-    └── RDS Standby (Multi-AZ)
-```
-
-> **Subnet 설계 원칙**:
-> - Public: 10.0.1.x ~ 10.0.2.x (외부 연결)
-> - Private App: 10.0.11.x ~ 10.0.12.x (애플리케이션)
-> - Private DB: 10.0.21.x ~ 10.0.22.x (데이터베이스)
-> - 상세 → [infrastructure.md](../docs/context/infrastructure.md)
+| Subnet | CIDR | 용도 |
+|--------|------|------|
+| Public A/B | 10.0.1-2.0/24 | ALB, NAT Gateway |
+| Private App A/B | 10.0.11-12.0/24 | ECS Tasks |
+| Private DB A/B | 10.0.21-22.0/24 | RDS |
 
 ---
 
-## 서비스별 설정
+## 서비스별 핵심 설정
 
-### ECS Fargate (Backend)
+### ECS Task Definition (핵심)
 
 ```json
-// task-definition.json
 {
-  "family": "backend-task",
-  "networkMode": "awsvpc",
-  "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
   "memory": "1024",
-  "containerDefinitions": [
-    {
-      "name": "backend",
-      "image": "${ECR_URI}:${IMAGE_TAG}",
-      "portMappings": [
-        { "containerPort": 8080, "protocol": "tcp" }
-      ],
-      "environment": [
-        { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }
-      ],
-      "secrets": [
-        {
-          "name": "DB_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:region:account:secret:db-password"
-        }
-      ],
-      "healthCheck": {
-        "command": ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"],
-        "interval": 30,
-        "timeout": 5,
-        "retries": 3
-      },
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/backend",
-          "awslogs-region": "ap-northeast-2",
-          "awslogs-stream-prefix": "ecs"
-        }
-      }
-    }
-  ]
+  "secrets": [{
+    "name": "DB_PASSWORD",
+    "valueFrom": "arn:aws:secretsmanager:..."
+  }],
+  "healthCheck": {
+    "command": ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health"]
+  },
+  "logConfiguration": {
+    "logDriver": "awslogs"
+  }
 }
 ```
 
-### RDS MySQL
+### RDS (핵심)
 
 ```hcl
-# Terraform
-resource "aws_db_instance" "main" {
-  identifier     = "learning-platform-db"
-  engine         = "mysql"
-  engine_version = "8.0"
-  instance_class = "db.t3.micro"  # 프리티어
-
-  allocated_storage     = 20
-  max_allocated_storage = 100  # 자동 확장
-
-  db_name  = "learning_db"
-  username = "admin"
-  password = var.db_password  # Secrets Manager에서
-
-  multi_az               = true  # 운영환경
-  db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.rds.id]
-
-  backup_retention_period = 7
-  skip_final_snapshot     = false
-
-  tags = local.common_tags
-}
+instance_class = "db.t3.micro"  # 프리티어
+multi_az       = true           # 운영환경
+password       = var.db_password # Secrets Manager
 ```
 
-### S3 + CloudFront (Frontend)
+### 태깅
 
 ```hcl
-resource "aws_s3_bucket" "frontend" {
-  bucket = "learning-platform-frontend"
+tags = {
+  Project     = "LearningPlatform"
+  Environment = "prod"
+  ManagedBy   = "Terraform"
 }
-
-resource "aws_cloudfront_distribution" "frontend" {
-  origin {
-    domain_name = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_id   = "S3-frontend"
-
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.main.cloudfront_access_identity_path
-    }
-  }
-
-  default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "S3-frontend"
-
-    forwarded_values {
-      query_string = false
-      cookies { forward = "none" }
-    }
-
-    viewer_protocol_policy = "redirect-to-https"
-  }
-
-  # SPA 라우팅
-  custom_error_response {
-    error_code         = 404
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
-}
-```
-
----
-
-## 태깅 전략
-
-```hcl
-locals {
-  common_tags = {
-    Project     = "LearningPlatform"
-    Environment = var.environment  # dev/staging/prod
-    ManagedBy   = "Terraform"
-    Owner       = "backend-team"
-  }
-}
-```
-
----
-
-## 비밀 관리
-
-### Secrets Manager 사용
-
-```bash
-# 비밀 생성
-aws secretsmanager create-secret \
-  --name "prod/learning-platform/db" \
-  --secret-string '{"username":"admin","password":"xxx"}'
-```
-
-### 애플리케이션에서 사용
-
-```yaml
-# Spring Boot application-prod.yml
-spring:
-  datasource:
-    url: jdbc:mysql://${DB_HOST}:3306/learning_db
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-
-# ECS Task Definition에서 Secrets Manager 참조
 ```
 
 ---
 
 ## CI/CD 파이프라인
 
-### GitHub Actions → ECR → ECS
-
 ```yaml
-# .github/workflows/deploy.yml
-name: Deploy to AWS
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
-
-      - name: Login to ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/backend:$IMAGE_TAG ./backend
-          docker push $ECR_REGISTRY/backend:$IMAGE_TAG
-
-      - name: Deploy to ECS
-        run: |
-          aws ecs update-service \
-            --cluster learning-platform \
-            --service backend \
-            --force-new-deployment
+# .github/workflows/deploy.yml (핵심 단계)
+steps:
+  - uses: aws-actions/configure-aws-credentials@v4
+  - uses: aws-actions/amazon-ecr-login@v2
+  - run: docker build && docker push
+  - run: aws ecs update-service --force-new-deployment
 ```
 
 ---
 
 ## 비용 최적화
 
-| 서비스 | 프리티어/최적화 |
-|--------|----------------|
-| EC2/ECS | Fargate Spot (70% 절감) |
+| 서비스 | 권장 |
+|--------|------|
+| ECS | Fargate Spot (70% 절감) |
 | RDS | db.t3.micro (프리티어) |
-| S3 | Intelligent-Tiering |
-| CloudFront | 캐시 최적화 |
 | NAT Gateway | 비용 주의 (시간당 과금) |
 
 ---
@@ -297,7 +102,6 @@ jobs:
 ## 체크리스트
 
 ### 배포 전
-- [ ] VPC, 서브넷 구성 확인
 - [ ] Security Group 최소 권한
 - [ ] Secrets Manager에 비밀값 저장
 - [ ] IAM Role 권한 확인
@@ -306,7 +110,19 @@ jobs:
 - [ ] Health Check 정상
 - [ ] CloudWatch 로그 확인
 - [ ] 비용 알림 설정
-- [ ] 백업 정책 확인
+
+---
+
+## 자주 하는 실수
+
+| ❌ Bad | ✅ Good |
+|--------|---------|
+| `Action = "*"` | 필요한 권한만 지정 |
+| `cidr_blocks = ["0.0.0.0/0"]` | VPC 내부 IP만 허용 |
+| `password = "plain-text"` | Secrets Manager 사용 |
+| 태깅 누락 | Project/Environment/Owner |
+| `multi_az = false` | `multi_az = true` (운영) |
+| 환경변수로 비밀 전달 | secrets로 참조 |
 
 ---
 

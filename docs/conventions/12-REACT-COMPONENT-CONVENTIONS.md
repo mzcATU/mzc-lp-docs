@@ -1,5 +1,7 @@
 # 12. React Component Conventions
 
+> 📌 **먼저 읽기**: [10-REACT-TYPESCRIPT-CORE.md](./10-REACT-TYPESCRIPT-CORE.md)
+
 > React 컴포넌트 작성 규칙 (Props, 이벤트, 조건부 렌더링, 성능 최적화)
 
 ---

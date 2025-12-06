@@ -1,5 +1,7 @@
 # 09. Git Submodule Conventions
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > Private 저장소로 민감 정보(설정 파일) 관리
 
 **적합**: 개발/로컬 환경, 소규모 팀

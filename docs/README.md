@@ -41,18 +41,19 @@
 ## 문서 구조
 
 ```
-📁 docss/
+📁 docs/
 ├── 📄 CLAUDE.md                 # AI 작업 가이드 (핵심 진입점)
 ├── 📄 PROJECT_CONTEXT.md        # 프로젝트 컨텍스트 & 현재 상태
 ├── 📄 MONOREPO.md               # 모노레포 설정 가이드
 ├── 📄 SEPARATED-REPOS.md        # 분리형 저장소 설정 가이드
 │
-├── 📁 conventions/              # 코딩 컨벤션 (24개)
+├── 📁 conventions/              # 코딩 컨벤션 (26개)
 │   ├── 00-CONVENTIONS-CORE.md   # 공통 핵심 규칙
 │   ├── 01~09: Backend 컨벤션
 │   ├── 10~16: Frontend 컨벤션
 │   ├── 17~20: Infrastructure 컨벤션
-│   └── 21~23: 품질 관련 컨벤션
+│   ├── 21~23: 품질 관련 컨벤션
+│   └── 24~25: 기타 컨벤션
 │
 ├── 📁 docs/context/             # 프로젝트 컨텍스트
 │   ├── architecture.md          # 시스템 아키텍처
@@ -118,6 +119,13 @@
 | 21 | SECURITY | 인증, 보안, 취약점 방지 |
 | 22 | PERFORMANCE | N+1, 캐싱, 최적화 |
 | 23 | EXTERNAL-API | 외부 연동, 재시도, 타임아웃 |
+
+### 기타 (24-25)
+
+| # | 컨벤션 | 설명 |
+|---|--------|------|
+| 24 | MULTI-TENANCY | 멀티테넌트 아키텍처 |
+| 25 | IGNORE | .gitignore, .dockerignore 설정 |
 
 ---
 

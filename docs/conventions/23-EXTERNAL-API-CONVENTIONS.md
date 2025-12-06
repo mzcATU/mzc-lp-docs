@@ -1,7 +1,8 @@
 # 23. External API Integration Conventions
 
-> 외부 서비스 연동 규칙
-> **핵심**: 추상화, 타임아웃, 재시도, 에러 처리
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
+> 외부 서비스 연동 규칙 (추상화, 타임아웃, 재시도, 에러 처리)
 
 ---
 

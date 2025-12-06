@@ -1,5 +1,7 @@
 # 11. React + TypeScript Project Structure
 
+> 📌 **먼저 읽기**: [10-REACT-TYPESCRIPT-CORE.md](./10-REACT-TYPESCRIPT-CORE.md)
+
 > Frontend 프로젝트 디렉토리 구조 및 파일 배치 규칙
 
 ---

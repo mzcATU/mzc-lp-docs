@@ -1,5 +1,7 @@
 # 02. Git Conventions
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > 효율적인 Git 협업 및 버전 관리
 
 ---

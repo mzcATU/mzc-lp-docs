@@ -1,5 +1,7 @@
 # 17. Design Implementation Conventions
 
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+
 > Frontend 디자인 구현 - TailwindCSS + MCP 연동
 
 ---
