@@ -308,10 +308,127 @@ export const useTenantTheme = () => {
 
 ---
 
-## 8. 관련 문서
+## 8. 강의/컨텐츠 모듈 연동 (CM/CR/LO/CMS)
+
+> test-lms-v2-integration 프로젝트에서 구현된 모듈 연동 구조
+
+### 8.1 모듈 개요
+
+| 모듈 | 역할 | 소스 위치 |
+|------|------|----------|
+| **CMS** | 컨텐츠 파일 업로드/저장/인코딩 | `domain/content/` |
+| **LO** | 학습 객체 메타데이터 관리 | `domain/learning/` |
+| **CM** | 강의 메타데이터, 커리큘럼 구성 | `domain/course/` |
+| **CR** | 차시 간 학습 순서 연결 | `domain/course/` |
+
+### 8.2 데이터 흐름
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Content → LearningObject → Course 흐름        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Content 업로드 (CMS)                                         │
+│     POST /api/contents/upload                                    │
+│                  │                                               │
+│                  ▼                                               │
+│  2. ContentCreatedEvent 발행                                     │
+│                  │                                               │
+│                  ▼                                               │
+│  3. LearningObject 자동 생성 (LO)                                │
+│     - name = content.originalFileName                           │
+│     - content 연결                                               │
+│     - ContentFolder에 배치                                       │
+│                  │                                               │
+│                  ▼                                               │
+│  4. CourseItem에서 LearningObject 참조 (CM)                      │
+│     POST /api/courses/{id}/items                                │
+│     - learningObjectId 지정                                      │
+│                  │                                               │
+│                  ▼                                               │
+│  5. CourseRelation으로 학습 순서 설정 (CR)                       │
+│     POST /api/courses/{id}/relations                            │
+│     - from_item_id → to_item_id 연결                            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 8.3 Entity 관계도
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Entity 관계도                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   ┌─────────────┐                                               │
+│   │   Content   │  ←──── 파일 저장, 메타데이터 (CMS)             │
+│   │   (CMS)     │                                               │
+│   └──────┬──────┘                                               │
+│          │ 1:1                                                   │
+│          ▼                                                       │
+│   ┌─────────────────┐     ┌─────────────────┐                   │
+│   │ LearningObject  │────►│  ContentFolder  │                   │
+│   │     (LO)        │     │     (LO)        │                   │
+│   └──────┬──────────┘     └─────────────────┘                   │
+│          │ N:1                   │                               │
+│          ▼                       │ self-reference                │
+│   ┌─────────────┐               └──► parent (3단계 계층)         │
+│   │ CourseItem  │                                               │
+│   │    (CM)     │────► parent (self-reference, 10단계)          │
+│   └──────┬──────┘                                               │
+│          │ N:1                                                   │
+│          ▼                                                       │
+│   ┌─────────────┐                                               │
+│   │   Course    │  ←──── 강의 정보 (CM)                         │
+│   │    (CM)     │                                               │
+│   └─────────────┘                                               │
+│                                                                  │
+│   ┌─────────────────────────────────────────┐                   │
+│   │        CourseRelation (CR)              │                   │
+│   │  from_item_id ──► to_item_id           │                   │
+│   │  (Linked List로 학습 순서 표현)          │                   │
+│   └─────────────────────────────────────────┘                   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 8.4 주요 기능
+
+#### 콘텐츠 관리 (CMS)
+- 파일 업로드: VIDEO, DOCUMENT, IMAGE, AUDIO
+- 외부 링크: YouTube, Vimeo, Google Form
+- 메타데이터 자동 추출: duration, resolution, pageCount
+- 스트리밍 지원 (Range Request)
+
+#### 학습객체 관리 (LO)
+- Content 업로드 시 자동 생성 (Event 기반)
+- ContentFolder 3단계 계층 구조
+- 폴더 간 이동 지원
+
+#### 강의 구성 (CM)
+- Course → CourseItem 계층 (최대 10단계)
+- 폴더 vs 차시 구분 (learningObjectId 유무)
+- 드래그앤드롭 순서 변경
+
+#### 학습 순서 (CR)
+- Linked List 패턴 (from_item_id → to_item_id)
+- 시작점: from_item_id = NULL
+- 자동 순서 생성 기능
+
+### 8.5 관련 상세 문서
+
+| 문서 | 내용 |
+|------|------|
+| [module-structure.md](./module-structure.md) | CM/CR/LO/CMS 상세 설계 |
+| [docs/structure/](../structure/) | API/DB 상세 명세 |
+
+---
+
+## 9. 관련 문서
 
 | 문서 | 내용 |
 |------|------|
 | [multi-tenancy.md](./multi-tenancy.md) | 테넌트 상세 설계 |
 | [user-roles.md](./user-roles.md) | 사용자 역할 및 권한 |
 | [24-MULTI-TENANCY.md](../conventions/24-MULTI-TENANCY.md) | 구현 컨벤션 |
+| [module-structure.md](./module-structure.md) | 모듈 구조 상세 |

@@ -20,7 +20,7 @@
 │                                     ▼                                            │
 │  ┌──────────┐     ┌──────────┐    ┌──────────────┐    ┌──────────────┐          │
 │  │    UM    │     │   IIS    │    │    Course    │    │    Course    │          │
-│  │   User   │────►│Instructor│    │    Matrix    │◄───│   Relation   │          │
+│  │   User   │────►│Instructor│    │    Metric    │◄───│   Relation   │          │
 │  │  Master  │     │   Info   │    │     (CM)     │    │     (CR)     │          │
 │  └────┬─────┘     └────┬─────┘    └──────┬───────┘    └──────────────┘          │
 │       │                │                 │                                       │
@@ -429,7 +429,7 @@ public enum AssignmentStatus {
 - 커리큘럼 구성
 - 강의 카테고리/태그 관리
 
-### Entity
+### Entity (설계안)
 
 ```java
 @Entity
@@ -502,6 +502,10 @@ public class SectionItem extends TenantEntity {
 }
 ```
 
+### 구현 상세
+
+> API/DB 상세 명세 → [docs/structure/backend/course/](../structure/backend/course/)
+
 ---
 
 ## 8. CR (Course Relation)
@@ -569,6 +573,15 @@ public class CourseRelationService {
 }
 ```
 
+### 구현 상세
+
+> API/DB 상세 명세 → [docs/structure/backend/course/](../structure/backend/course/)
+
+**Why: Linked List 패턴 선택 이유**
+- 순서 변경 시 전체 재정렬 불필요 (특정 연결만 수정)
+- 시작점 명확 (from_item_id = NULL)
+- 삽입/삭제 O(1) 복잡도
+
 ---
 
 ## 9. LO (Learning Object)
@@ -616,6 +629,15 @@ public enum LearningObjectType {
     SCORM               // SCORM 패키지
 }
 ```
+
+### 구현 상세
+
+> API/DB 상세 명세 → [docs/structure/backend/learning/](../structure/backend/learning/)
+
+**Why: Content → LO 자동 생성 이유**
+- 사용자 편의성: 업로드만 하면 바로 강의에 연결 가능
+- 일관성: 모든 Content에 대응하는 LO 보장
+- 이벤트 기반: 느슨한 결합, 확장 용이
 
 ---
 
@@ -701,6 +723,15 @@ public enum ContentStatus {
        ▼
 6. LO: Learning Object에 contentId 연결
 ```
+
+### 구현 상세
+
+> API/DB 상세 명세 → [docs/structure/backend/content/](../structure/backend/content/)
+
+**Why: 외부 링크 지원 이유**
+- YouTube/Vimeo 등 기존 콘텐츠 활용
+- 스토리지 비용 절감
+- Google Form으로 퀴즈/설문 연동
 
 ---
 
