@@ -20,7 +20,7 @@
 │                                     ▼                                            │
 │  ┌──────────┐     ┌──────────┐    ┌──────────────┐    ┌──────────────┐          │
 │  │    UM    │     │   IIS    │    │    Course    │    │    Course    │          │
-│  │   User   │────►│Instructor│    │    Matrix    │◄───│   Relation   │          │
+│  │   User   │────►│Instructor│    │    Metric    │◄───│   Relation   │          │
 │  │  Master  │     │   Info   │    │     (CM)     │    │     (CR)     │          │
 │  └────┬─────┘     └────┬─────┘    └──────┬───────┘    └──────────────┘          │
 │       │                │                 │                                       │
@@ -59,7 +59,7 @@
 
 | 모듈 | 풀네임 | 역할 |
 |------|--------|------|
-| **CM** | Course Matrix | 강의 메타데이터, 커리큘럼 구성 |
+| **CM** | Course Metric | 강의 메타데이터, 커리큘럼 구성 |
 | **CR** | Course Relation | 강의 간 관계 (선수강, 연관강의 등) |
 | **LO** | Learning Object | 학습 객체 (영상, 문서, 퀴즈 등) |
 | **CMS** | Content Management | 컨텐츠 파일 관리 (업로드, 인코딩, 저장) |
@@ -429,7 +429,7 @@ public enum AssignmentStatus {
 - 커리큘럼 구성
 - 강의 카테고리/태그 관리
 
-### Entity
+### Entity (설계안)
 
 ```java
 @Entity
@@ -502,6 +502,101 @@ public class SectionItem extends TenantEntity {
 }
 ```
 
+### 구현 상세 (test-lms-v2-integration)
+
+> 실제 구현된 Entity 및 API 명세
+
+#### Course Entity
+
+```java
+@Entity
+@Table(name = "course")
+public class Course extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "course_id")
+    private Long courseId;
+
+    @Column(name = "course_name", nullable = false)
+    private String courseName;
+
+    @Column(name = "instructor_id", nullable = false)
+    private Long instructorId;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CourseItem> items = new ArrayList<>();
+}
+```
+
+#### CourseItem Entity (차시/폴더 계층)
+
+```java
+@Entity
+@Table(name = "course_item")
+public class CourseItem extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "item_id")
+    private Long itemId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private CourseItem parent;              // NULL이면 최상위
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "learning_object_id")
+    private LearningObject learningObject;  // NULL이면 폴더
+
+    @Column(name = "item_name", nullable = false)
+    private String itemName;
+
+    @Column(name = "depth", nullable = false)
+    private Integer depth;                  // 0 = 최상위, 최대 9
+}
+```
+
+**폴더 vs 차시 구분**:
+- `learningObjectId = NULL` → 폴더
+- `learningObjectId != NULL` → 차시 (학습 콘텐츠)
+
+#### 계층 구조 예시
+
+```
+Course (강의)
+├── 1주차 (폴더, depth=0)
+│   ├── 1-1. 환경설정 (차시, depth=1)
+│   └── 1-2. 기본 문법 (차시, depth=1)
+├── 2주차 (폴더, depth=0)
+│   ├── 실습자료 (폴더, depth=1)
+│   │   └── 2-1. 실습 예제 (차시, depth=2)
+│   └── 2-2. 심화 내용 (차시, depth=1)
+└── 부록 (차시, depth=0)
+```
+
+#### API 엔드포인트
+
+| Method | Path | 설명 |
+|--------|------|------|
+| POST | `/api/courses` | 강의 생성 |
+| GET | `/api/courses` | 전체 강의 목록 |
+| GET | `/api/courses/{id}` | 강의 조회 |
+| PUT | `/api/courses/{id}` | 강의 수정 |
+| DELETE | `/api/courses/{id}` | 강의 삭제 |
+| POST | `/api/courses/{id}/items` | 차시 추가 |
+| POST | `/api/courses/{id}/folders` | 폴더 생성 |
+| DELETE | `/api/courses/items/{itemId}` | 항목 삭제 |
+| GET | `/api/courses/{id}/items/hierarchy` | 계층 구조 조회 |
+| PATCH | `/api/courses/{id}/items/{itemId}/name` | 항목 이름 변경 |
+
+#### 소스 위치
+- `backend/src/main/java/com/lms/platform/domain/course/`
+
 ---
 
 ## 8. CR (Course Relation)
@@ -569,6 +664,81 @@ public class CourseRelationService {
 }
 ```
 
+### 구현 상세 (test-lms-v2-integration)
+
+> 차시(CourseItem) 간 학습 순서 연결 (Linked List 패턴)
+
+#### CourseRelation Entity
+
+```java
+@Entity
+@Table(name = "course_relation")
+public class CourseRelation extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "relation_id")
+    private Long relationId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_item_id")
+    private CourseItem fromItem;        // NULL이면 시작점
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_item_id", nullable = false)
+    private CourseItem toItem;
+}
+```
+
+#### Linked List 구조
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  CourseRelation: 차시 간 1:1 선형 순서 (Linked List)              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  from_item_id = NULL  →  to_item_id = 1 (1차시, 시작점)          │
+│  from_item_id = 1     →  to_item_id = 2 (2차시)                  │
+│  from_item_id = 2     →  to_item_id = 3 (3차시)                  │
+│  from_item_id = 3     →  to_item_id = 4 (4차시, 마지막)          │
+│                                                                  │
+│  시작점 설정: from_item_id = NULL인 레코드가 첫 번째 학습 항목    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### 학습 순서 연결 예시
+
+```
+Course: "React 기초"
+├── 1주차 (폴더)
+│   ├── [차시] 환경설정 ──┐
+│   │                     │ CourseRelation
+│   └── [차시] JSX 문법 ◄─┘──┐
+│                             │ CourseRelation
+├── 2주차 (폴더)              │
+│   └── [차시] 컴포넌트 ◄─────┘──┐
+│                                │ CourseRelation
+└── [차시] 최종 퀴즈 ◄───────────┘
+
+학습 순서: 환경설정 → JSX 문법 → 컴포넌트 → 최종 퀴즈
+(폴더는 학습 순서에 포함되지 않음)
+```
+
+#### API 엔드포인트
+
+| Method | Path | 설명 |
+|--------|------|------|
+| POST | `/api/courses/{id}/relations` | 학습 순서 설정 |
+| GET | `/api/courses/{id}/relations` | 학습 순서 조회 |
+| PUT | `/api/courses/{id}/relations` | 학습 순서 수정 |
+| DELETE | `/api/courses/{id}/relations/{relationId}` | 순서 연결 삭제 |
+| POST | `/api/courses/{id}/relations/auto` | 자동 순서 생성 (depth 순) |
+
+#### 소스 위치
+- `backend/src/main/java/com/lms/platform/domain/course/entity/CourseRelation.java`
+- `backend/src/main/java/com/lms/platform/domain/course/service/CourseRelationService.java`
+
 ---
 
 ## 9. LO (Learning Object)
@@ -616,6 +786,111 @@ public enum LearningObjectType {
     SCORM               // SCORM 패키지
 }
 ```
+
+### 구현 상세 (test-lms-v2-integration)
+
+> 학습객체 관리 및 콘텐츠 폴더 계층 구조
+
+#### LearningObject Entity
+
+```java
+@Entity
+@Table(name = "learning_object")
+public class LearningObject extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "learning_object_id")
+    private Long learningObjectId;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "content_id")
+    private Content content;            // CMS 콘텐츠 연결
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id")
+    private ContentFolder folder;       // 콘텐츠 풀 폴더
+}
+```
+
+#### ContentFolder Entity (콘텐츠 풀 폴더)
+
+```java
+@Entity
+@Table(name = "content_folder")
+public class ContentFolder extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "folder_id")
+    private Long folderId;
+
+    @Column(name = "folder_name", nullable = false)
+    private String folderName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private ContentFolder parent;       // 3단계 계층 지원
+
+    @Column(name = "depth", nullable = false)
+    private Integer depth;              // 0, 1, 2 (최대 3단계)
+}
+```
+
+#### 콘텐츠 풀 구조
+
+```
+콘텐츠 풀 (Content Pool)
+├── 교육자료 (폴더, depth=0)
+│   ├── 2024년 (폴더, depth=1)
+│   │   ├── [LO] React 기초 영상.mp4
+│   │   └── [LO] React 교안.pdf
+│   └── 2025년 (폴더, depth=1)
+│       └── [LO] Next.js 입문.mp4
+├── 실습자료 (폴더, depth=0)
+│   └── [LO] 실습 예제 코드.zip
+└── [LO] 공지사항.pdf (최상위)
+```
+
+#### Content → LearningObject 자동 생성
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│  이벤트 기반 LO 자동 생성                                       │
+├───────────────────────────────────────────────────────────────┤
+│                                                                │
+│  1. Content 업로드 (CMS)                                       │
+│                  ↓                                             │
+│  2. ContentCreatedEvent 발행                                   │
+│                  ↓                                             │
+│  3. LearningObjectEventListener 수신                           │
+│                  ↓                                             │
+│  4. LearningObject 자동 생성 (name = content.originalFileName)  │
+│     - Content 메타데이터 자동 추출 (duration, resolution 등)    │
+│                                                                │
+└───────────────────────────────────────────────────────────────┘
+```
+
+#### API 엔드포인트
+
+| Method | Path | 설명 |
+|--------|------|------|
+| GET | `/api/learning-objects` | 학습객체 목록 |
+| GET | `/api/learning-objects/{id}` | 학습객체 상세 |
+| PUT | `/api/learning-objects/{id}` | 학습객체 수정 |
+| DELETE | `/api/learning-objects/{id}` | 학습객체 삭제 |
+| POST | `/api/content-folders` | 폴더 생성 |
+| GET | `/api/content-folders` | 폴더 목록 |
+| PUT | `/api/content-folders/{id}` | 폴더 수정 |
+| DELETE | `/api/content-folders/{id}` | 폴더 삭제 |
+| GET | `/api/content-folders/tree` | 폴더 트리 구조 |
+| POST | `/api/learning-objects/{id}/move` | 학습객체 폴더 이동 |
+
+#### 소스 위치
+- `backend/src/main/java/com/lms/platform/domain/learning/`
 
 ---
 
@@ -701,6 +976,136 @@ public enum ContentStatus {
        ▼
 6. LO: Learning Object에 contentId 연결
 ```
+
+### 구현 상세 (test-lms-v2-integration)
+
+> 파일 업로드/메타데이터 추출/외부 링크 지원
+
+#### Content Entity
+
+```java
+@Entity
+@Table(name = "content")
+public class Content extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "content_id")
+    private Long contentId;
+
+    @Column(name = "original_file_name")
+    private String originalFileName;
+
+    @Column(name = "stored_file_name")
+    private String storedFileName;      // UUID 기반
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "content_type", nullable = false)
+    private ContentType contentType;
+
+    @Column(name = "file_size")
+    private Long fileSize;
+
+    @Column(name = "duration")
+    private Integer duration;           // 초 단위 (영상/오디오)
+
+    @Column(name = "resolution")
+    private String resolution;          // "1920x1080" (영상)
+
+    @Column(name = "page_count")
+    private Integer pageCount;          // 문서 페이지 수
+
+    // 외부 링크 지원
+    @Column(name = "external_url")
+    private String externalUrl;         // YouTube, Vimeo, Google Form 등
+
+    @Column(name = "file_path")
+    private String filePath;            // 로컬 저장 경로
+}
+```
+
+#### 지원 파일 타입
+
+```java
+public enum ContentType {
+    VIDEO,              // mp4, avi, mov, mkv
+    DOCUMENT,           // pdf, doc, docx, ppt, pptx
+    IMAGE,              // jpg, png, gif, svg
+    AUDIO,              // mp3, wav, m4a
+    EXTERNAL_LINK       // YouTube, Vimeo, Google Form 등 외부 링크
+}
+```
+
+#### 외부 링크 지원
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  지원 외부 서비스                                              │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  • YouTube: https://www.youtube.com/watch?v=xxxxx             │
+│  • YouTube (Short): https://youtu.be/xxxxx                    │
+│  • Vimeo: https://vimeo.com/xxxxxxxx                          │
+│  • Google Form: https://docs.google.com/forms/d/e/xxxxx       │
+│                                                               │
+│  특징:                                                        │
+│  - contentType = EXTERNAL_LINK                                │
+│  - fileSize, filePath = NULL                                  │
+│  - externalUrl에 원본 URL 저장                                │
+│  - 메타데이터 (duration 등)은 API로 추출 시도                  │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+```
+
+#### 메타데이터 자동 추출
+
+| 파일 타입 | 추출 정보 | 사용 라이브러리 |
+|----------|----------|----------------|
+| VIDEO | duration, resolution | FFmpeg / FFprobe |
+| AUDIO | duration | FFmpeg / FFprobe |
+| DOCUMENT (PDF) | pageCount | Apache PDFBox |
+| IMAGE | resolution | ImageIO |
+| EXTERNAL_LINK | duration (YouTube API) | YouTube Data API |
+
+#### API 엔드포인트
+
+| Method | Path | 설명 |
+|--------|------|------|
+| POST | `/api/contents/upload` | 파일 업로드 |
+| POST | `/api/contents/external-link` | 외부 링크 등록 |
+| GET | `/api/contents` | 콘텐츠 목록 |
+| GET | `/api/contents/{id}` | 콘텐츠 상세 |
+| DELETE | `/api/contents/{id}` | 콘텐츠 삭제 |
+| GET | `/api/contents/{id}/stream` | 스트리밍 (Range 지원) |
+| GET | `/api/contents/{id}/download` | 파일 다운로드 |
+| GET | `/api/contents/{id}/thumbnail` | 썸네일 조회 (영상/문서) |
+
+#### 업로드 → LO 자동 생성 흐름
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│  Content 업로드 및 LO 자동 생성 흐름                            │
+├───────────────────────────────────────────────────────────────┤
+│                                                                │
+│  1. POST /api/contents/upload (multipart/form-data)            │
+│                  ↓                                             │
+│  2. ContentService.upload()                                    │
+│     - 파일 저장 (로컬 or S3)                                   │
+│     - 메타데이터 추출 (duration, resolution, pageCount)        │
+│     - Content 엔티티 생성 및 저장                              │
+│                  ↓                                             │
+│  3. ApplicationEventPublisher.publishEvent(ContentCreatedEvent)│
+│                  ↓                                             │
+│  4. LearningObjectEventListener.handleContentCreated()         │
+│     - LearningObject 자동 생성                                 │
+│     - name = content.originalFileName                          │
+│     - content 연결                                             │
+│                                                                │
+└───────────────────────────────────────────────────────────────┘
+```
+
+#### 소스 위치
+- `backend/src/main/java/com/lms/platform/domain/content/`
 
 ---
 
