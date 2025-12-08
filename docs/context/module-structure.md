@@ -410,8 +410,7 @@ public class InstructorAssignment extends TenantEntity {
 
 public enum InstructorRole {
     MAIN,           // 주강사
-    SUB,            // 보조강사
-    ASSISTANT       // 조교
+    SUB             // 보조강사
 }
 
 public enum AssignmentStatus {
@@ -758,7 +757,7 @@ public enum ContentStatus {
 5. OPERATOR: 차수 생성
    └─ TS: CourseTime 생성
 
-6. OPERATOR: 강사 배정
+6. OPERATOR: 강사 배정 (보통 OWNER가 INSTRUCTOR로 배정됨)
    └─ IIS에 기록: { userKey, timeKey, timestamp }
 
 7. USER: 수강신청 (또는 OPERATOR 강제 신청)

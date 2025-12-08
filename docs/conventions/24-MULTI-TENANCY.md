@@ -208,8 +208,28 @@ public class TenantService {
 ### 역할 Enum
 
 ```java
-public enum UserRole {
-    SUPER_ADMIN, TENANT_ADMIN, TENANT_OPERATOR, INSTRUCTOR, STUDENT, USER
+// 시스템 레벨
+public enum SystemRole {
+    SUPER_ADMIN     // 플랫폼 전체 관리 (MZC 내부)
+}
+
+// 테넌트 레벨
+public enum TenantRole {
+    TENANT_ADMIN,       // 테넌트 최고 관리자
+
+    // B2C/KPOP
+    OPERATOR,           // 운영자
+    USER,               // 일반 사용자
+
+    // B2B 전용
+    TENANT_OPERATOR,    // 테넌트 운영자 (조직/유저/강의/학습현황 관리)
+    MEMBER              // 일반 직원
+}
+
+// 강의 레벨 (모든 플랫폼 공통)
+public enum CourseRole {
+    OWNER,              // 강의 생성자
+    INSTRUCTOR          // 강사 (피드백 제공)
 }
 ```
 

@@ -4,13 +4,38 @@
 
 ---
 
-## 1. 테넌트 타입
+## 1. 플랫폼 관계
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    B2C (메인 러닝 플랫폼)                     │
+│                      핵심 코어 시스템                         │
+└─────────────────────────────────────────────────────────────┘
+                            │
+            ┌───────────────┴───────────────┐
+            │ 테넌트화 (브랜딩 + 커스터마이징) │
+            └───────────────┬───────────────┘
+                            │
+        ┌───────────────────┴───────────────────┐
+        ▼                                       ▼
+┌───────────────────────┐           ┌───────────────────────┐
+│    B2B (기업용 LMS)    │           │  KPOP (K-POP 교육)   │
+│  삼성, LG, 현대 등     │           │  외국인 단기 연수     │
+│  기업 브랜딩 적용      │           │  스케줄/시설/피드백   │
+└───────────────────────┘           └───────────────────────┘
+```
+
+> **B2C가 코어**: B2B와 KPOP은 B2C를 기반으로 테넌트화하여 각 도메인에 맞게 커스터마이징한 버전
+
+---
+
+## 2. 테넌트 타입
 
 ```java
 public enum TenantType {
-    B2C,    // 메인 플랫폼 (인프런형)
-    B2B,    // 기업 전용 (화이트라벨)
-    KPOP    // K-Pop 특화
+    B2C,    // 메인 플랫폼 (인프런형) - 코어
+    B2B,    // 기업 전용 (B2C 테넌트화)
+    KPOP    // K-Pop 특화 (B2C 테넌트화)
 }
 ```
 
@@ -22,9 +47,9 @@ public enum TenantType {
 
 ---
 
-## 2. 테넌트 Entity 구조
+## 3. 테넌트 Entity 구조
 
-### 2.1 Tenant (테넌트 기본)
+### 3.1 Tenant (테넌트 기본)
 
 ```java
 @Entity
@@ -84,7 +109,7 @@ public class Tenant extends BaseTimeEntity {
 }
 ```
 
-### 2.2 TenantBranding (B2B 브랜딩)
+### 3.2 TenantBranding (B2B 브랜딩)
 
 ```java
 @Entity
@@ -120,7 +145,7 @@ public class TenantBranding {
 }
 ```
 
-### 2.3 TenantSettings (테넌트 설정)
+### 3.3 TenantSettings (테넌트 설정)
 
 ```java
 @Entity
@@ -151,9 +176,9 @@ public class TenantSettings {
 
 ---
 
-## 3. 테넌트 식별 흐름
+## 4. 테넌트 식별 흐름
 
-### 3.1 요청 → 테넌트 매핑
+### 4.1 요청 → 테넌트 매핑
 
 ```
 1. samsung.learn.mzc.com/api/courses
@@ -173,7 +198,7 @@ public class TenantSettings {
    └─ tenant_id: 100 (KPOP_MAIN)
 ```
 
-### 3.2 TenantResolver 구현
+### 4.2 TenantResolver 구현
 
 ```java
 @Component
@@ -211,9 +236,9 @@ public class TenantResolver {
 
 ---
 
-## 4. 데이터 격리
+## 5. 데이터 격리
 
-### 4.1 TenantEntity 기본 클래스
+### 5.1 TenantEntity 기본 클래스
 
 ```java
 @MappedSuperclass
@@ -238,7 +263,7 @@ public abstract class TenantEntity extends BaseTimeEntity {
 }
 ```
 
-### 4.2 테넌트별 Entity 분류
+### 5.2 테넌트별 Entity 분류
 
 ```
 TenantEntity 상속 (tenant_id 필수)
@@ -260,24 +285,27 @@ BaseTimeEntity 상속 (tenant_id 없음)
 
 ---
 
-## 5. 사이트별 기능 분기
+## 6. 사이트별 기능 분기
 
-### 5.1 기능 매트릭스
+### 6.1 기능 매트릭스
 
 | 기능 | B2C | B2B | KPOP |
 |------|-----|-----|------|
-| 강사 등록 | O | X (관리자만) | O |
-| 개인 결제 | O | X | O (구독) |
+| 강의 생성 | USER 가능 | TENANT_OPERATOR | OPERATOR만 |
+| 강사 배정 | OPERATOR가 배정 | TENANT_OPERATOR가 배정 | OPERATOR가 배정 |
+| 개인 결제 | O | X | O |
 | 기업 결제 | X | O | X |
 | 조직 관리 | X | O | X |
-| 대시보드 | 개인 | 조직+개인 | 팬 |
+| 스케줄/시설 관리 | X | X | O |
+| 팀 구성/채팅 | X | X | O |
+| 영상 피드백 | X | X | O |
+| 대시보드 | 개인 | 조직+전사 | 개인 |
 | 브랜딩 | X | O | O (고정) |
 | 리뷰 | O | 선택 | O |
 | 수료증 | O | O | O |
 | SSO | X | O | X |
-| 구독 | X | X | O |
 
-### 5.2 기능 체크 서비스
+### 6.2 기능 체크 서비스
 
 ```java
 @Service
@@ -315,9 +343,9 @@ public void applyInstructor() {
 
 ---
 
-## 6. B2C 강의 → B2B 공유
+## 7. B2C 강의 → B2B 공유
 
-### 6.1 강의 라이선스 모델
+### 7.1 강의 라이선스 모델
 
 ```java
 @Entity
@@ -343,7 +371,7 @@ public class CourseLicense extends BaseTimeEntity {
 }
 ```
 
-### 6.2 강의 조회 로직
+### 7.2 강의 조회 로직
 
 ```java
 @Service
@@ -371,7 +399,7 @@ public class CourseQueryService {
 
 ---
 
-## 7. 테넌트 생성 프로세스 (B2B)
+## 8. 테넌트 생성 프로세스 (B2B)
 
 ```
 1. 기업 신청 (웹 폼 또는 영업팀)
@@ -399,7 +427,7 @@ public class CourseQueryService {
 
 ---
 
-## 8. 캐싱 전략
+## 9. 캐싱 전략
 
 ```java
 @Service
@@ -425,7 +453,7 @@ public class TenantCacheService {
 
 ---
 
-## 9. 관련 문서
+## 10. 관련 문서
 
 | 문서 | 내용 |
 |------|------|

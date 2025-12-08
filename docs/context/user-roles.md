@@ -4,7 +4,32 @@
 
 ---
 
-## 1. 역할 계층 구조
+## 1. 플랫폼 관계
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    B2C (메인 러닝 플랫폼)                     │
+│                      핵심 코어 시스템                         │
+└─────────────────────────────────────────────────────────────┘
+                            │
+            ┌───────────────┴───────────────┐
+            │ 테넌트화 (브랜딩 + 커스터마이징) │
+            └───────────────┬───────────────┘
+                            │
+        ┌───────────────────┴───────────────────┐
+        ▼                                       ▼
+┌───────────────────────┐           ┌───────────────────────┐
+│    B2B (기업용 LMS)    │           │  KPOP (K-POP 교육)   │
+│  삼성, LG, 현대 등     │           │  외국인 단기 연수     │
+│  기업 브랜딩 적용      │           │  스케줄/시설/피드백   │
+└───────────────────────┘           └───────────────────────┘
+```
+
+> **B2C가 코어**: B2B와 KPOP은 B2C를 기반으로 테넌트화하여 각 도메인에 맞게 커스터마이징한 버전
+
+---
+
+## 2. 역할 계층 구조
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -17,20 +42,20 @@
         ▼                   ▼                   ▼
 ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
 │  TENANT_ADMIN │   │  TENANT_ADMIN │   │  TENANT_ADMIN │
-│   (B2C 관리)  │   │  (B2B 관리)   │   │ (KPOP 관리)   │
+│   (B2C 관리)  │   │(B2B 통계/브랜딩)│  │ (KPOP 관리)   │
 └───────────────┘   └───────────────┘   └───────────────┘
         │                   │                   │
         ▼                   ▼                   ▼
 ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│     USER      │   │ TENANT_OPERATOR│  │   ARTIST      │
-│ (수강+강의등록)│   │   (운영자)    │   │  (아티스트)   │
+│   OPERATOR    │   │TENANT_OPERATOR│   │   OPERATOR    │
+│   (운영자)    │   │   (운영자)    │   │   (운영자)    │
 └───────────────┘   └───────────────┘   └───────────────┘
-                           │                   │
-                           ▼                   ▼
-                    ┌───────────────┐   ┌───────────────┐
-                    │    MEMBER     │   │     FAN       │
-                    │   (직원)      │   │    (팬)       │
-                    └───────────────┘   └───────────────┘
+        │                   │                   │
+        ▼                   ▼                   ▼
+┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+│     USER      │   │    MEMBER     │   │     USER      │
+│ (수강+강의등록)│   │   (직원)      │   │   (학생)      │
+└───────────────┘   └───────────────┘   └───────────────┘
 ```
 
 ### B2C 특징: 강의별 권한
@@ -40,18 +65,25 @@ USER (일반 사용자)
   │
   ├── 수강생으로서: 다른 사람 강의 수강
   │
-  └── 강사로서: 본인이 만든 강의 관리
-      │
-      ├── 강의 생성 → 자동으로 해당 강의의 INSTRUCTOR
-      │
-      └── 다른 사람 강의에 강사로 배정됨 → 해당 강의의 INSTRUCTOR
+  └── 강의 생성 → 자동으로 해당 강의의 OWNER → 등록 신청
+
+OPERATOR (운영자)
+  │
+  ├── 강의 등록 신청 검토/승인
+  │
+  ├── 차수(기수) 등록 관리
+  │
+  ├── 강사 배정 → 해당 사용자가 강의의 INSTRUCTOR가 됨
+  │   └── 보통 OWNER가 INSTRUCTOR로 배정됨 (별도 지정 없으면)
+  │
+  └── 수강 신청 관리 (승인/거절)
 ```
 
 ---
 
-## 2. 역할 정의
+## 3. 역할 정의
 
-### 2.1 시스템 레벨 역할
+### 3.1 시스템 레벨 역할
 
 ```java
 public enum SystemRole {
@@ -59,29 +91,24 @@ public enum SystemRole {
 }
 ```
 
-### 2.2 테넌트 레벨 역할
+### 3.2 테넌트 레벨 역할
 
 ```java
 public enum TenantRole {
     // 공통
     TENANT_ADMIN,       // 테넌트 최고 관리자
 
-    // B2C 전용
+    // B2C/KPOP
     OPERATOR,           // 운영자 (강의 검토, 차수 생성, 강사 배정)
     USER,               // 일반 사용자 (수강 + 강의 등록 가능)
 
     // B2B 전용
-    TENANT_OPERATOR,    // 테넌트 운영자 (B2B 전체 운영)
-    ORG_ADMIN,          // 조직(부서) 관리자
-    MEMBER,             // 일반 직원
-
-    // KPOP 전용
-    ARTIST,             // 아티스트 (콘텐츠 제작)
-    FAN                 // 팬 (구독자)
+    TENANT_OPERATOR,    // 테넌트 운영자 (조직/유저/강의/학습현황 관리)
+    MEMBER              // 일반 직원 (수강만)
 }
 ```
 
-### 2.4 Operator 역할 상세 (B2C)
+### 3.3 Operator 역할 상세 (B2C)
 
 ```
 OPERATOR가 TS(Time Schedule) 모듈에서 수행하는 업무:
@@ -102,82 +129,123 @@ OPERATOR가 TS(Time Schedule) 모듈에서 수행하는 업무:
    └─ 운영 중 변경사항 처리
 ```
 
-### 2.3 강의 레벨 역할 (B2C 전용)
+### 3.4 강의 레벨 역할 (B2C/B2B/KPOP 공통)
 
 ```java
 public enum CourseRole {
     OWNER,          // 강의 생성자 (소유권, 수익)
-    INSTRUCTOR,     // 강사 (강의 관리, 수익 분배)
-    ASSISTANT       // 조교 (Q&A 답변, 과제 채점)
+    INSTRUCTOR      // 강사 (강의 관리, 피드백)
 }
 ```
 
-> **핵심**: B2C는 `TenantRole.USER`로 통일, 강의별 권한은 `CourseInstructor` 테이블로 관리
+| | B2C | B2B | KPOP |
+|---|---|---|---|
+| 강의 생성 | USER가 직접 | TENANT_OPERATOR가 생성 | OPERATOR가 생성 |
+| OWNER | 강의 생성한 USER | TENANT_OPERATOR 또는 지정 | OPERATOR 또는 지정 |
+| INSTRUCTOR 배정 | OWNER가 초대 | TENANT_OPERATOR가 배정 | OPERATOR가 배정 |
+| 수익 분배 | O (플랫폼 수수료) | X (기업 내부) | X |
+
+> **핵심**: 강의별 권한은 `CourseInstructor` 테이블로 관리 (모든 플랫폼 공통)
 
 ---
 
-## 3. 역할별 권한 매트릭스
+## 4. 역할별 권한 매트릭스
 
-### 3.1 B2C 사이트
+### 4.1 B2C 사이트
 
 #### 테넌트 레벨 권한
 
-| 권한 | TENANT_ADMIN | USER |
-|------|--------------|------|
-| 플랫폼 설정 | O | X |
-| 모든 강의 관리 | O | X |
-| 사용자 관리 | O | X |
-| 강의 생성 | O | **O** |
-| 강의 수강 | O | O |
-| 리뷰 작성 | O | O |
+| 권한 | TENANT_ADMIN | OPERATOR | USER |
+|------|--------------|----------|------|
+| 플랫폼 설정 | O | X | X |
+| 모든 강의 관리 | O | O | X |
+| 사용자 관리 | O | O | X |
+| 강의 검토/승인 | O | O | X |
+| 차수 생성/강사 배정 | O | O | X |
+| 강의 생성 | O | O | **O** |
+| 강의 수강 | O | O | O |
+| 리뷰 작성 | O | O | O |
 
 #### 강의 레벨 권한 (CourseRole)
 
-| 권한 | OWNER | INSTRUCTOR | ASSISTANT | 수강생 |
-|------|-------|------------|-----------|--------|
-| 강의 삭제 | O | X | X | X |
-| 강의 정보 수정 | O | O | X | X |
-| 영상 업로드 | O | O | X | X |
-| 가격 설정 | O | X | X | X |
-| 수익 전체 조회 | O | X | X | X |
-| 수익 분배 받기 | O | O | X | X |
-| Q&A 답변 | O | O | O | X |
-| 과제 채점 | O | O | O | X |
-| 수강생 관리 | O | O | X | X |
-| 강의 시청 | O | O | O | O |
+| 권한 | OWNER | INSTRUCTOR | 수강생 |
+|------|-------|------------|--------|
+| 강의 삭제 | O | X | X |
+| 강의 정보 수정 | O | O | X |
+| 영상 업로드 | O | O | X |
+| 가격 설정 | O | X | X |
+| 수익 전체 조회 | O | X | X |
+| 수익 분배 받기 | O | O | X |
+| Q&A 답변 | O | O | X |
+| 수강생 관리 | O | O | X |
+| 강의 시청 | O | O | O |
 
 > **USER는 누구나 강의를 만들 수 있고, 만든 순간 해당 강의의 OWNER가 됨**
 
-### 3.2 B2B 사이트
+### 4.2 B2B 사이트
 
-| 권한 | TENANT_ADMIN | TENANT_OPERATOR | ORG_ADMIN | MEMBER |
-|------|--------------|-----------------|-----------|--------|
-| 테넌트 설정 | O | X | X | X |
-| 브랜딩 설정 | O | O | X | X |
-| 모든 사용자 관리 | O | O | X | X |
-| 조직 관리 | O | O | 본인 조직 | X |
-| 강의 업로드 | O | O | X | X |
-| 학습 현황 조회 | O | O | 본인 조직 | 본인 |
-| 대시보드 | 전체 | 전체 | 조직 | 개인 |
-| 수강 | O | O | O | O |
+#### 테넌트 레벨 권한
 
-### 3.3 KPOP 사이트
+| 권한 | TENANT_ADMIN | TENANT_OPERATOR | MEMBER |
+|------|--------------|-----------------|--------|
+| 전사 통계/대시보드 | O | O | X |
+| 브랜딩 설정 | O | X | X |
+| 조직 생성/삭제 | O | O | X |
+| 모든 사용자 관리 | O | O | X |
+| 강의 생성 | O | O | X |
+| 강사 배정 | O | O | X |
+| 조직별 학습 현황 | O | O | 본인만 |
+| 수강 | O | O | O |
 
-| 권한 | TENANT_ADMIN | ARTIST | FAN |
-|------|--------------|--------|-----|
-| 플랫폼 설정 | O | X | X |
+> **TENANT_ADMIN**: 전사 통계/브랜딩 담당
+> **TENANT_OPERATOR**: 전체 운영 (모든 조직의 유저/강의/학습현황 관리)
+
+#### 강의 레벨 권한 (CourseRole)
+
+| 권한 | OWNER | INSTRUCTOR | 수강생 |
+|------|-------|------------|--------|
+| 강의 정보 수정 | O | O | X |
 | 콘텐츠 업로드 | O | O | X |
-| 캠프 생성 | O | O | X |
-| 피드백 제공 | O | O | X |
-| 구독 | O | O | O |
-| 콘텐츠 시청 | O | O | 구독자만 |
-| 댓글 | O | O | O |
+| Q&A 답변/피드백 | O | O | X |
+| 수강생 관리 | O | O | X |
+| 강의 시청 | O | O | O |
+
+### 4.3 KPOP 사이트 (K-POP 단기 연수)
+
+#### 테넌트 레벨 권한
+
+| 권한 | TENANT_ADMIN | OPERATOR | USER (학생) |
+|------|--------------|----------|-------------|
+| 플랫폼 설정 | O | X | X |
+| 프로그램/캠프 생성 | O | O | X |
+| 스케줄 관리 | O | O | X |
+| 팀 구성/관리 | O | O | X |
+| 시설 예약 관리 | O | O | X |
+| 강의 생성 | O | O | X |
+| 강사 배정 | O | O | X |
+| 스케줄 조회 | O | O | O |
+| 시설 예약 | O | O | O |
+| 팀 채팅 | O | O | O |
+| 강의 수강 | O | O | O |
+| 영상 업로드 (피드백용) | O | O | O |
+
+#### 강의 레벨 권한 (CourseRole)
+
+| 권한 | OWNER | INSTRUCTOR | 수강생 |
+|------|-------|------------|--------|
+| 강의 정보 수정 | O | O | X |
+| 콘텐츠 업로드 | O | O | X |
+| **피드백 제공** | O | O | X |
+| 수강생 관리 | O | O | X |
+| 강의 시청 | O | O | O |
+
+> **KPOP 특화 기능**: 학생이 귀국 후 춤/노래 영상을 업로드하면 INSTRUCTOR가 피드백 제공
 
 ---
 
-## 4. User Entity 설계
+## 5. User Entity 설계
 
-### 4.1 User (기본)
+### 5.1 User (기본)
 
 ```java
 @Entity
@@ -206,7 +274,7 @@ public class User extends TenantEntity {
     // 테넌트 레벨 역할
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TenantRole role;        // USER, MEMBER, FAN 등
+    private TenantRole role;        // USER, MEMBER 등
 
     // B2B 전용: 소속 조직
     @ManyToOne(fetch = FetchType.LAZY)
@@ -223,7 +291,7 @@ public class User extends TenantEntity {
 }
 ```
 
-### 4.2 CourseInstructor (강의별 강사 - B2C 핵심)
+### 5.2 CourseInstructor (강의별 강사 - B2C 핵심)
 
 ```java
 @Entity
@@ -244,7 +312,7 @@ public class CourseInstructor extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CourseRole role;        // OWNER, INSTRUCTOR, ASSISTANT
+    private CourseRole role;        // OWNER, INSTRUCTOR
 
     private Integer revenueSharePercent;  // 수익 분배 비율 (예: 70%)
 
@@ -269,7 +337,7 @@ public class CourseInstructor extends BaseTimeEntity {
 }
 ```
 
-### 4.3 Course와 강사 관계
+### 5.3 Course와 강사 관계
 
 ```java
 @Entity
@@ -316,7 +384,7 @@ public class Course extends TenantEntity {
 }
 ```
 
-### 4.4 Organization (B2B 조직)
+### 5.4 Organization (B2B 조직)
 
 ```java
 @Entity
@@ -344,9 +412,9 @@ public class Organization extends TenantEntity {
 
 ---
 
-## 5. 권한 부여 플로우
+## 6. 권한 부여 플로우
 
-### 5.1 B2C 사용자 가입 및 강의 생성
+### 6.1 B2C 사용자 가입 및 강의 생성
 
 ```
 1. 회원가입
@@ -369,7 +437,7 @@ public class Organization extends TenantEntity {
                                     6. 승인 → PUBLISHED
 ```
 
-### 5.2 B2C 강사 배정 (공동 강의)
+### 6.2 B2C 강사 배정 (공동 강의)
 
 ```
 1. 강의 OWNER가 강사 초대
@@ -385,7 +453,7 @@ public class Organization extends TenantEntity {
 4. 해당 강의에 대해 강사 권한 획득
 ```
 
-### 5.3 B2B 사용자 등록
+### 6.3 B2B 사용자 등록
 
 ```
 1. 관리자가 사용자 생성 (대량 등록 가능)
@@ -396,17 +464,17 @@ public class Organization extends TenantEntity {
    예: organization_id = 5, role = MEMBER
        │
        ▼
-3. 추가 권한 부여 (선택)
-   예: role = ORG_ADMIN (해당 조직 관리자)
+3. 운영 권한 부여 (선택)
+   예: role = TENANT_OPERATOR (전체 운영자)
 ```
 
-### 5.4 KPOP 사용자 가입
+### 6.4 KPOP 사용자 가입
 
 ```
 1. 회원가입 (무료)
        │
        ▼
-2. 기본 역할: FAN
+2. 기본 역할: USER
        │
        ▼
 3. 구독 결제
@@ -417,9 +485,9 @@ public class Organization extends TenantEntity {
 
 ---
 
-## 6. 권한 검증 구현
+## 7. 권한 검증 구현
 
-### 6.1 Spring Security 설정
+### 7.1 Spring Security 설정
 
 ```java
 @Configuration
@@ -445,7 +513,7 @@ public class SecurityConfig {
 }
 ```
 
-### 6.2 메서드 레벨 권한
+### 7.2 메서드 레벨 권한
 
 ```java
 @RestController
@@ -479,7 +547,7 @@ public class CourseController {
 }
 ```
 
-### 6.3 커스텀 Security Service (B2C 강의 권한)
+### 7.3 커스텀 Security Service (B2C 강의 권한)
 
 ```java
 @Service
@@ -511,7 +579,7 @@ public class CourseSecurityService {
             || enrollmentRepository.existsByCourseIdAndUserId(courseId, userId);
     }
 
-    // Q&A 답변 권한 (OWNER, INSTRUCTOR, ASSISTANT)
+    // Q&A 답변 권한 (OWNER, INSTRUCTOR)
     public boolean canAnswerQna(Long courseId) {
         Long userId = SecurityUtils.getCurrentUserId();
         return courseInstructorRepository.existsByCourseIdAndUserId(courseId, userId);
@@ -522,11 +590,11 @@ public class CourseSecurityService {
 @RequiredArgsConstructor
 public class OrgSecurityService {
 
-    public boolean isOrgAdmin(Long orgId) {
+    public boolean isTenantOperator() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        return userRoleRepository.existsByUserIdAndRoleAndScopeOrganizationId(
-            currentUserId, TenantRole.ORG_ADMIN, orgId
-        );
+        return userRepository.findById(currentUserId)
+            .map(user -> user.getRole() == TenantRole.TENANT_OPERATOR)
+            .orElse(false);
     }
 
     public boolean belongsToOrg(Long orgId) {
@@ -541,7 +609,7 @@ public class OrgSecurityService {
 
 ---
 
-## 7. JWT 토큰 구조
+## 8. JWT 토큰 구조
 
 ```java
 public class JwtTokenProvider {
@@ -579,7 +647,7 @@ public class JwtTokenProvider {
   "sub": "12345",
   "email": "user@samsung.com",
   "tenantId": 2,
-  "roles": ["MEMBER", "ORG_ADMIN"],
+  "roles": ["TENANT_OPERATOR"],
   "organizationId": 5,
   "iat": 1699000000,
   "exp": 1699000900
@@ -588,12 +656,15 @@ public class JwtTokenProvider {
 
 ---
 
-## 8. 사이트별 권한 요약
+## 9. 사이트별 권한 요약
 
 ### B2C (인프런형) - 강의별 권한 모델
 
 ```
 TENANT_ADMIN ─── 전체 관리
+       │
+       ▼
+   OPERATOR ──── 강의 검토/승인, 차수 생성, 강사 배정
        │
        ▼
      USER ─────── 수강 + 강의 생성 가능
@@ -605,7 +676,6 @@ TENANT_ADMIN ─── 전체 관리
 ├─────────────────────────────────────┤
 │ OWNER ──── 강의 소유, 삭제, 수익    │
 │ INSTRUCTOR ─ 강의 관리, 수익 분배   │
-│ ASSISTANT ── Q&A, 과제 채점         │
 └─────────────────────────────────────┘
 ```
 
@@ -614,28 +684,28 @@ TENANT_ADMIN ─── 전체 관리
 ### B2B (기업 전용)
 
 ```
-TENANT_ADMIN ─────┬─ 테넌트 전체 관리
+TENANT_ADMIN ─────┬─ 전사 통계/브랜딩
                   │
-TENANT_OPERATOR ──┼─ 운영 (사용자, 강의, 대시보드)
-                  │
-ORG_ADMIN ────────┼─ 소속 조직 관리
+TENANT_OPERATOR ──┼─ 전체 운영 (모든 조직의 유저/강의/학습현황)
                   │
 MEMBER ───────────┴─ 학습
 ```
 
-### KPOP (팬 플랫폼)
+### KPOP (K-POP 단기 연수)
 
 ```
 TENANT_ADMIN ─┬─ 전체 관리
               │
-ARTIST ───────┼─ 콘텐츠 제작, 캠프 운영
+OPERATOR ─────┼─ 프로그램/스케줄/시설/강의 관리
               │
-FAN ──────────┴─ 구독, 시청, 참여
+USER ─────────┴─ 학생 (스케줄 조회, 시설 예약, 수강, 영상 업로드)
 ```
+
+**특화 기능**: 귀국 후 춤/노래 영상 업로드 → INSTRUCTOR 피드백
 
 ---
 
-## 9. 관련 문서
+## 10. 관련 문서
 
 | 문서 | 내용 |
 |------|------|
