@@ -371,3 +371,14 @@ backend/src/main/java/com/lms/platform/common/
     ├── JpaConfig.java
     └── FileConfig.java
 ```
+
+---
+
+## 7. 관련 문서
+
+| 문서 | 내용 |
+|------|------|
+| [module-structure.md](../../context/module-structure.md) | 모듈 설계 개요 |
+| [course/api.md](../course/api.md) | Course API (공통 응답 사용) |
+| [content/api.md](../content/api.md) | Content API (공통 응답 사용) |
+| [learning/api.md](../learning/api.md) | LearningObject API (공통 응답 사용) |

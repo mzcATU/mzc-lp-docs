@@ -1,6 +1,6 @@
 # Course API 명세
 
-> CM (Course Metric) + CR (Course Relation) 모듈 API
+> CM (Course Matrix) + CR (Course Relation) 모듈 API
 
 ---
 
@@ -396,3 +396,14 @@ backend/src/main/java/com/lms/platform/domain/course/
     ├── request/
     └── response/
 ```
+
+---
+
+## 6. 관련 문서
+
+| 문서 | 내용 |
+|------|------|
+| [db.md](./db.md) | Course DB 스키마 |
+| [module-structure.md](../../context/module-structure.md) | 모듈 설계 개요 |
+| [learning/api.md](../learning/api.md) | LearningObject API |
+| [common/overview.md](../common/overview.md) | 공통 응답/예외 |

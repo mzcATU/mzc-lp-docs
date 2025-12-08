@@ -383,3 +383,15 @@ backend/src/main/java/com/lms/platform/domain/learning/
 └── event/
     └── LearningObjectEventListener.java
 ```
+
+---
+
+## 6. 관련 문서
+
+| 문서 | 내용 |
+|------|------|
+| [db.md](./db.md) | LearningObject DB 스키마 |
+| [module-structure.md](../../context/module-structure.md) | 모듈 설계 개요 |
+| [content/api.md](../content/api.md) | Content API (이벤트 발행) |
+| [course/api.md](../course/api.md) | Course API (CourseItem에서 참조) |
+| [common/overview.md](../common/overview.md) | 공통 응답/예외 |

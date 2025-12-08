@@ -420,7 +420,7 @@ export const useTenantTheme = () => {
 | 문서 | 내용 |
 |------|------|
 | [module-structure.md](./module-structure.md) | CM/CR/LO/CMS 상세 설계 |
-| docs_add/docs/structure/backend/ | API/DB 상세 명세 |
+| [docs/structure/](../structure/) | API/DB 상세 명세 |
 
 ---
 

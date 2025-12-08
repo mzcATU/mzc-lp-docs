@@ -19,7 +19,7 @@
 
 | 모듈 | 전체 이름 | 역할 |
 |------|----------|------|
-| **CM** | Course Metric | 강의 메타데이터, 커리큘럼 구성 |
+| **CM** | Course Matrix | 강의 메타데이터, 커리큘럼 구성 |
 | **CR** | Course Relation | 차시 간 학습 순서 연결 |
 | **LO** | Learning Object | 학습 객체 메타데이터 관리 |
 | **CMS** | Content Management System | 컨텐츠 파일 업로드/저장/인코딩 |
@@ -55,7 +55,7 @@
 
 | 섹션 | 추가 내용 | 수정자 |
 |------|----------|--------|
-| 7. CM (Course Metric) | `구현 상세 (test-lms-v2-integration)` 서브섹션 추가: Course Entity, CourseItem Entity (차시/폴더 계층), API 엔드포인트 테이블 | 김희수 |
+| 7. CM (Course Matrix) | `구현 상세 (test-lms-v2-integration)` 서브섹션 추가: Course Entity, CourseItem Entity (차시/폴더 계층), API 엔드포인트 테이블 | 김희수 |
 | 8. CR (Course Relation) | `구현 상세` 서브섹션 추가: CourseRelation Entity (Linked List), 학습 순서 연결 예시, API 엔드포인트 | 김희수 |
 | 9. LO (Learning Object) | `구현 상세` 서브섹션 추가: LearningObject Entity, ContentFolder Entity (3단계 계층), 이벤트 기반 자동 생성 흐름 | 김희수 |
 | 10. CMS | `구현 상세` 서브섹션 추가: Content Entity, ContentType ENUM, 외부 링크 지원, 메타데이터 자동 추출 | 김희수 |

@@ -1,6 +1,17 @@
 # Course DB 스키마
 
-> CM (Course Metric) + CR (Course Relation) 모듈 데이터베이스
+> CM (Course Matrix) + CR (Course Relation) 모듈 데이터베이스
+
+---
+
+## 설계 의도 (Why)
+
+| 설계 결정 | 이유 |
+|----------|------|
+| **course_item self-reference** | 무한 깊이 폴더 구조 지원 (실제는 depth로 10단계 제한) |
+| **learning_object_id NULL 허용** | 폴더/차시 구분을 단일 테이블에서 처리, 조인 최소화 |
+| **course_relation Linked List** | 순서 변경 시 전체 재정렬 불필요, O(1) 삽입/삭제 |
+| **ON DELETE CASCADE** | 강의 삭제 시 하위 항목 자동 정리, 고아 레코드 방지 |
 
 ---
 
@@ -305,3 +316,13 @@ DELIMITER ;
 -- 애플리케이션 레벨에서 검증
 -- parent_id가 자기 자신의 하위 항목을 참조하지 않도록
 ```
+
+---
+
+## 7. 관련 문서
+
+| 문서 | 내용 |
+|------|------|
+| [api.md](./api.md) | Course API 명세 |
+| [module-structure.md](../../context/module-structure.md) | 모듈 설계 개요 |
+| [learning/db.md](../learning/db.md) | LearningObject DB (FK 참조) |

@@ -4,6 +4,17 @@
 
 ---
 
+## 설계 의도 (Why)
+
+| 설계 결정 | 이유 |
+|----------|------|
+| **stored_file_name UUID** | 파일명 충돌 방지, 보안 (원본명 노출 X) |
+| **external_url 별도 컬럼** | 로컬 파일/외부 링크 공존, 통합 관리 |
+| **메타데이터 분리 저장** | duration, resolution, pageCount 등 타입별 최적화 |
+| **file_path NULL 허용** | 외부 링크는 파일 경로 불필요 |
+
+---
+
 ## 1. 테이블 구조
 
 ### 1.1 content (콘텐츠)
@@ -314,3 +325,13 @@ DELIMITER ;
 - UUID로 파일명 충돌 방지
 - 날짜별 디렉토리로 관리 용이
 - 원본 파일명은 DB에 별도 저장
+
+---
+
+## 8. 관련 문서
+
+| 문서 | 내용 |
+|------|------|
+| [api.md](./api.md) | Content API 명세 |
+| [module-structure.md](../../context/module-structure.md) | 모듈 설계 개요 |
+| [learning/db.md](../learning/db.md) | LearningObject DB (Content 참조) |

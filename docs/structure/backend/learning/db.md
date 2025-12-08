@@ -4,6 +4,17 @@
 
 ---
 
+## 설계 의도 (Why)
+
+| 설계 결정 | 이유 |
+|----------|------|
+| **Content와 1:1 관계** | 하나의 콘텐츠 파일 = 하나의 학습 단위 |
+| **content_id ON DELETE SET NULL** | 원본 삭제되어도 LO 메타 유지 가능 |
+| **content_folder 3단계 제한** | 과도한 중첩 방지, UX 최적화 |
+| **folder_id NULL 허용** | 최상위 폴더 없이 바로 배치 가능 |
+
+---
+
 ## 1. 테이블 구조
 
 ### 1.1 learning_object (학습객체)
@@ -334,3 +345,14 @@ DELIMITER ;
 | learning_object → content | SET NULL | Content 삭제 시 LO는 유지 |
 | learning_object → content_folder | SET NULL | 폴더 삭제 시 LO는 최상위로 이동 |
 | course_item → learning_object | SET NULL | LO 삭제 시 CourseItem은 폴더로 변경 |
+
+---
+
+## 8. 관련 문서
+
+| 문서 | 내용 |
+|------|------|
+| [api.md](./api.md) | LearningObject API 명세 |
+| [module-structure.md](../../context/module-structure.md) | 모듈 설계 개요 |
+| [content/db.md](../content/db.md) | Content DB (FK 참조) |
+| [course/db.md](../course/db.md) | Course DB (CourseItem에서 참조) |

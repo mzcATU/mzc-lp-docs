@@ -341,3 +341,14 @@ backend/src/main/java/com/lms/platform/domain/content/
 └── event/
     └── ContentCreatedEvent.java
 ```
+
+---
+
+## 7. 관련 문서
+
+| 문서 | 내용 |
+|------|------|
+| [db.md](./db.md) | Content DB 스키마 |
+| [module-structure.md](../../context/module-structure.md) | 모듈 설계 개요 |
+| [learning/api.md](../learning/api.md) | LearningObject API (이벤트 연동) |
+| [common/overview.md](../common/overview.md) | 공통 응답/예외 |
