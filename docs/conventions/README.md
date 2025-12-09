@@ -108,7 +108,7 @@
 ### 루트
 - [CLAUDE.md](../CLAUDE.md) - AI 작업 가이드 (핵심)
 - [MONOREPO.md](../MONOREPO.md) - 모노레포 설정
-- [SEPARATED-REPOS.md](../SEPARATED-REPOS.md) - 분리형 설정
+- [POLY-REPO.md](../POLY-REPO.md) - 폴리레포 가이드
 
 ### 컨텍스트 (docs/context/)
 - [architecture.md](../docs/context/architecture.md) - 프로젝트 구조

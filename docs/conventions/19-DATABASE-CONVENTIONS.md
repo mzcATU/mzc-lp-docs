@@ -135,7 +135,10 @@ public class User extends BaseTimeEntity {
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/learning_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    # Local
+    url: jdbc:mysql://localhost:3306/mza_newlp?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    # Dev/Prod (RDS)
+    # url: jdbc:mysql://mza-newlp-db-instance.cni8cqie2yhm.ap-northeast-2.rds.amazonaws.com:3306/mza_newlp
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver

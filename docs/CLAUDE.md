@@ -20,7 +20,7 @@
 | 구조 | 가이드 |
 |------|--------|
 | Monorepo | [MONOREPO.md](./MONOREPO.md) |
-| 분리형 | [SEPARATED-REPOS.md](./SEPARATED-REPOS.md) |
+| 폴리레포 | [POLY-REPO.md](./POLY-REPO.md) |
 
 ---
 
@@ -157,7 +157,7 @@ frontend/src/
 
 | 분류 | 문서 |
 |------|------|
-| **환경** | [MONOREPO](./MONOREPO.md), [SEPARATED-REPOS](./SEPARATED-REPOS.md) |
+| **환경** | [MONOREPO](./MONOREPO.md), [POLY-REPO](./POLY-REPO.md) |
 | **컨벤션** | [conventions/](./conventions/) |
 | **템플릿** | [templates/](./templates/) |
 

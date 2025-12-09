@@ -9,7 +9,7 @@
 ## 1. Request DTO 템플릿
 
 ```java
-// ✅ Record 사용 (Java 17+)
+// ✅ Record 사용 (Java 21)
 public record Create{Domain}Request(
     @NotBlank(message = "field1은 필수입니다")
     @Size(max = 100, message = "field1은 100자 이하여야 합니다")

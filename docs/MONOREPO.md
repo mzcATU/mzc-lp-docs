@@ -29,9 +29,9 @@ cd frontend && npm run dev
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/mzc_lp
+    url: jdbc:mysql://localhost:3306/mza_newlp
     username: root
-    password: password
+    password: ${DB_PASSWORD}
   jpa:
     hibernate.ddl-auto: update
     show-sql: true
@@ -84,23 +84,20 @@ npm run build    # → dist/ 폴더 생성
 ### AWS 배포 (Dev/Staging/Prod)
 
 ```bash
-# Backend: GitHub Actions → ECR → ECS
+# Backend: GitHub Actions → ECR → EC2
 # 1. Docker 이미지 빌드
-docker build -t backend:latest ./backend
+docker build -t mza-newlp-repo ./backend
 
 # 2. ECR 푸시
-docker tag backend:latest {ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/backend:latest
-docker push {ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/backend:latest
+docker tag mza-newlp-repo:latest 697924056608.dkr.ecr.ap-northeast-2.amazonaws.com/mza-newlp-repo:latest
+docker push 697924056608.dkr.ecr.ap-northeast-2.amazonaws.com/mza-newlp-repo:latest
 
-# 3. ECS 배포
-aws ecs update-service --cluster learning-platform --service backend --force-new-deployment
-
-# Frontend: GitHub Actions → S3 → CloudFront
+# Frontend: GitHub Actions → S3 → CloudFront (추후 구성)
 # 1. 빌드
 npm run build
 
 # 2. S3 업로드
-aws s3 sync dist/ s3://learning-platform-frontend/
+aws s3 sync dist/ s3://{BUCKET_NAME}/
 
 # 3. CloudFront 무효화
 aws cloudfront create-invalidation --distribution-id {DIST_ID} --paths "/*"

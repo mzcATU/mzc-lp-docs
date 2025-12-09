@@ -18,19 +18,48 @@
 
 ---
 
+## 현재 인프라 정보
+
+> Region: **ap-northeast-2 (서울)**
+
+| 리소스 | 값 |
+|--------|-----|
+| Domain | api.mzanewlp.cloudclass.co.kr |
+| RDS Host | mza-newlp-db-instance.cni8cqie2yhm.ap-northeast-2.rds.amazonaws.com |
+| RDS Port | 3306 |
+| Database | mza_newlp |
+| ECR | 697924056608.dkr.ecr.ap-northeast-2.amazonaws.com/mza-newlp-repo |
+| Bastion IP | 43.201.252.223 |
+| API Server | 10.50.101.214 (Private) |
+
+---
+
 ## 아키텍처 패턴
 
 ```
-Internet → Route 53 → CloudFront → S3 (Frontend)
-                    → ALB → ECS Fargate → RDS MySQL
+┌─────────────────────────────────────────────────────────┐
+│                  AWS Cloud (ap-northeast-2)              │
+├─────────────────────────────────────────────────────────┤
+│  [Public Subnet]                                         │
+│    Bastion Server + NAT Gateway                         │
+│                                                          │
+│  [Private Subnet - App]                                  │
+│    API Server (EC2)                                      │
+│                                                          │
+│  [Private Subnet - DB]                                   │
+│    RDS MySQL                                             │
+│                                                          │
+│  ECR → Docker Image                                      │
+│  CloudFront + S3 (Frontend) - 필요시 구성                │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### VPC 구성
 
 | Subnet | CIDR | 용도 |
 |--------|------|------|
-| Public A/B | 10.0.1-2.0/24 | ALB, NAT Gateway |
-| Private App A/B | 10.0.11-12.0/24 | ECS Tasks |
+| Public A/B | 10.0.1-2.0/24 | Bastion, NAT Gateway |
+| Private App A/B | 10.0.11-12.0/24 | API Server (EC2) |
 | Private DB A/B | 10.0.21-22.0/24 | RDS |
 
 ---
@@ -83,8 +112,23 @@ tags = {
 steps:
   - uses: aws-actions/configure-aws-credentials@v4
   - uses: aws-actions/amazon-ecr-login@v2
-  - run: docker build && docker push
-  - run: aws ecs update-service --force-new-deployment
+  - run: |
+      docker build -t mza-newlp-repo .
+      docker tag mza-newlp-repo:latest 697924056608.dkr.ecr.ap-northeast-2.amazonaws.com/mza-newlp-repo:latest
+      docker push 697924056608.dkr.ecr.ap-northeast-2.amazonaws.com/mza-newlp-repo:latest
+```
+
+## EC2 접속 방법
+
+```bash
+# 1. Bastion Server 접속
+ssh -i "mza-newlp-key.pem" ec2-user@43.201.252.223
+
+# 2. API Server 접속 (Bastion 내부에서)
+ssh -i "mza-newlp-key.pem" ec2-user@10.50.101.214
+
+# 3. MySQL 접속 (Bastion 내부에서)
+mysql -h mza-newlp-db-instance.cni8cqie2yhm.ap-northeast-2.rds.amazonaws.com -u root -p
 ```
 
 ---
