@@ -141,4 +141,4 @@ docker compose down -v            # 정리
 
 - [20-AWS-CONVENTIONS](./20-AWS-CONVENTIONS.md) - ECR 배포
 - [25-IGNORE-CONVENTIONS](./25-IGNORE-CONVENTIONS.md) - .dockerignore
-- [infrastructure.md](../docs/context/infrastructure.md) - 상세 인프라
+- [architecture.md](../context/architecture.md) - 시스템 아키텍처

@@ -232,4 +232,4 @@ Page<Course> findAllOrderByCreatedAtDesc(Pageable pageable);
 
 ---
 
-> DB 스키마 상세 → [database.md](../docs/context/database.md)
+> DB 스키마 상세 → [structure/backend/](../structure/backend/)

@@ -40,13 +40,14 @@ design-specs/
 
 ---
 
-## 공통 브랜드 컬러
+## 디자인 토큰
 
-| 용도 | CSS 변수 | HEX |
-|------|----------|-----|
-| Primary Green | `--color-primary-green` | #70f2a0 |
-| Primary Purple | `--color-primary-purple` | #6778ff |
-| Primary Cyan | `--color-primary-cyan` | #6bc2f0 |
+> 컬러, 스페이싱, 반응형 등 디자인 토큰은 각 문서 참조
+
+| 대상 | 참조 문서 |
+|------|----------|
+| TO 디자인 토큰 | [TO-screen-spec.md](./TO-screen-spec.md) |
+| TU 디자인 토큰 | [TU-screen-spec.md](./TU-screen-spec.md) |
 
 ---
 

@@ -131,6 +131,55 @@ npm install && npm run dev
 
 ---
 
+## 문서 동기화 규칙
+
+### 각 저장소 CLAUDE.md 템플릿
+
+**mzc-lp-backend/CLAUDE.md:**
+```markdown
+# Backend - AI 작업 가이드
+
+> 📚 전체 문서: https://github.com/mzcATU/mzc-lp
+
+| 작업 | 문서 |
+|------|------|
+| 컨벤션 | mzc-lp/docs/conventions/ |
+| API 스펙 | mzc-lp/docs/structure/backend/ |
+| 설정 가이드 | mzc-lp/docs/context/backend-setup.md |
+
+> 상세 → [mzc-lp/docs/CLAUDE.md](https://github.com/mzcATU/mzc-lp/docs/CLAUDE.md)
+```
+
+**mzc-lp-frontend/CLAUDE.md:**
+```markdown
+# Frontend - AI 작업 가이드
+
+> 📚 전체 문서: https://github.com/mzcATU/mzc-lp
+
+| 작업 | 문서 |
+|------|------|
+| 컨벤션 | mzc-lp/docs/conventions/ |
+| 화면 정의서 | mzc-lp/docs/design-specs/ |
+| 설정 가이드 | mzc-lp/docs/context/frontend-setup.md |
+
+> 상세 → [mzc-lp/docs/CLAUDE.md](https://github.com/mzcATU/mzc-lp/docs/CLAUDE.md)
+```
+
+### 동기화 체크리스트
+
+```
+문서 수정 시:
+□ 관련 코드 저장소에 영향 확인
+□ API 스펙 변경 → FE/BE 모두 확인
+□ 컨벤션 변경 → 기존 코드 호환성 확인
+
+코드 수정 시:
+□ 새 API 추가 → docs/structure/ 업데이트
+□ 새 패턴 도입 → docs/conventions/ 업데이트
+```
+
+---
+
 ## 관련 문서
 
 | 문서 | 내용 |

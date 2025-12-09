@@ -170,4 +170,4 @@ mysql -h mza-newlp-db-instance.cni8cqie2yhm.ap-northeast-2.rds.amazonaws.com -u 
 
 ---
 
-> 상세 아키텍처 → [infrastructure.md](../docs/context/infrastructure.md)
+> 상세 아키텍처 → [architecture.md](../context/architecture.md)

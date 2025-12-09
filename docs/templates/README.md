@@ -94,8 +94,8 @@
 |------|------|
 | [CLAUDE.md](../CLAUDE.md) | AI 작업 가이드 (메인) |
 | [conventions/](../conventions/) | 코딩 컨벤션 |
-| [docs/context/](../docs/context/) | 프로젝트 컨텍스트 |
-| [docs/adr/](../docs/adr/) | 아키텍처 결정 기록 |
+| [context/](../context/) | 프로젝트 컨텍스트 |
+| [structure/](../structure/) | API/DB 스펙 |
 
 ---
 

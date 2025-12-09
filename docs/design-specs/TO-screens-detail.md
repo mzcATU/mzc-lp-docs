@@ -194,6 +194,22 @@
 
 ---
 
+## 주요 아이콘 (Lucide React)
+
+| 아이콘 | 용도 |
+|--------|------|
+| `LayoutDashboard` | 대시보드 메뉴 |
+| `BookOpen` | 강의 관리 |
+| `Users` | 사용자 관리 |
+| `Settings` | 설정 |
+| `Search` | 검색 |
+| `Bell` | 알림 |
+| `Plus` | 새 항목 등록 |
+| `Edit`, `Trash` | 수정, 삭제 |
+| `Sun`, `Moon` | 테마 전환 |
+
+---
+
 ## 공통 컴포넌트
 
 ### Header

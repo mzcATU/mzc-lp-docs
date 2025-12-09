@@ -84,25 +84,6 @@ export default {
 
 ---
 
-## 화면 목록
-
-| 라우트 | 화면명 | 인증 |
-|--------|--------|------|
-| `/` | 홈 (랜딩) | X |
-| `/login` | 로그인 | X |
-| `/signup` | 회원가입 | X |
-| `/courses` | 강의 목록 | X |
-| `/course/:id` | 강의 상세 | X |
-| `/cart` | 장바구니 | O |
-| `/mypage` | 마이페이지 | O |
-| `/roadmap` | 학습 로드맵 | X |
-| `/mentoring` | 멘토링 | X |
-| `/community` | 커뮤니티 | X |
-| `/jobs` | 채용 정보 | X |
-| `/notifications` | 알림 센터 | O |
-
----
-
 ## 컴포넌트 패턴 (CVA)
 
 ### Button
@@ -198,33 +179,6 @@ const glassCard = cva(
 // 컨테이너
 <div className="max-w-7xl mx-auto">
 ```
-
----
-
-## 애니메이션 클래스
-
-| 클래스 | 효과 |
-|--------|------|
-| `.gradient-text` | 멀티컬러 그라데이션 애니메이션 |
-| `.animated-bg` | 배경 그라데이션 이동 |
-| `.glass` | Glassmorphism 효과 |
-| `.card-hover` | 카드 호버 효과 (scale + glow) |
-
----
-
-## 주요 아이콘 (Lucide React)
-
-| 아이콘 | 용도 |
-|--------|------|
-| `Search` | 검색 |
-| `ShoppingCart` | 장바구니 |
-| `Bell` | 알림 |
-| `User` | 프로필 |
-| `Mail`, `Lock` | 폼 필드 |
-| `Eye`, `EyeOff` | 비밀번호 토글 |
-| `Star` | 평점 |
-| `Heart` | 찜하기 |
-| `ChevronLeft`, `ChevronRight` | 캐러셀 |
 
 ---
 

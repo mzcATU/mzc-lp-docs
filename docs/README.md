@@ -32,8 +32,10 @@
 │   └── frontend/                # Frontend 모듈 문서
 │
 ├── 📁 design-specs/             # 화면 정의서
-│   ├── TO-screen-spec.md        # TO (운영자) 화면 정의서
-│   └── TU-screen-spec.md        # TU (수강생) 화면 정의서
+│   ├── TO-screen-spec.md        # TO (운영자) 핵심 가이드
+│   ├── TO-screens-detail.md     # TO 화면별 상세
+│   ├── TU-screen-spec.md        # TU (수강생) 핵심 가이드
+│   └── TU-screens-detail.md     # TU 화면별 상세
 │
 └── 📁 templates/                # 작업 템플릿
     ├── md-writing-guide.md      # 문서 작성 가이드

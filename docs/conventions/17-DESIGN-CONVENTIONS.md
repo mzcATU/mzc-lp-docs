@@ -168,5 +168,5 @@ export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
 ---
 
-> 디자인 토큰 → [design.md](../docs/context/design.md)
+> 화면 정의서 → [design-specs/](../design-specs/)
 > 컴포넌트 → [12-REACT-COMPONENT-CONVENTIONS](./12-REACT-COMPONENT-CONVENTIONS.md)

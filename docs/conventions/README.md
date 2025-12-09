@@ -110,22 +110,21 @@
 - [MONOREPO.md](../MONOREPO.md) - 모노레포 설정
 - [POLY-REPO.md](../POLY-REPO.md) - 폴리레포 가이드
 
-### 컨텍스트 (docs/context/)
-- [architecture.md](../docs/context/architecture.md) - 프로젝트 구조
-- [database.md](../docs/context/database.md) - DB 스키마
-- [api.md](../docs/context/api.md) - API 명세
-- [pages.md](../docs/context/pages.md) - 페이지 기능
-- [design.md](../docs/context/design.md) - 디자인/MCP
-- [infrastructure.md](../docs/context/infrastructure.md) - 인프라
-- [troubleshooting.md](../docs/context/troubleshooting.md) - 문제 해결
-- [glossary.md](../docs/context/glossary.md) - 용어 사전
+### 컨텍스트 (context/)
+- [architecture.md](../context/architecture.md) - 시스템 아키텍처
+- [module-structure.md](../context/module-structure.md) - 모듈 구조
+- [multi-tenancy.md](../context/multi-tenancy.md) - 멀티테넌시 설계
+- [user-roles.md](../context/user-roles.md) - 사용자 역할 체계
+- [backend-setup.md](../context/backend-setup.md) - Backend 설정
+- [frontend-setup.md](../context/frontend-setup.md) - Frontend 설정
 
-### 구조 (docs/structure/) - 컨텍스트 절약용
-- [README.md](../docs/structure/README.md) - 구조 문서 가이드
-- `backend/{domain}/api.md` - 도메인별 API 문서
-- `backend/{domain}/db.md` - 도메인별 DB 스키마
-- `frontend/api.md` - API 클라이언트
-- `frontend/pages.md` - 페이지 구성
+### 구조 (structure/) - API/DB 스펙
+- [backend/course/](../structure/backend/course/) - 강의 API, DB
+- [backend/content/](../structure/backend/content/) - 컨텐츠 API, DB
+- [backend/learning/](../structure/backend/learning/) - 학습객체 API, DB
+- [backend/common/](../structure/backend/common/) - 공통 컴포넌트
+- [frontend/api.md](../structure/frontend/api.md) - API 클라이언트
+- [frontend/pages.md](../structure/frontend/pages.md) - 페이지 구성
 
 ### 템플릿 (templates/)
 - [task-workflow.md](../templates/task-workflow.md) - AI 작업 규칙

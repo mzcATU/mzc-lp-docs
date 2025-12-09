@@ -103,7 +103,7 @@ aws s3 sync dist/ s3://{BUCKET_NAME}/
 aws cloudfront create-invalidation --distribution-id {DIST_ID} --paths "/*"
 ```
 
-> 상세 배포 플로우 → [infrastructure.md](./docs/context/infrastructure.md)
+> 상세 배포 플로우 → [architecture.md](./context/architecture.md)
 
 ---
 
