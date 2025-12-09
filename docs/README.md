@@ -31,6 +31,10 @@
 │   ├── backend/                 # Backend 모듈 문서
 │   └── frontend/                # Frontend 모듈 문서
 │
+├── 📁 design-specs/             # 화면 정의서
+│   ├── TO-screen-spec.md        # TO (운영자) 화면 정의서
+│   └── TU-screen-spec.md        # TU (수강생) 화면 정의서
+│
 └── 📁 templates/                # 작업 템플릿
     ├── md-writing-guide.md      # 문서 작성 가이드
     ├── task-workflow.md         # AI 작업 진행 규칙
@@ -93,6 +97,7 @@
 | 전체 구조 파악 | context/architecture.md |
 | 저장소 설정 | POLY-REPO.md → backend-setup.md, frontend-setup.md |
 | 문서 작성 | templates/md-writing-guide.md |
+| 화면 정의서 참조 | design-specs/TO-screen-spec.md, TU-screen-spec.md |
 
 ---
 
