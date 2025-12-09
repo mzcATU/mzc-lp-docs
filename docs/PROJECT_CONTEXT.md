@@ -60,7 +60,7 @@ apiClient.interceptors.request.use((config) => {
 ### Tech Stack
 | Layer | Stack | Version |
 |-------|-------|---------|
-| Backend | Java / Spring Boot | 21 / 3.2.11 |
+| Backend | Java / Spring Boot | 21 / 3.4.12 |
 | Frontend | React / TypeScript / Vite | 19.2.0 / 5.9.3 / 7.2.4 |
 
 ### 구현 완료

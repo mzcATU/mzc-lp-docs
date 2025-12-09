@@ -203,7 +203,7 @@ Response (201 Created):
 
 | 구분 | 기술 | 버전 |
 |------|------|------|
-| Backend | Java / Spring Boot | 21 / 3.2.x |
+| Backend | Java / Spring Boot | 21 / 3.4.x |
 | Frontend | React / TypeScript | 19 / 5.x |
 | Database | MySQL | 8.0 |
 | Infra | AWS (ECS, RDS, S3) | - |

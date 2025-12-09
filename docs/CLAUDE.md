@@ -9,7 +9,7 @@
 
 | 항목 | 내용 |
 |------|------|
-| **Backend** | Spring Boot 3.2.11, Java 21 |
+| **Backend** | Spring Boot 3.4.12, Java 21 |
 | **Frontend** | React 19.x, TypeScript 5.x, Vite 7.x, TailwindCSS |
 | **Database** | MySQL 8.0 |
 | **Infra** | AWS (ECS, RDS, S3, CloudFront), Docker |

@@ -59,7 +59,7 @@ GitHub Organization: mzcATU/
 
 | 구분 | 기술 | 버전 |
 |------|------|------|
-| **Backend** | Spring Boot / Java | 3.2.11 / 21 |
+| **Backend** | Spring Boot / Java | 3.4.12 / 21 |
 | **Frontend** | React / TypeScript / Vite | 19.x / 5.x / 7.x |
 | **Styling** | TailwindCSS | - |
 | **Database** | MySQL | 8.0 |

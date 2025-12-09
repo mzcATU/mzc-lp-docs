@@ -1,10 +1,10 @@
 # 00. Core Conventions (핵심 규칙)
 
-> 모든 레이어에서 공통으로 적용되는 핵심 규칙 (Java 21 & Spring Boot 3.2.x)
+> 모든 레이어에서 공통으로 적용되는 핵심 규칙 (Java 21 & Spring Boot 3.4.x)
 
 ---
 
-## Java 21 & Spring Boot 3.2.x 공통 규칙
+## Java 21 & Spring Boot 3.4.x 공통 규칙
 
 ### 1. 코딩 스타일 (Google Java Style Guide 기반)
 

@@ -2,7 +2,7 @@
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 
-> Spring Boot 3.2.x + Java 21 프로젝트 구조
+> Spring Boot 3.4.x + Java 21 프로젝트 구조
 
 ---
 
@@ -108,7 +108,7 @@ Controller → Service → Repository → Entity
 ```gradle
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.x'
+    id 'org.springframework.boot' version '3.4.x'
 }
 
 java {
