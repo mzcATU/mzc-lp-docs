@@ -12,8 +12,7 @@
 GitHub Organization: mzcATU/
 ├── mzc-lp/                      # 공통 문서 저장소 (현재)
 ├── mzc-lp-backend/              # Backend API 서버
-├── mzc-lp-frontend/             # Frontend 웹 앱
-└── mzc-lp-infra/                # (선택) IaC, 배포 스크립트
+└── mzc-lp-frontend/             # Frontend 웹 앱
 ```
 
 ### 저장소별 역할
@@ -23,7 +22,6 @@ GitHub Organization: mzcATU/
 | **mzc-lp** | 공통 문서, 컨벤션, 설계 문서 | Markdown |
 | **mzc-lp-backend** | REST API, 비즈니스 로직 | Java 21, Spring Boot 3.x, JPA |
 | **mzc-lp-frontend** | 웹 UI, 사용자 인터페이스 | React 19, TypeScript, Vite |
-| **mzc-lp-infra** | Terraform, Docker, CI/CD | Terraform, GitHub Actions |
 
 ---
 
