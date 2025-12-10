@@ -10,19 +10,20 @@
 
 모든 Entity의 기본 클래스로, 생성/수정 시간을 자동 관리합니다.
 
+> **Note**: `Instant` 타입 사용 (UTC 기준, 글로벌 서비스 대응)
+
 ```java
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-public abstract class BaseTimeEntity {
+public abstract class BaseTimeEntity extends BaseEntity {
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(updatable = false)
+    private Instant createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 }
 ```
 
