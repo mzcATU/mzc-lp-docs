@@ -123,12 +123,13 @@ public class {Domain} {
     @Column(nullable = false)
     private {Status}Enum status;
 
-    // ✅ 날짜/시간 (LocalDateTime)
+    // ✅ 날짜/시간 (Instant - UTC 기준, 글로벌 서비스 대응)
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    // ❌ BAD: Date, Timestamp 사용 금지
+    // ❌ BAD: Date, Timestamp, LocalDateTime 사용 금지
     private Date createdDate;  // ❌
+    private LocalDateTime localCreatedAt;  // ❌ 타임존 정보 없음
 }
 ```
 
@@ -136,19 +137,20 @@ public class {Domain} {
 
 ## 4. BaseEntity 패턴
 
+> **Note**: `Instant` 타입 사용 (UTC 기준, 글로벌 서비스 대응)
+
 ```java
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-public abstract class BaseTimeEntity {
+public abstract class BaseTimeEntity extends BaseEntity {
 
     @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(updatable = false)
+    private Instant createdAt;
 
     @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 }
 ```
 
