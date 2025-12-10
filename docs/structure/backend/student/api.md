@@ -34,8 +34,8 @@ Authorization: Bearer {accessToken}
     "progressPercent": 0,
     "courseTime": {
       "timeId": 1,
-      "course": {
-        "courseId": 1,
+      "program": {
+        "programId": 1,
         "title": "React 기초 과정"
       },
       "timeNumber": 1,
@@ -165,8 +165,8 @@ Authorization: Bearer {accessToken}
     "content": [
       {
         "enrollmentId": 1,
-        "course": {
-          "courseId": 1,
+        "program": {
+          "programId": 1,
           "title": "React 기초 과정",
           "thumbnailUrl": "https://cdn.example.com/thumbnails/react.jpg"
         },
@@ -211,8 +211,8 @@ Authorization: Bearer {accessToken}
   "data": [
     {
       "enrollmentId": 1,
-      "course": {
-        "courseId": 1,
+      "program": {
+        "programId": 1,
         "title": "React 기초 과정",
         "thumbnailUrl": "https://cdn.example.com/thumbnails/react.jpg",
         "level": "BEGINNER"
@@ -261,8 +261,8 @@ Authorization: Bearer {accessToken}
       "name": "홍길동",
       "email": "hong@example.com"
     },
-    "course": {
-      "courseId": 1,
+    "program": {
+      "programId": 1,
       "title": "React 기초 과정"
     },
     "courseTime": {
@@ -466,8 +466,8 @@ Authorization: Bearer {accessToken}
     "totalLearningHours": 120,
     "recentActivity": {
       "lastAccessedAt": "2025-02-15T14:30:00",
-      "lastCompletedCourse": {
-        "courseId": 5,
+      "lastCompletedProgram": {
+        "programId": 5,
         "title": "JavaScript 심화",
         "completedAt": "2025-02-10T16:00:00"
       }

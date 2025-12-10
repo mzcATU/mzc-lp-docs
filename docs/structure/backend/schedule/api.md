@@ -42,7 +42,7 @@ Content-Type: application/json
 {
   "success": true,
   "data": {
-    "courseId": 1,
+    "programId": 1,
     "title": "React 기초 과정",
     "status": "DRAFT",
     "creatorId": 10,
@@ -77,7 +77,7 @@ Authorization: Bearer {accessToken}
   "data": {
     "content": [
       {
-        "courseId": 1,
+        "programId": 1,
         "title": "React 기초 과정",
         "thumbnailUrl": "https://cdn.example.com/thumbnails/react.jpg",
         "level": "BEGINNER",
@@ -109,7 +109,7 @@ Authorization: Bearer {accessToken}
 {
   "success": true,
   "data": {
-    "courseId": 1,
+    "programId": 1,
     "title": "React 기초 과정",
     "description": "React의 기초부터 실전까지 배우는 과정입니다.",
     "thumbnailUrl": "https://cdn.example.com/thumbnails/react.jpg",
@@ -172,7 +172,7 @@ Content-Type: application/json
 {
   "success": true,
   "data": {
-    "courseId": 1,
+    "programId": 1,
     "title": "React 기초 과정 (업데이트)",
     "updatedAt": "2025-01-15T11:00:00"
   }
@@ -204,7 +204,7 @@ Authorization: Bearer {accessToken}
 {
   "success": true,
   "data": {
-    "courseId": 1,
+    "programId": 1,
     "status": "PENDING",
     "submittedAt": "2025-01-15T12:00:00"
   }
@@ -229,7 +229,7 @@ Authorization: Bearer {accessToken}
   "data": {
     "content": [
       {
-        "courseId": 1,
+        "programId": 1,
         "title": "React 기초 과정",
         "creatorName": "홍길동",
         "submittedAt": "2025-01-15T12:00:00",
@@ -264,7 +264,7 @@ Content-Type: application/json
 {
   "success": true,
   "data": {
-    "courseId": 1,
+    "programId": 1,
     "status": "APPROVED",
     "approvedAt": "2025-01-16T14:00:00",
     "approvedBy": {
@@ -301,7 +301,7 @@ Content-Type: application/json
 {
   "success": true,
   "data": {
-    "courseId": 1,
+    "programId": 1,
     "status": "REJECTED",
     "rejectedAt": "2025-01-16T14:00:00",
     "rejectedReason": "커리큘럼 구성이 부족합니다. 섹션 3의 내용을 보강해주세요."
@@ -348,7 +348,7 @@ Content-Type: application/json
   "success": true,
   "data": {
     "timeId": 1,
-    "courseId": 1,
+    "programId": 1,
     "timeNumber": 1,
     "startDate": "2025-02-01T00:00:00",
     "endDate": "2025-03-01T23:59:59",
@@ -424,8 +424,8 @@ Authorization: Bearer {accessToken}
   "success": true,
   "data": {
     "timeId": 1,
-    "course": {
-      "courseId": 1,
+    "program": {
+      "programId": 1,
       "title": "React 기초 과정"
     },
     "timeNumber": 1,

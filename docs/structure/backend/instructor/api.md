@@ -49,8 +49,8 @@ Content-Type: application/json
     },
     "courseTime": {
       "timeId": 1,
-      "courseId": 1,
-      "courseName": "React 기초 과정",
+      "programId": 1,
+      "programName": "React 기초 과정",
       "timeNumber": 1
     }
   }
@@ -226,8 +226,8 @@ Authorization: Bearer {accessToken}
         "assignmentId": 1,
         "courseTime": {
           "timeId": 1,
-          "course": {
-            "courseId": 1,
+          "program": {
+            "programId": 1,
             "title": "React 기초 과정"
           },
           "timeNumber": 1,
@@ -244,8 +244,8 @@ Authorization: Bearer {accessToken}
         "assignmentId": 2,
         "courseTime": {
           "timeId": 5,
-          "course": {
-            "courseId": 3,
+          "program": {
+            "programId": 3,
             "title": "Vue.js 입문"
           },
           "timeNumber": 2,
@@ -287,8 +287,8 @@ Authorization: Bearer {accessToken}
   "data": [
     {
       "assignmentId": 1,
-      "course": {
-        "courseId": 1,
+      "program": {
+        "programId": 1,
         "title": "React 기초 과정",
         "thumbnailUrl": "https://cdn.example.com/thumbnails/react.jpg"
       },
@@ -336,9 +336,9 @@ Authorization: Bearer {accessToken}
       "IN_PROGRESS": 3,
       "COMPLETED": 12
     },
-    "recentCourses": [
+    "recentPrograms": [
       {
-        "courseId": 1,
+        "programId": 1,
         "title": "React 기초 과정",
         "timeNumber": 1,
         "enrollmentCount": 45,
