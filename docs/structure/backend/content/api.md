@@ -4,9 +4,47 @@
 
 ---
 
-## 1. 파일 업로드 API
+## 1. Content 생성 API
 
-### 1.1 파일 업로드
+### 1.1 Content 생성 (메타데이터)
+
+```http
+POST /api/contents
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "originalFileName": "react-tutorial.mp4",
+  "contentType": "VIDEO",
+  "fileSize": 104857600,
+  "filePath": "/uploads/2025/01/550e8400-e29b-41d4-a716-446655440000.mp4"
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| originalFileName | String | O | 원본 파일명 |
+| contentType | String | O | 콘텐츠 타입 (VIDEO, DOCUMENT, IMAGE, AUDIO) |
+| fileSize | Long | X | 파일 크기 (bytes) |
+| filePath | String | X | 파일 경로 |
+
+**Response** (`201 Created`):
+```json
+{
+  "success": true,
+  "data": {
+    "contentId": 1,
+    "originalFileName": "react-tutorial.mp4",
+    "contentType": "VIDEO",
+    "fileSize": 104857600,
+    "createdAt": "2025-01-15T10:00:00"
+  }
+}
+```
+
+### 1.2 파일 업로드 + Content 생성
 
 ```http
 POST /api/contents/upload
@@ -50,7 +88,7 @@ folderId: 1 (optional)
 }
 ```
 
-### 1.2 외부 링크 등록
+### 1.3 외부 링크 등록
 
 ```http
 POST /api/contents/external-link
@@ -155,15 +193,85 @@ GET /api/contents/{contentId}
 }
 ```
 
-### 2.3 콘텐츠 삭제
+### 2.3 타입별 콘텐츠 조회
 
 ```http
-DELETE /api/contents/{contentId}
+GET /api/contents/type/{contentType}
 ```
 
-**Response** (`204 No Content`)
+**Path Parameters**:
+| 파라미터 | 타입 | 설명 |
+|----------|------|------|
+| contentType | String | VIDEO, DOCUMENT, IMAGE, AUDIO, EXTERNAL_LINK |
 
-> 파일 시스템의 실제 파일도 함께 삭제됨
+**Query Parameters**:
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| page | Int | X | 페이지 번호 (기본: 0) |
+| size | Int | X | 페이지 크기 (기본: 20) |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "contentId": 1,
+        "originalFileName": "react-tutorial.mp4",
+        "contentType": "VIDEO",
+        "fileSize": 104857600,
+        "duration": 1800,
+        "createdAt": "2025-01-15T10:00:00"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 10,
+    "totalPages": 1
+  }
+}
+```
+
+### 2.4 업로더별 콘텐츠 조회
+
+```http
+GET /api/contents/uploader/{uploadedBy}
+```
+
+**Path Parameters**:
+| 파라미터 | 타입 | 설명 |
+|----------|------|------|
+| uploadedBy | Long | 업로더 사용자 ID |
+
+**Query Parameters**:
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| page | Int | X | 페이지 번호 (기본: 0) |
+| size | Int | X | 페이지 크기 (기본: 20) |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "contentId": 1,
+        "originalFileName": "react-tutorial.mp4",
+        "contentType": "VIDEO",
+        "fileSize": 104857600,
+        "uploadedBy": 10,
+        "createdAt": "2025-01-15T10:00:00"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 5,
+    "totalPages": 1
+  }
+}
+```
 
 ---
 
@@ -203,25 +311,131 @@ Content-Length: 104857600
 (binary data)
 ```
 
-### 3.3 썸네일 조회
+### 3.3 파일 미리보기
 
 ```http
-GET /api/contents/{contentId}/thumbnail
+GET /api/contents/{contentId}/preview
 ```
 
 **Response** (`200 OK`):
 ```
-Content-Type: image/jpeg
+Content-Type: application/pdf (또는 해당 파일 타입)
+Content-Disposition: inline
 
 (binary data)
 ```
 
-> VIDEO: 영상 첫 프레임 추출
-> DOCUMENT (PDF): 첫 페이지 이미지 변환
+> 브라우저에서 직접 미리보기 가능한 형태로 제공
+
+### 3.4 텍스트 내용 조회
+
+```http
+GET /api/contents/{contentId}/text
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "contentId": 1,
+    "text": "PDF 또는 문서의 텍스트 내용...",
+    "pageCount": 10
+  }
+}
+```
+
+> DOCUMENT 타입에서 텍스트 추출 (PDF, DOCX 등)
 
 ---
 
-## 4. 메타데이터 추출
+## 4. 콘텐츠 수정/삭제 API
+
+### 4.1 메타데이터 수정
+
+```http
+PUT /api/contents/{contentId}
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "originalFileName": "react-advanced-tutorial.mp4",
+  "duration": 2400,
+  "resolution": "1920x1080"
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| originalFileName | String | X | 파일명 변경 |
+| duration | Integer | X | 재생 시간 (초) |
+| resolution | String | X | 해상도 |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "contentId": 1,
+    "originalFileName": "react-advanced-tutorial.mp4",
+    "duration": 2400,
+    "resolution": "1920x1080",
+    "updatedAt": "2025-01-15T11:00:00"
+  }
+}
+```
+
+### 4.2 파일 교체
+
+```http
+PUT /api/contents/{contentId}/file
+Content-Type: multipart/form-data
+```
+
+**Request**:
+```
+file: (binary)
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| file | File | O | 교체할 새 파일 |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "contentId": 1,
+    "originalFileName": "react-tutorial-v2.mp4",
+    "storedFileName": "660e8400-e29b-41d4-a716-446655440001.mp4",
+    "contentType": "VIDEO",
+    "fileSize": 125829120,
+    "duration": 2100,
+    "resolution": "1920x1080",
+    "filePath": "/uploads/2025/01/660e8400-e29b-41d4-a716-446655440001.mp4",
+    "updatedAt": "2025-01-15T12:00:00"
+  }
+}
+```
+
+> 기존 파일은 삭제되고 새 파일로 교체됨
+
+### 4.3 콘텐츠 삭제
+
+```http
+DELETE /api/contents/{contentId}
+```
+
+**Response** (`204 No Content`)
+
+> 파일 시스템의 실제 파일도 함께 삭제됨
+
+---
+
+## 5. 메타데이터 추출
 
 ### 자동 추출 정보
 
@@ -260,7 +474,7 @@ Content-Type: image/jpeg
 
 ---
 
-## 5. 에러 응답
+## 6. 에러 응답
 
 ### 공통 에러 형식
 
@@ -297,7 +511,7 @@ Content-Type: image/jpeg
 
 ---
 
-## 6. 이벤트 발행
+## 7. 이벤트 발행
 
 ### ContentCreatedEvent
 
@@ -320,7 +534,7 @@ public Content upload(MultipartFile file, Long folderId) {
 
 ---
 
-## 7. 소스 위치
+## 8. 소스 위치
 
 ```
 backend/src/main/java/com/lms/platform/domain/content/
@@ -344,7 +558,7 @@ backend/src/main/java/com/lms/platform/domain/content/
 
 ---
 
-## 7. 관련 문서
+## 9. 관련 문서
 
 | 문서 | 내용 |
 |------|------|

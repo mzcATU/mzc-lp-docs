@@ -93,7 +93,48 @@ GET /api/courses/{courseId}
 }
 ```
 
-### 1.4 강의 수정
+### 1.4 강사별 강의 목록 조회
+
+```http
+GET /api/courses/instructor/{instructorId}
+```
+
+**Query Parameters**:
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| page | Int | X | 페이지 번호 (기본: 0) |
+| size | Int | X | 페이지 크기 (기본: 20) |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "courseId": 1,
+        "courseName": "React 기초 과정",
+        "instructorId": 1,
+        "itemCount": 5,
+        "createdAt": "2025-01-15T10:00:00"
+      },
+      {
+        "courseId": 3,
+        "courseName": "React 심화 과정",
+        "instructorId": 1,
+        "itemCount": 8,
+        "createdAt": "2025-01-20T10:00:00"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 2,
+    "totalPages": 1
+  }
+}
+```
+
+### 1.5 강의 수정
 
 ```http
 PUT /api/courses/{courseId}
@@ -108,7 +149,20 @@ Content-Type: application/json
 }
 ```
 
-### 1.5 강의 삭제
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "courseId": 1,
+    "courseName": "React 심화 과정",
+    "instructorId": 2,
+    "updatedAt": "2025-01-15T11:00:00"
+  }
+}
+```
+
+### 1.6 강의 삭제
 
 ```http
 DELETE /api/courses/{courseId}
@@ -241,7 +295,80 @@ GET /api/courses/{courseId}/items/hierarchy
 }
 ```
 
-### 2.5 항목 이름 변경
+### 2.5 순서대로 항목 조회
+
+```http
+GET /api/courses/{courseId}/items/ordered
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "itemId": 2,
+      "itemName": "1-1. 환경설정",
+      "order": 1,
+      "learningObjectId": 10,
+      "isFolder": false
+    },
+    {
+      "itemId": 3,
+      "itemName": "1-2. 기본 문법",
+      "order": 2,
+      "learningObjectId": 11,
+      "isFolder": false
+    },
+    {
+      "itemId": 5,
+      "itemName": "2-1. 컴포넌트",
+      "order": 3,
+      "learningObjectId": 12,
+      "isFolder": false
+    }
+  ]
+}
+```
+
+> CourseRelation 기반으로 학습 순서대로 정렬된 차시 목록 반환
+
+### 2.6 항목 이동
+
+```http
+PUT /api/courses/{courseId}/items/move
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "itemId": 3,
+  "targetParentId": 2,
+  "targetIndex": 0
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| itemId | Long | O | 이동할 항목 ID |
+| targetParentId | Long | X | 이동할 부모 폴더 ID (NULL이면 최상위) |
+| targetIndex | Int | X | 형제 항목 내 순서 (0부터 시작) |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "itemId": 3,
+    "itemName": "1-2. 기본 문법",
+    "parentId": 2,
+    "depth": 1
+  }
+}
+```
+
+### 2.7 항목 이름 변경
 
 ```http
 PATCH /api/courses/{courseId}/items/{itemId}/name
@@ -254,6 +381,51 @@ Content-Type: application/json
   "itemName": "1-1. 개발환경 설정"
 }
 ```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "itemId": 2,
+    "itemName": "1-1. 개발환경 설정",
+    "updatedAt": "2025-01-15T11:00:00"
+  }
+}
+```
+
+### 2.8 차시 LearningObject 변경
+
+```http
+PATCH /api/courses/{courseId}/items/{itemId}/learning-object
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "learningObjectId": 15
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| learningObjectId | Long | O | 새로 연결할 학습객체 ID |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "itemId": 2,
+    "itemName": "1-1. 환경설정",
+    "learningObjectId": 15,
+    "updatedAt": "2025-01-15T11:30:00"
+  }
+}
+```
+
+> 폴더가 아닌 차시 항목에만 적용 가능
 
 ---
 
@@ -340,10 +512,44 @@ Content-Type: application/json
 ### 3.4 순서 연결 삭제
 
 ```http
-DELETE /api/courses/{courseId}/relations/{relationId}
+DELETE /api/courses/relations/{relationId}
 ```
 
-### 3.5 자동 순서 생성
+**Response** (`204 No Content`)
+
+### 3.5 시작점 설정
+
+```http
+PUT /api/courses/{courseId}/relations/start
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "startItemId": 3
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| startItemId | Long | O | 시작점으로 설정할 차시 ID |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "courseId": 1,
+    "startItemId": 3,
+    "message": "시작점이 변경되었습니다."
+  }
+}
+```
+
+> 기존 시작점(fromItemId=null)을 새 차시로 변경
+
+### 3.6 자동 순서 생성
 
 ```http
 POST /api/courses/{courseId}/relations/auto

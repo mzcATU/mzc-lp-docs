@@ -6,7 +6,43 @@
 
 ## 1. 학습객체 (LearningObject) API
 
-### 1.1 학습객체 목록 조회
+### 1.1 학습객체 생성
+
+```http
+POST /api/learning-objects
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "name": "React 기초 튜토리얼",
+  "contentId": 10,
+  "folderId": 1
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| name | String | O | 학습객체 이름 |
+| contentId | Long | O | 연결할 Content ID |
+| folderId | Long | X | 폴더 ID (NULL이면 최상위) |
+
+**Response** (`201 Created`):
+```json
+{
+  "success": true,
+  "data": {
+    "learningObjectId": 1,
+    "name": "React 기초 튜토리얼",
+    "contentId": 10,
+    "folderId": 1,
+    "createdAt": "2025-01-15T10:00:00"
+  }
+}
+```
+
+### 1.2 학습객체 목록 조회
 
 ```http
 GET /api/learning-objects
@@ -46,7 +82,7 @@ GET /api/learning-objects
 }
 ```
 
-### 1.2 학습객체 상세 조회
+### 1.3 학습객체 상세 조회
 
 ```http
 GET /api/learning-objects/{learningObjectId}
@@ -78,10 +114,94 @@ GET /api/learning-objects/{learningObjectId}
 }
 ```
 
-### 1.3 학습객체 수정
+### 1.4 Content ID로 학습객체 조회
 
 ```http
-PUT /api/learning-objects/{learningObjectId}
+GET /api/learning-objects/content/{contentId}
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "learningObjectId": 1,
+    "name": "react-tutorial.mp4",
+    "contentId": 10,
+    "folderId": 1,
+    "folderName": "교육자료",
+    "createdAt": "2025-01-15T10:00:00"
+  }
+}
+```
+
+### 1.5 소유자별 학습객체 조회
+
+```http
+GET /api/learning-objects/owner/{ownerId}
+```
+
+**Query Parameters**:
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| page | Int | X | 페이지 번호 (기본: 0) |
+| size | Int | X | 페이지 크기 (기본: 20) |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "learningObjectId": 1,
+        "name": "react-tutorial.mp4",
+        "contentId": 10,
+        "contentType": "VIDEO",
+        "folderId": 1,
+        "createdAt": "2025-01-15T10:00:00"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 5,
+    "totalPages": 1
+  }
+}
+```
+
+### 1.6 학습객체 사용 현황 조회
+
+```http
+GET /api/learning-objects/{learningObjectId}/usage-count
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "learningObjectId": 1,
+    "name": "react-tutorial.mp4",
+    "usageCount": 3,
+    "usedInCourses": [
+      {
+        "courseId": 1,
+        "courseName": "React 기초 과정"
+      },
+      {
+        "courseId": 5,
+        "courseName": "프론트엔드 마스터"
+      }
+    ]
+  }
+}
+```
+
+### 1.7 학습객체 수정
+
+```http
+PATCH /api/learning-objects/{learningObjectId}
 Content-Type: application/json
 ```
 
@@ -91,6 +211,10 @@ Content-Type: application/json
   "name": "React 기초 튜토리얼 (수정됨)"
 }
 ```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| name | String | X | 학습객체 이름 |
 
 **Response** (`200 OK`):
 ```json
@@ -104,33 +228,23 @@ Content-Type: application/json
 }
 ```
 
-### 1.4 학습객체 삭제
+### 1.8 학습객체 폴더 변경
 
 ```http
-DELETE /api/learning-objects/{learningObjectId}
-```
-
-**Response** (`204 No Content`)
-
-> 연결된 Content는 유지됨 (LO만 삭제)
-
-### 1.5 학습객체 폴더 이동
-
-```http
-POST /api/learning-objects/{learningObjectId}/move
+PATCH /api/learning-objects/{learningObjectId}/folder
 Content-Type: application/json
 ```
 
 **Request Body**:
 ```json
 {
-  "targetFolderId": 2
+  "folderId": 2
 }
 ```
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
-| targetFolderId | Long | X | 이동할 폴더 ID (NULL이면 최상위) |
+| folderId | Long | X | 이동할 폴더 ID (NULL이면 최상위) |
 
 **Response** (`200 OK`):
 ```json
@@ -144,6 +258,16 @@ Content-Type: application/json
   }
 }
 ```
+
+### 1.9 학습객체 삭제
+
+```http
+DELETE /api/learning-objects/{learningObjectId}
+```
+
+**Response** (`204 No Content`)
+
+> 연결된 Content는 유지됨 (LO만 삭제)
 
 ---
 
@@ -183,43 +307,7 @@ Content-Type: application/json
 }
 ```
 
-### 2.2 폴더 목록 조회
-
-```http
-GET /api/content-folders
-```
-
-**Query Parameters**:
-| 파라미터 | 타입 | 필수 | 설명 |
-|----------|------|------|------|
-| parentId | Long | X | 부모 폴더 ID (미지정 시 최상위) |
-
-**Response** (`200 OK`):
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "folderId": 1,
-      "folderName": "교육자료",
-      "parentId": null,
-      "depth": 0,
-      "childCount": 2,
-      "itemCount": 5
-    },
-    {
-      "folderId": 2,
-      "folderName": "실습자료",
-      "parentId": null,
-      "depth": 0,
-      "childCount": 0,
-      "itemCount": 3
-    }
-  ]
-}
-```
-
-### 2.3 폴더 트리 구조 조회
+### 2.2 폴더 트리 구조 조회
 
 ```http
 GET /api/content-folders/tree
@@ -266,7 +354,61 @@ GET /api/content-folders/tree
 }
 ```
 
-### 2.4 폴더 수정
+### 2.3 폴더 상세 조회
+
+```http
+GET /api/content-folders/{folderId}
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "folderId": 1,
+    "folderName": "교육자료",
+    "parentId": null,
+    "depth": 0,
+    "childCount": 2,
+    "itemCount": 5,
+    "createdAt": "2025-01-15T10:00:00",
+    "updatedAt": "2025-01-15T10:00:00"
+  }
+}
+```
+
+### 2.4 하위 폴더 조회
+
+```http
+GET /api/content-folders/{folderId}/children
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "folderId": 3,
+      "folderName": "2024년",
+      "parentId": 1,
+      "depth": 1,
+      "childCount": 1,
+      "itemCount": 3
+    },
+    {
+      "folderId": 4,
+      "folderName": "2025년",
+      "parentId": 1,
+      "depth": 1,
+      "childCount": 0,
+      "itemCount": 2
+    }
+  ]
+}
+```
+
+### 2.5 폴더 수정
 
 ```http
 PUT /api/content-folders/{folderId}
@@ -280,7 +422,50 @@ Content-Type: application/json
 }
 ```
 
-### 2.5 폴더 삭제
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "folderId": 1,
+    "folderName": "교육자료 (Archive)",
+    "updatedAt": "2025-01-15T11:00:00"
+  }
+}
+```
+
+### 2.6 폴더 이동
+
+```http
+PUT /api/content-folders/{folderId}/move
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "targetParentId": 2
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| targetParentId | Long | X | 이동할 부모 폴더 ID (NULL이면 최상위) |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "folderId": 3,
+    "folderName": "2024년",
+    "parentId": 2,
+    "depth": 1
+  }
+}
+```
+
+### 2.7 폴더 삭제
 
 ```http
 DELETE /api/content-folders/{folderId}
