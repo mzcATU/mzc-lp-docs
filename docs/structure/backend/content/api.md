@@ -10,6 +10,7 @@
 
 ```http
 POST /api/contents
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -48,6 +49,7 @@ Content-Type: application/json
 
 ```http
 POST /api/contents/upload
+Authorization: Bearer {accessToken}
 Content-Type: multipart/form-data
 ```
 
@@ -92,6 +94,7 @@ folderId: 1 (optional)
 
 ```http
 POST /api/contents/external-link
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -132,6 +135,7 @@ Content-Type: application/json
 
 ```http
 GET /api/contents
+Authorization: Bearer {accessToken}
 ```
 
 **Query Parameters**:
@@ -170,6 +174,7 @@ GET /api/contents
 
 ```http
 GET /api/contents/{contentId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -197,6 +202,7 @@ GET /api/contents/{contentId}
 
 ```http
 GET /api/contents/type/{contentType}
+Authorization: Bearer {accessToken}
 ```
 
 **Path Parameters**:
@@ -237,6 +243,7 @@ GET /api/contents/type/{contentType}
 
 ```http
 GET /api/contents/uploader/{uploadedBy}
+Authorization: Bearer {accessToken}
 ```
 
 **Path Parameters**:
@@ -281,6 +288,7 @@ GET /api/contents/uploader/{uploadedBy}
 
 ```http
 GET /api/contents/{contentId}/stream
+Authorization: Bearer {accessToken}
 Range: bytes=0-1048575
 ```
 
@@ -300,6 +308,7 @@ Accept-Ranges: bytes
 
 ```http
 GET /api/contents/{contentId}/download
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -315,6 +324,7 @@ Content-Length: 104857600
 
 ```http
 GET /api/contents/{contentId}/preview
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -331,6 +341,7 @@ Content-Disposition: inline
 
 ```http
 GET /api/contents/{contentId}/text
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -354,7 +365,8 @@ GET /api/contents/{contentId}/text
 ### 4.1 메타데이터 수정
 
 ```http
-PUT /api/contents/{contentId}
+PATCH /api/contents/{contentId}
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -391,6 +403,7 @@ Content-Type: application/json
 
 ```http
 PUT /api/contents/{contentId}/file
+Authorization: Bearer {accessToken}
 Content-Type: multipart/form-data
 ```
 
@@ -427,6 +440,7 @@ file: (binary)
 
 ```http
 DELETE /api/contents/{contentId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`204 No Content`)

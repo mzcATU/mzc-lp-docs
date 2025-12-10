@@ -10,6 +10,7 @@
 
 ```http
 POST /api/courses
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -76,6 +77,7 @@ Authorization: Bearer {accessToken}
 
 ```http
 GET /api/courses/{courseId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -97,6 +99,7 @@ GET /api/courses/{courseId}
 
 ```http
 GET /api/courses/instructor/{instructorId}
+Authorization: Bearer {accessToken}
 ```
 
 **Query Parameters**:
@@ -138,6 +141,7 @@ GET /api/courses/instructor/{instructorId}
 
 ```http
 PUT /api/courses/{courseId}
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -166,6 +170,7 @@ Content-Type: application/json
 
 ```http
 DELETE /api/courses/{courseId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`204 No Content`)
@@ -178,6 +183,7 @@ DELETE /api/courses/{courseId}
 
 ```http
 POST /api/courses/{courseId}/items
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -215,6 +221,7 @@ Content-Type: application/json
 
 ```http
 POST /api/courses/{courseId}/folders
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -250,6 +257,7 @@ Content-Type: application/json
 
 ```http
 DELETE /api/courses/items/{itemId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`204 No Content`)
@@ -260,6 +268,7 @@ DELETE /api/courses/items/{itemId}
 
 ```http
 GET /api/courses/{courseId}/items/hierarchy
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -299,6 +308,7 @@ GET /api/courses/{courseId}/items/hierarchy
 
 ```http
 GET /api/courses/{courseId}/items/ordered
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -337,6 +347,7 @@ GET /api/courses/{courseId}/items/ordered
 
 ```http
 PUT /api/courses/{courseId}/items/move
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -372,6 +383,7 @@ Content-Type: application/json
 
 ```http
 PATCH /api/courses/{courseId}/items/{itemId}/name
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -398,6 +410,7 @@ Content-Type: application/json
 
 ```http
 PATCH /api/courses/{courseId}/items/{itemId}/learning-object
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -435,6 +448,7 @@ Content-Type: application/json
 
 ```http
 POST /api/courses/{courseId}/relations
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -467,6 +481,7 @@ Content-Type: application/json
 
 ```http
 GET /api/courses/{courseId}/relations
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -493,6 +508,7 @@ GET /api/courses/{courseId}/relations
 
 ```http
 PUT /api/courses/{courseId}/relations
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -513,6 +529,7 @@ Content-Type: application/json
 
 ```http
 DELETE /api/courses/relations/{relationId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`204 No Content`)
@@ -521,6 +538,7 @@ DELETE /api/courses/relations/{relationId}
 
 ```http
 PUT /api/courses/{courseId}/relations/start
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -553,6 +571,7 @@ Content-Type: application/json
 
 ```http
 POST /api/courses/{courseId}/relations/auto
+Authorization: Bearer {accessToken}
 ```
 
 > depth 순서대로 자동으로 학습 순서 생성

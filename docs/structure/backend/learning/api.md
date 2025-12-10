@@ -10,6 +10,7 @@
 
 ```http
 POST /api/learning-objects
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -46,6 +47,7 @@ Content-Type: application/json
 
 ```http
 GET /api/learning-objects
+Authorization: Bearer {accessToken}
 ```
 
 **Query Parameters**:
@@ -86,6 +88,7 @@ GET /api/learning-objects
 
 ```http
 GET /api/learning-objects/{learningObjectId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -118,6 +121,7 @@ GET /api/learning-objects/{learningObjectId}
 
 ```http
 GET /api/learning-objects/content/{contentId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -139,6 +143,7 @@ GET /api/learning-objects/content/{contentId}
 
 ```http
 GET /api/learning-objects/owner/{ownerId}
+Authorization: Bearer {accessToken}
 ```
 
 **Query Parameters**:
@@ -174,6 +179,7 @@ GET /api/learning-objects/owner/{ownerId}
 
 ```http
 GET /api/learning-objects/{learningObjectId}/usage-count
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -202,6 +208,7 @@ GET /api/learning-objects/{learningObjectId}/usage-count
 
 ```http
 PATCH /api/learning-objects/{learningObjectId}
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -232,6 +239,7 @@ Content-Type: application/json
 
 ```http
 PATCH /api/learning-objects/{learningObjectId}/folder
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -263,6 +271,7 @@ Content-Type: application/json
 
 ```http
 DELETE /api/learning-objects/{learningObjectId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`204 No Content`)
@@ -277,6 +286,7 @@ DELETE /api/learning-objects/{learningObjectId}
 
 ```http
 POST /api/content-folders
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -311,6 +321,7 @@ Content-Type: application/json
 
 ```http
 GET /api/content-folders/tree
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -358,6 +369,7 @@ GET /api/content-folders/tree
 
 ```http
 GET /api/content-folders/{folderId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -381,6 +393,7 @@ GET /api/content-folders/{folderId}
 
 ```http
 GET /api/content-folders/{folderId}/children
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`200 OK`):
@@ -412,6 +425,7 @@ GET /api/content-folders/{folderId}/children
 
 ```http
 PUT /api/content-folders/{folderId}
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -438,6 +452,7 @@ Content-Type: application/json
 
 ```http
 PUT /api/content-folders/{folderId}/move
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -469,6 +484,7 @@ Content-Type: application/json
 
 ```http
 DELETE /api/content-folders/{folderId}
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (`204 No Content`)
