@@ -247,7 +247,7 @@ Authorization: Bearer {accessToken}
 ### 2.2 강의 승인
 
 ```http
-PUT /api/programs/{programId}/approve
+POST /api/programs/{programId}/approve
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
@@ -280,7 +280,7 @@ Content-Type: application/json
 ### 2.3 강의 반려
 
 ```http
-PUT /api/programs/{programId}/reject
+POST /api/programs/{programId}/reject
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```

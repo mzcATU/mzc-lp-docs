@@ -256,7 +256,7 @@ Content-Type: application/json
 ### 2.3 항목 삭제
 
 ```http
-DELETE /api/courses/items/{itemId}
+DELETE /api/courses/{courseId}/items/{itemId}
 Authorization: Bearer {accessToken}
 ```
 
@@ -528,7 +528,7 @@ Content-Type: application/json
 ### 3.4 순서 연결 삭제
 
 ```http
-DELETE /api/courses/relations/{relationId}
+DELETE /api/courses/{courseId}/relations/{relationId}
 Authorization: Bearer {accessToken}
 ```
 
