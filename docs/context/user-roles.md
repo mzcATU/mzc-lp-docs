@@ -47,16 +47,19 @@
         │                   │                   │
         ▼                   ▼                   ▼
 ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│   OPERATOR    │   │TENANT_OPERATOR│   │   OPERATOR    │
+│   OPERATOR    │   │   OPERATOR    │   │   OPERATOR    │
 │   (운영자)    │   │   (운영자)    │   │   (운영자)    │
 └───────────────┘   └───────────────┘   └───────────────┘
         │                   │                   │
         ▼                   ▼                   ▼
 ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│     USER      │   │    MEMBER     │   │     USER      │
+│     USER      │   │     USER      │   │     USER      │
 │ (수강+강의등록)│   │   (직원)      │   │   (학생)      │
 └───────────────┘   └───────────────┘   └───────────────┘
 ```
+
+> **역할 통일**: 모든 테넌트에서 동일한 역할명 사용 (TENANT_ADMIN → OPERATOR → USER)
+> **차이점**: 테넌트 타입(B2C/B2B/KPOP)에 따라 **기능/권한**만 다르게 적용
 
 ### B2C 특징: 강의별 권한
 
@@ -65,16 +68,19 @@ USER (일반 사용자)
   │
   ├── 수강생으로서: 다른 사람 강의 수강
   │
-  └── 강의 생성 → 자동으로 해당 강의의 OWNER → 등록 신청
+  └── "강의 개설하기" 버튼 클릭 → DESIGNER Role 부여 → 강의 설계 페이지 접근
+        │
+        │ 강의 구성 완료 후 "개설 신청"
+        ▼
+      OPERATOR 승인 → OWNER Role 부여 (강의 소유자 + 강사)
+
+※ B2C에서는 OWNER = 강사 (별도 INSTRUCTOR 없음)
 
 OPERATOR (운영자)
   │
-  ├── 강의 등록 신청 검토/승인
+  ├── 강의 등록 신청 검토/승인 → 승인 시 DESIGNER → OWNER로 전환
   │
   ├── 차수(기수) 등록 관리
-  │
-  ├── 강사 배정 → 해당 사용자가 강의의 INSTRUCTOR가 됨
-  │   └── 보통 OWNER가 INSTRUCTOR로 배정됨 (별도 지정 없으면)
   │
   └── 수강 신청 관리 (승인/거절)
 ```
@@ -95,18 +101,19 @@ public enum SystemRole {
 
 ```java
 public enum TenantRole {
-    // 공통
-    TENANT_ADMIN,       // 테넌트 최고 관리자
-
-    // B2C/KPOP
-    OPERATOR,           // 운영자 (강의 검토, 차수 생성, 강사 배정)
-    USER,               // 일반 사용자 (수강 + 강의 등록 가능)
-
-    // B2B 전용
-    TENANT_OPERATOR,    // 테넌트 운영자 (조직/유저/강의/학습현황 관리)
-    MEMBER              // 일반 직원 (수강만)
+    TENANT_ADMIN,   // 테넌트 최고 관리자
+    OPERATOR,       // 운영자 (강의 검토, 차수 생성, 역할 부여)
+    USER            // 일반 사용자 (수강)
 }
 ```
+
+> **통일된 역할**: 모든 테넌트(B2C/B2B/KPOP)에서 동일한 역할 사용
+> **차이점**: 테넌트 타입에 따라 같은 역할이라도 기능이 다름
+
+| 역할 | B2C | B2B | KPOP |
+|------|-----|-----|------|
+| **USER** | 수강 + 강의개설 버튼 접근 | 수강만 (역할 부여 전까지) | 수강 |
+| **OPERATOR** | 강의 승인, 차수 관리 | 강의 승인 + **역할 부여/회수** | 강의/스케줄 관리 |
 
 ### 3.3 Operator 역할 상세 (B2C)
 
@@ -129,23 +136,58 @@ OPERATOR가 TS(Time Schedule) 모듈에서 수행하는 업무:
    └─ 운영 중 변경사항 처리
 ```
 
-### 3.4 강의 레벨 역할 (B2C/B2B/KPOP 공통)
+### 3.4 강의 레벨 역할
 
 ```java
 public enum CourseRole {
-    OWNER,          // 강의 생성자 (소유권, 수익)
-    INSTRUCTOR      // 강사 (강의 관리, 피드백)
+    DESIGNER,       // 강의 설계자 (커리큘럼 구성, 콘텐츠 제작)
+    OWNER,          // 강의 소유자 (B2C: 소유 + 강사, B2B: 소유만)
+    INSTRUCTOR      // 강사 (B2B/KPOP 전용, 강의 진행)
 }
 ```
 
-| | B2C | B2B | KPOP |
-|---|---|---|---|
-| 강의 생성 | USER가 직접 | TENANT_OPERATOR가 생성 | OPERATOR가 생성 |
-| OWNER | 강의 생성한 USER | TENANT_OPERATOR 또는 지정 | OPERATOR 또는 지정 |
-| INSTRUCTOR 배정 | OWNER가 초대 | TENANT_OPERATOR가 배정 | OPERATOR가 배정 |
-| 수익 분배 | O (플랫폼 수수료) | X (기업 내부) | X |
+### 3.5 B2C vs B2B 역할 부여 방식
 
-> **핵심**: 강의별 권한은 `CourseInstructor` 테이블로 관리 (모든 플랫폼 공통)
+| | B2C | B2B |
+|---|---|---|
+| **DESIGNER 부여** | 셀프 ("강의 개설하기" 버튼 클릭) | OPERATOR가 부여 |
+| **OWNER 부여** | 개설 신청 승인 후 | 개설 신청 승인 후 |
+| **INSTRUCTOR** | ❌ 없음 (OWNER = 강사) | ✅ OPERATOR가 부여 |
+| **역할 회수** | ❌ (본인 판단) | ✅ OPERATOR가 회수 가능 |
+
+### 3.6 역할 부여 플로우
+
+**B2C 플로우:**
+```
+USER
+  │
+  └─► "강의 개설하기" 버튼 클릭
+          │
+          ▼
+      DESIGNER (강의 설계자)
+          │
+          │ 강의 구성 완료 후 "개설 신청"
+          ▼
+      OPERATOR 승인
+          │
+          ▼
+      OWNER (강의 소유자 + 강사)
+```
+
+**B2B 플로우:**
+```
+USER
+  │
+  ├─► OPERATOR가 "강사 부여" ───────► INSTRUCTOR
+  │
+  └─► OPERATOR가 "강의설계자 부여" ──► DESIGNER
+                                          │
+                                          │ 강의 구성 완료 후 "개설 신청"
+                                          ▼
+                                        OWNER (승인 시)
+```
+
+> **핵심 차이**: B2C는 셀프 서비스, B2B는 관리자 통제
 
 ---
 
@@ -166,28 +208,29 @@ public enum CourseRole {
 | 강의 수강 | O | O | O |
 | 리뷰 작성 | O | O | O |
 
-#### 강의 레벨 권한 (CourseRole)
+#### 강의 레벨 권한 (CourseRole) - B2C
 
-| 권한 | OWNER | INSTRUCTOR | 수강생 |
-|------|-------|------------|--------|
-| 강의 삭제 | O | X | X |
-| 강의 정보 수정 | O | O | X |
+| 권한 | DESIGNER | OWNER (=강사) | 수강생 |
+|------|----------|---------------|--------|
+| 강의 설계/구성 | O | O | X |
+| 커리큘럼 작성 | O | O | X |
 | 영상 업로드 | O | O | X |
-| 가격 설정 | O | X | X |
-| 수익 전체 조회 | O | X | X |
-| 수익 분배 받기 | O | O | X |
-| Q&A 답변 | O | O | X |
-| 수강생 관리 | O | O | X |
-| 강의 시청 | O | O | O |
+| 개설 신청 | O | X | X |
+| 강의 삭제 | X | O | X |
+| 가격 설정 | X | O | X |
+| 수익 전체 조회 | X | O | X |
+| Q&A 답변 | X | O | X |
+| 수강생 관리 | X | O | X |
+| 강의 시청 | X | O | O |
 
-> **USER는 누구나 강의를 만들 수 있고, 만든 순간 해당 강의의 OWNER가 됨**
+> **B2C**: USER가 "강의 개설하기" 클릭 → DESIGNER → 승인 후 OWNER (OWNER = 강사)
 
 ### 4.2 B2B 사이트
 
 #### 테넌트 레벨 권한
 
-| 권한 | TENANT_ADMIN | TENANT_OPERATOR | MEMBER |
-|------|--------------|-----------------|--------|
+| 권한 | TENANT_ADMIN | OPERATOR | USER |
+|------|--------------|----------|------|
 | 전사 통계/대시보드 | O | O | X |
 | 브랜딩 설정 | O | X | X |
 | 조직 생성/삭제 | O | O | X |
@@ -195,20 +238,26 @@ public enum CourseRole {
 | 강의 생성 | O | O | X |
 | 강사 배정 | O | O | X |
 | 조직별 학습 현황 | O | O | 본인만 |
+| **유저 역할 부여/회수** | O | **O** | X |
 | 수강 | O | O | O |
 
 > **TENANT_ADMIN**: 전사 통계/브랜딩 담당
-> **TENANT_OPERATOR**: 전체 운영 (모든 조직의 유저/강의/학습현황 관리)
+> **OPERATOR**: 전체 운영 (모든 조직의 유저/강의/학습현황 관리) + **역할 부여/회수**
 
-#### 강의 레벨 권한 (CourseRole)
+#### 강의 레벨 권한 (CourseRole) - B2B
 
-| 권한 | OWNER | INSTRUCTOR | 수강생 |
-|------|-------|------------|--------|
-| 강의 정보 수정 | O | O | X |
-| 콘텐츠 업로드 | O | O | X |
-| Q&A 답변/피드백 | O | O | X |
-| 수강생 관리 | O | O | X |
-| 강의 시청 | O | O | O |
+| 권한 | DESIGNER | OWNER | INSTRUCTOR | 수강생 |
+|------|----------|-------|------------|--------|
+| 강의 설계/구성 | O | O | X | X |
+| 커리큘럼 작성 | O | O | X | X |
+| 콘텐츠 업로드 | O | O | X | X |
+| 개설 신청 | O | X | X | X |
+| 강의 정보 수정 | X | O | O | X |
+| Q&A 답변/피드백 | X | O | O | X |
+| 수강생 관리 | X | O | O | X |
+| 강의 시청 | X | O | O | O |
+
+> **B2B**: OPERATOR가 유저 목록에서 "강사 부여" / "강의설계자 부여" 버튼으로 역할 관리
 
 ### 4.3 KPOP 사이트 (K-POP 단기 연수)
 
@@ -274,7 +323,7 @@ public class User extends TenantEntity {
     // 테넌트 레벨 역할
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TenantRole role;        // USER, MEMBER 등
+    private TenantRole role;        // USER, OPERATOR, TENANT_ADMIN
 
     // B2B 전용: 소속 조직
     @ManyToOne(fetch = FetchType.LAZY)
@@ -291,20 +340,20 @@ public class User extends TenantEntity {
 }
 ```
 
-### 5.2 CourseInstructor (강의별 강사 - B2C 핵심)
+### 5.2 CourseRole (강의별 역할)
 
 ```java
 @Entity
-@Table(name = "course_instructors")
-public class CourseInstructor extends BaseTimeEntity {
+@Table(name = "course_roles")
+public class UserCourseRole extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @JoinColumn(name = "course_id")
+    private Course course;          // null이면 테넌트 레벨 역할
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -312,32 +361,41 @@ public class CourseInstructor extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CourseRole role;        // OWNER, INSTRUCTOR
+    private CourseRole role;        // DESIGNER, OWNER, INSTRUCTOR
 
-    private Integer revenueSharePercent;  // 수익 분배 비율 (예: 70%)
+    private Integer revenueSharePercent;  // 수익 분배 비율 (B2C OWNER: 70%)
 
-    // 정적 팩토리
-    public static CourseInstructor createOwner(Course course, User user) {
-        CourseInstructor ci = new CourseInstructor();
-        ci.course = course;
-        ci.user = user;
-        ci.role = CourseRole.OWNER;
-        ci.revenueSharePercent = 70;  // 기본 70% (플랫폼 30%)
-        return ci;
+    // B2C: 강의 개설 버튼 클릭 시 DESIGNER 부여
+    public static UserCourseRole createDesigner(User user) {
+        UserCourseRole ucr = new UserCourseRole();
+        ucr.user = user;
+        ucr.course = null;  // 아직 강의 없음
+        ucr.role = CourseRole.DESIGNER;
+        return ucr;
     }
 
-    public static CourseInstructor addInstructor(Course course, User user, int sharePercent) {
-        CourseInstructor ci = new CourseInstructor();
-        ci.course = course;
-        ci.user = user;
-        ci.role = CourseRole.INSTRUCTOR;
-        ci.revenueSharePercent = sharePercent;
-        return ci;
+    // 강의 승인 후 OWNER로 전환
+    public static UserCourseRole createOwner(Course course, User user) {
+        UserCourseRole ucr = new UserCourseRole();
+        ucr.course = course;
+        ucr.user = user;
+        ucr.role = CourseRole.OWNER;
+        ucr.revenueSharePercent = 70;  // B2C 기본 70% (플랫폼 30%)
+        return ucr;
+    }
+
+    // B2B: OPERATOR가 강사 부여
+    public static UserCourseRole createInstructor(Course course, User user) {
+        UserCourseRole ucr = new UserCourseRole();
+        ucr.course = course;
+        ucr.user = user;
+        ucr.role = CourseRole.INSTRUCTOR;
+        return ucr;
     }
 }
 ```
 
-### 5.3 Course와 강사 관계
+### 5.3 Course와 역할 관계
 
 ```java
 @Entity
@@ -355,30 +413,36 @@ public class Course extends TenantEntity {
     @Enumerated(EnumType.STRING)
     private CourseStatus status;    // DRAFT, PENDING, PUBLISHED, CLOSED
 
-    // 강사들 (OWNER 포함)
+    // 역할 (DESIGNER, OWNER, INSTRUCTOR)
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private List<CourseInstructor> instructors = new ArrayList<>();
+    private List<UserCourseRole> roles = new ArrayList<>();
 
-    // 강의 생성 시 OWNER 자동 등록
-    public static Course create(String title, User creator) {
+    // B2C: DESIGNER가 강의 구성 (아직 승인 전)
+    public static Course createDraft(String title, User designer) {
         Course course = new Course();
         course.title = title;
         course.status = CourseStatus.DRAFT;
-        course.instructors.add(CourseInstructor.createOwner(course, creator));
+        // DESIGNER는 이미 user에게 부여되어 있음
         return course;
     }
 
-    // 강사 추가
-    public void addInstructor(User user, int sharePercent) {
-        this.instructors.add(CourseInstructor.addInstructor(this, user, sharePercent));
+    // 승인 후 OWNER 등록
+    public void approve(User designer) {
+        this.status = CourseStatus.PUBLISHED;
+        this.roles.add(UserCourseRole.createOwner(this, designer));
+    }
+
+    // B2B: 강사 추가
+    public void addInstructor(User user) {
+        this.roles.add(UserCourseRole.createInstructor(this, user));
     }
 
     // OWNER 조회
     public User getOwner() {
-        return instructors.stream()
-            .filter(i -> i.getRole() == CourseRole.OWNER)
+        return roles.stream()
+            .filter(r -> r.getRole() == CourseRole.OWNER)
             .findFirst()
-            .map(CourseInstructor::getUser)
+            .map(UserCourseRole::getUser)
             .orElseThrow();
     }
 }
@@ -420,55 +484,66 @@ public class Organization extends TenantEntity {
 1. 회원가입
        │
        ▼
-2. 기본 역할 부여: USER (수강 + 강의 생성 가능)
+2. 기본 역할 부여: USER (수강 가능)
        │
        ├──────────────────────────────────┐
        ▼                                  ▼
-3-A. 강의 수강                      3-B. 강의 생성
+3-A. 강의 수강                      3-B. "강의 개설하기" 버튼 클릭
      (Enrollment 생성)                    │
                                           ▼
-                                    4. CourseInstructor 생성
-                                       (role: OWNER)
+                                    4. DESIGNER Role 부여
+                                       (강의 설계 페이지 접근 가능)
                                           │
                                           ▼
-                                    5. 강의 심사 (PENDING)
+                                    5. 강의 구성 (커리큘럼, 영상 등)
                                           │
                                           ▼
-                                    6. 승인 → PUBLISHED
+                                    6. "개설 신청" 버튼 클릭
+                                       (status: PENDING)
+                                          │
+                                          ▼
+                                    7. OPERATOR 승인
+                                          │
+                                          ▼
+                                    8. OWNER Role 부여 (=강사)
+                                       (status: PUBLISHED)
 ```
 
-### 6.2 B2C 강사 배정 (공동 강의)
+> **B2C 특징**: OWNER = 강사 (별도 INSTRUCTOR 없음, 1인 크리에이터 구조)
 
-```
-1. 강의 OWNER가 강사 초대
-       │
-       ▼
-2. 초대받은 USER 승낙
-       │
-       ▼
-3. CourseInstructor 생성
-   (role: INSTRUCTOR, revenueSharePercent: 30%)
-       │
-       ▼
-4. 해당 강의에 대해 강사 권한 획득
-```
-
-### 6.3 B2B 사용자 등록
+### 6.2 B2B 사용자 등록 및 역할 부여
 
 ```
 1. 관리자가 사용자 생성 (대량 등록 가능)
    또는 SSO로 자동 생성
        │
        ▼
-2. 조직 배정 + 역할 부여
-   예: organization_id = 5, role = MEMBER
+2. 조직 배정 + 기본 역할 부여
+   예: organization_id = 5, role = USER
        │
        ▼
-3. 운영 권한 부여 (선택)
-   예: role = TENANT_OPERATOR (전체 운영자)
+3. OPERATOR가 역할 부여 (유저 목록에서)
+       │
+       ├─► "강사 부여" 버튼 ──────────► INSTRUCTOR
+       │
+       └─► "강의설계자 부여" 버튼 ────► DESIGNER
+                                          │
+                                          ▼
+                                    4. 강의 구성 (커리큘럼, 영상 등)
+                                          │
+                                          ▼
+                                    5. "개설 신청" 버튼 클릭
+                                          │
+                                          ▼
+                                    6. 승인 → OWNER Role 부여
 ```
 
-### 6.4 KPOP 사용자 가입
+> **B2B 특징**:
+> - OPERATOR가 역할 부여/회수 가능
+> - INSTRUCTOR와 OWNER 분리 (조직 내 역할 분담)
+> - 일반 USER는 강의 개설 버튼 자체가 안 보임 (역할 부여 전까지)
+
+### 6.3 KPOP 사용자 가입
 
 ```
 1. 회원가입 (무료)
@@ -590,10 +665,10 @@ public class CourseSecurityService {
 @RequiredArgsConstructor
 public class OrgSecurityService {
 
-    public boolean isTenantOperator() {
+    public boolean isOperator() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         return userRepository.findById(currentUserId)
-            .map(user -> user.getRole() == TenantRole.TENANT_OPERATOR)
+            .map(user -> user.getRole() == TenantRole.OPERATOR)
             .orElse(false);
     }
 
@@ -647,7 +722,7 @@ public class JwtTokenProvider {
   "sub": "12345",
   "email": "user@samsung.com",
   "tenantId": 2,
-  "roles": ["TENANT_OPERATOR"],
+  "roles": ["OPERATOR"],
   "organizationId": 5,
   "iat": 1699000000,
   "exp": 1699000900
@@ -658,38 +733,47 @@ public class JwtTokenProvider {
 
 ## 9. 사이트별 권한 요약
 
-### B2C (인프런형) - 강의별 권한 모델
+### B2C (인프런형) - 셀프 서비스 모델
 
 ```
 TENANT_ADMIN ─── 전체 관리
        │
        ▼
-   OPERATOR ──── 강의 검토/승인, 차수 생성, 강사 배정
+   OPERATOR ──── 강의 개설 신청 검토/승인, 차수 생성
        │
        ▼
-     USER ─────── 수강 + 강의 생성 가능
+     USER ─────── 수강 + "강의 개설하기" 버튼 접근
        │
-       │ 강의 생성 시
+       │ "강의 개설하기" 클릭
        ▼
 ┌─────────────────────────────────────┐
-│         CourseInstructor            │
+│           CourseRole                │
 ├─────────────────────────────────────┤
-│ OWNER ──── 강의 소유, 삭제, 수익    │
-│ INSTRUCTOR ─ 강의 관리, 수익 분배   │
+│ DESIGNER ─ 강의 설계 (승인 전)      │
+│     │                               │
+│     │ 승인 후                       │
+│     ▼                               │
+│ OWNER ──── 강의 소유 + 강사 (=1인)  │
 └─────────────────────────────────────┘
 ```
 
-**핵심**: USER는 동시에 여러 강의의 수강생이면서, 다른 강의의 OWNER/INSTRUCTOR일 수 있음
+**핵심**: B2C는 OWNER = 강사 (INSTRUCTOR 없음), 1인 크리에이터 구조
 
-### B2B (기업 전용)
+### B2B (기업 전용) - 관리자 통제 모델
 
 ```
 TENANT_ADMIN ─────┬─ 전사 통계/브랜딩
                   │
-TENANT_OPERATOR ──┼─ 전체 운영 (모든 조직의 유저/강의/학습현황)
+OPERATOR ─────────┼─ 전체 운영 + 역할 부여/회수
+                  │     │
+                  │     ├─► "강사 부여" ────► INSTRUCTOR
+                  │     │
+                  │     └─► "강의설계자 부여" ► DESIGNER → (승인 후) → OWNER
                   │
-MEMBER ───────────┴─ 학습
+USER ─────────────┴─ 학습 (역할 부여 전까지 강의 개설 불가)
 ```
+
+**핵심**: OPERATOR가 유저 목록에서 역할 부여/회수, OWNER ≠ 강사 (분리 가능)
 
 ### KPOP (K-POP 단기 연수)
 

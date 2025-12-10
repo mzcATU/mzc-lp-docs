@@ -39,21 +39,36 @@ Content-Type: application/json
 
 ```http
 GET /api/courses
+Authorization: Bearer {accessToken}
 ```
+
+**Query Parameters**:
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| keyword | String | X | 강의명 검색 |
+| instructorId | Long | X | 강사 ID 필터 |
+| page | Int | X | 페이지 번호 (기본: 0) |
+| size | Int | X | 페이지 크기 (기본: 20) |
 
 **Response** (`200 OK`):
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "courseId": 1,
-      "courseName": "React 기초 과정",
-      "instructorId": 1,
-      "itemCount": 5,
-      "createdAt": "2025-01-15T10:00:00"
-    }
-  ]
+  "data": {
+    "content": [
+      {
+        "courseId": 1,
+        "courseName": "React 기초 과정",
+        "instructorId": 1,
+        "itemCount": 5,
+        "createdAt": "2025-01-15T10:00:00"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 50,
+    "totalPages": 3
+  }
 }
 ```
 

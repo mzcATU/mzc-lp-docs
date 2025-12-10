@@ -291,8 +291,10 @@ BaseTimeEntity 상속 (tenant_id 없음)
 
 | 기능 | B2C | B2B | KPOP |
 |------|-----|-----|------|
-| 강의 생성 | USER 가능 | TENANT_OPERATOR | OPERATOR만 |
-| 강사 배정 | OPERATOR가 배정 | TENANT_OPERATOR가 배정 | OPERATOR가 배정 |
+| **강의 개설 진입** | USER 셀프 (버튼 클릭) | OPERATOR 부여 | OPERATOR만 |
+| **DESIGNER 부여** | 셀프 (버튼 클릭) | OPERATOR | OPERATOR |
+| **INSTRUCTOR** | ❌ (OWNER=강사) | ✅ OPERATOR 부여 | ✅ OPERATOR 부여 |
+| **역할 회수** | ❌ | ✅ OPERATOR | ✅ OPERATOR |
 | 개인 결제 | O | X | O |
 | 기업 결제 | X | O | X |
 | 조직 관리 | X | O | X |
@@ -305,7 +307,18 @@ BaseTimeEntity 상속 (tenant_id 없음)
 | 수료증 | O | O | O |
 | SSO | X | O | X |
 
-### 6.2 기능 체크 서비스
+### 6.2 역할 부여 방식 비교
+
+| | B2C | B2B |
+|---|---|---|
+| **모델** | 셀프 서비스 | 관리자 통제 |
+| **DESIGNER 부여** | "강의 개설하기" 버튼 클릭 | OPERATOR가 유저 목록에서 부여 |
+| **OWNER 부여** | 개설 신청 승인 후 | 개설 신청 승인 후 |
+| **INSTRUCTOR** | ❌ 없음 (OWNER = 강사) | ✅ OPERATOR가 부여 |
+| **역할 회수** | ❌ (본인 판단) | ✅ OPERATOR가 회수 가능 |
+| **일반 유저 UI** | "강의 개설하기" 버튼 보임 | 역할 부여 전 버튼 안 보임 |
+
+### 6.3 기능 체크 서비스
 
 ```java
 @Service

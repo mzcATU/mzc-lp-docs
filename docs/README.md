@@ -9,6 +9,7 @@
 ```
 📁 docs/
 ├── 📄 CLAUDE.md                 # AI 작업 가이드 (핵심 진입점)
+├── 📄 PHASE-ROADMAP.md          # 개발 로드맵 (B2C→B2B→KPOP)
 ├── 📄 POLY-REPO.md              # 폴리레포 구성 가이드
 ├── 📄 MONOREPO.md               # 모노레포 설정 가이드
 │
@@ -95,6 +96,7 @@
 | 상황 | 참조 문서 |
 |------|----------|
 | AI 작업 시작 전 | CLAUDE.md (핵심 진입점) |
+| 개발 로드맵 확인 | PHASE-ROADMAP.md |
 | 특정 레이어 개발 | conventions/해당 번호 컨벤션 |
 | 전체 구조 파악 | context/architecture.md |
 | 저장소 설정 | POLY-REPO.md → backend-setup.md, frontend-setup.md |
