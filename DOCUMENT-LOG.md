@@ -151,7 +151,9 @@ test-lms-v2-integration/
 | 2025-12-10 | 신동구 | 로그인/로그아웃 API + JWT 인증 구현 |
 | 2025-12-10 | 신동구 | BaseTimeEntity 시간 타입 `LocalDateTime` → `Instant` 변경 |
 | 2025-12-10 | 신동구 | `docs/structure/backend/common/overview.md` 업데이트 |
+| 2025-12-11 | 신동구 | UM Phase 1 구현 - User API 확장 (/me 엔드포인트) |
+| 2025-12-11 | 신동구 | `docs/dev-logs/backend-um-phase1.md` 개발 로그 생성 |
 
 ---
 
-*최종 업데이트: 2025-12-10*
+*최종 업데이트: 2025-12-11*
