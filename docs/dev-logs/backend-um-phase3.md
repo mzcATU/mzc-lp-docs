@@ -297,11 +297,208 @@ public class UserCourseRole extends BaseTimeEntity {
 
 ---
 
+---
+
+# Part 2: OPERATOR CourseRole 관리 API
+
+> 관리자(OPERATOR/TENANT_ADMIN)가 사용자에게 강의 역할을 부여/회수하는 API
+
+---
+
+## 11. Part 2 구현 개요
+
+| Method | Endpoint | 권한 | 기능 | HTTP Status |
+|--------|----------|------|------|-------------|
+| POST | `/api/users/{userId}/course-roles` | OPERATOR, TENANT_ADMIN | 역할 부여 | 201 Created |
+| DELETE | `/api/users/{userId}/course-roles/{courseRoleId}` | OPERATOR, TENANT_ADMIN | 역할 회수 | 204 No Content |
+
+---
+
+## 12. Part 2 신규 생성 파일 (2개)
+
+### DTO
+
+| 파일 | 경로 | 설명 |
+|------|------|------|
+| AssignCourseRoleRequest.java | `dto/request/` | 역할 부여 요청 DTO |
+
+### Exception
+
+| 파일 | 경로 | 설명 |
+|------|------|------|
+| CourseRoleNotFoundException.java | `exception/` | 역할 미존재 예외 |
+
+---
+
+## 13. Part 2 수정 파일 (5개)
+
+### ErrorCode.java
+
+```java
+// 추가
+COURSE_ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "U007", "Course role not found"),
+```
+
+### UserCourseRole.java (Entity)
+
+```java
+// 범용 역할 생성 팩토리 메서드 추가
+public static UserCourseRole create(User user, Long courseId, CourseRole role, Integer revenueSharePercent) {
+    UserCourseRole ucr = new UserCourseRole();
+    ucr.user = user;
+    ucr.courseId = courseId;
+    ucr.role = role;
+    ucr.revenueSharePercent = revenueSharePercent;
+    return ucr;
+}
+```
+
+### UserService.java (인터페이스)
+
+```java
+// CourseRole 관리 API 추가
+CourseRoleResponse assignCourseRole(Long userId, AssignCourseRoleRequest request);
+void revokeCourseRole(Long userId, Long courseRoleId);
+```
+
+### UserServiceImpl.java (구현체)
+
+```java
+@Override
+@Transactional
+public CourseRoleResponse assignCourseRole(Long userId, AssignCourseRoleRequest request) {
+    // 중복 검증 (테넌트 레벨 vs 강의 레벨)
+    // 역할 부여
+}
+
+@Override
+@Transactional
+public void revokeCourseRole(Long userId, Long courseRoleId) {
+    // 사용자 존재 확인
+    // 역할 소유권 확인
+    // 역할 삭제
+}
+```
+
+### UserController.java
+
+```java
+// CourseRole 관리 API 엔드포인트 추가
+@PostMapping("/{userId}/course-roles")
+@PreAuthorize("hasAnyRole('OPERATOR', 'TENANT_ADMIN')")
+
+@DeleteMapping("/{userId}/course-roles/{courseRoleId}")
+@PreAuthorize("hasAnyRole('OPERATOR', 'TENANT_ADMIN')")
+```
+
+---
+
+## 14. Part 2 비즈니스 로직
+
+### 역할 부여 (assignCourseRole)
+
+```
+1. 대상 사용자 존재 확인
+2. 중복 역할 검증
+   - courseId == null → 테넌트 레벨 역할 (DESIGNER)
+   - courseId != null → 강의 레벨 역할 (OWNER, INSTRUCTOR)
+3. UserCourseRole 생성 및 저장
+```
+
+### 역할 회수 (revokeCourseRole)
+
+```
+1. 대상 사용자 존재 확인
+2. CourseRole 존재 확인
+3. 해당 사용자의 역할인지 소유권 확인
+4. 역할 삭제
+```
+
+---
+
+## 15. Part 2 테스트 케이스 (9개)
+
+### POST /api/users/{userId}/course-roles
+
+| 테스트 | 기대 결과 |
+|--------|----------|
+| 성공 - OPERATOR가 DESIGNER 역할 부여 | 201 Created |
+| 성공 - OPERATOR가 INSTRUCTOR 역할 부여 | 201 Created |
+| 성공 - OPERATOR가 OWNER 역할 부여 (수익분배율 포함) | 201 Created |
+| 실패 - 중복 역할 부여 시도 | 409 Conflict, U006 |
+| 실패 - USER 권한으로 역할 부여 시도 | 403 Forbidden |
+| 실패 - 존재하지 않는 사용자 | 404 Not Found, U001 |
+
+### DELETE /api/users/{userId}/course-roles/{courseRoleId}
+
+| 테스트 | 기대 결과 |
+|--------|----------|
+| 성공 - OPERATOR가 역할 회수 | 204 No Content |
+| 실패 - USER 권한으로 역할 회수 시도 | 403 Forbidden |
+| 실패 - 존재하지 않는 역할 회수 시도 | 404 Not Found, U007 |
+| 실패 - 다른 사용자의 역할 회수 시도 | 404 Not Found, U007 |
+
+---
+
+## 16. Part 2 파일 구조 (최종)
+
+```
+domain/user/
+├── controller/
+│   └── UserController.java      (수정) +2 엔드포인트
+├── service/
+│   ├── UserService.java         (수정) +2 메서드
+│   └── UserServiceImpl.java     (수정) +2 메서드
+├── repository/
+│   └── UserCourseRoleRepository.java    (수정) +1 쿼리 메서드
+├── entity/
+│   └── UserCourseRole.java      (수정) +1 팩토리 메서드
+├── dto/
+│   └── request/
+│       └── AssignCourseRoleRequest.java  ✅ 신규
+├── exception/
+│   └── CourseRoleNotFoundException.java  ✅ 신규
+└── constant/
+    └── CourseRole.java          (기존)
+
+common/
+└── constant/
+    └── ErrorCode.java           (수정) +1 에러코드
+```
+
+---
+
+## 17. Part 2 컨벤션 준수 체크
+
+### Controller (03-CONTROLLER-CONVENTIONS)
+
+- [x] `@PreAuthorize` 권한 체크
+- [x] HTTP Status 준수 (POST → 201, DELETE → 204)
+- [x] `@Valid` + `@RequestBody` 조합
+
+### Service (04-SERVICE-CONVENTIONS)
+
+- [x] 쓰기 메서드에 `@Transactional`
+- [x] 로깅: INFO(역할 부여/회수)
+
+### DTO (07-DTO-CONVENTIONS)
+
+- [x] Java Record 사용
+- [x] `@NotNull` Validation + message
+
+### Exception (08-EXCEPTION-CONVENTIONS)
+
+- [x] `BusinessException` 상속
+- [x] `ErrorCode` 사용
+
+---
+
 ## 변경 이력
 
 | 날짜 | 내용 |
 |------|------|
-| 2025-12-11 | Phase 3 구현 완료 (API 2개, 테스트 6개) |
+| 2025-12-11 | Phase 3 Part 1 구현 완료 (API 2개, 테스트 6개) |
+| 2025-12-11 | Phase 3 Part 2 구현 완료 (관리 API 2개, 테스트 9개) |
 
 ---
 
