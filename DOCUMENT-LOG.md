@@ -155,6 +155,8 @@ test-lms-v2-integration/
 | 2025-12-11 | 신동구 | `docs/dev-logs/backend-um-phase1.md` 개발 로그 생성 |
 | 2025-12-11 | 신동구 | UM Phase 2 구현 - User 관리 API (OPERATOR/TENANT_ADMIN 권한) |
 | 2025-12-11 | 신동구 | `docs/dev-logs/backend-um-phase2.md` 개발 로그 생성 |
+| 2025-12-11 | 신동구 | UM Phase 3 구현 - CourseRole API (DESIGNER 역할 요청/조회) |
+| 2025-12-11 | 신동구 | `docs/dev-logs/backend-um-phase3.md` 개발 로그 생성 |
 
 ---
 
