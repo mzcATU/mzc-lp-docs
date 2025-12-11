@@ -499,6 +499,69 @@ common/
 |------|------|
 | 2025-12-11 | Phase 3 Part 1 구현 완료 (API 2개, 테스트 6개) |
 | 2025-12-11 | Phase 3 Part 2 구현 완료 (관리 API 2개, 테스트 9개) |
+| 2025-12-11 | UserCourseRole 엔티티 TenantEntity 상속으로 리팩토링 (멀티테넌시 완전 적용) |
+
+---
+
+## 18. Part 3: Multi-Tenancy 리팩토링
+
+> UserCourseRole 엔티티에 테넌트 필터링 적용
+
+---
+
+### 리팩토링 개요
+
+**변경 사항:**
+- `UserCourseRole` 엔티티가 `BaseTimeEntity` 대신 `TenantEntity` 상속
+- `@UniqueConstraint`에 `tenant_id` 추가
+- 모든 UserCourseRole 조회 시 자동으로 테넌트별 격리
+
+**이유:**
+- User 엔티티는 이미 TenantEntity 상속으로 테넌트 격리됨
+- UserCourseRole도 명시적으로 테넌트 필터링 적용하여 완전한 데이터 격리 보장
+- 향후 TS/CM 모듈의 모든 도메인 엔티티도 TenantEntity 상속 필수
+
+---
+
+### 수정 파일
+
+**UserCourseRole.java**
+
+```java
+// Before
+import com.mzc.lp.common.entity.BaseTimeEntity;
+
+@Entity
+@Table(name = "user_course_roles", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"user_id", "course_id", "role"})
+})
+public class UserCourseRole extends BaseTimeEntity {
+
+// After
+import com.mzc.lp.common.entity.TenantEntity;
+
+@Entity
+@Table(name = "user_course_roles", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"tenant_id", "user_id", "course_id", "role"})
+})
+public class UserCourseRole extends TenantEntity {
+```
+
+---
+
+### 테넌트 필터링 동작 방식
+
+1. **자동 필터링**: Hibernate `@Filter` 어노테이션으로 모든 SELECT 쿼리에 `tenant_id` 조건 자동 추가
+2. **자동 설정**: `@PrePersist`로 INSERT 시 `tenantId` 자동 설정 (기본값: 1L - B2C)
+3. **격리 보장**: Repository 쿼리 메서드에 명시적 tenant_id 조건 불필요
+
+---
+
+### 검증 결과
+
+- ✅ 전체 빌드 성공
+- ✅ 51개 테스트 모두 통과
+- ✅ UserControllerTest 15개 테스트 통과
 
 ---
 
