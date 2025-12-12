@@ -59,13 +59,13 @@
 ### 최종 결과
 
 ```
-BUILD SUCCESSFUL in 9s
-5 actionable tasks: 2 executed, 3 up-to-date
+BUILD SUCCESSFUL in 13s
+5 actionable tasks: 1 executed, 4 up-to-date
 ```
 
 ### 테스트 케이스 (25개)
 
-**LearningObjectControllerTest (15개)**
+**LearningObjectControllerTest (13개)**
 
 | # | 테스트 | 상태 |
 |---|--------|------|
@@ -83,7 +83,7 @@ BUILD SUCCESSFUL in 9s
 | 12 | `deleteLearningObject_NotFound` | PASS |
 | 13 | `accessWithoutAuth_Forbidden` | PASS |
 
-**ContentFolderControllerTest (10개)**
+**ContentFolderControllerTest (12개)**
 
 | # | 테스트 | 상태 |
 |---|--------|------|
@@ -155,6 +155,71 @@ lo.getUpdatedAt() != null
 
 ---
 
+### 오류 3: 기존 UM/auth 코드 변경 문제
+
+**증상**
+- `UserPrincipal`에 tenantId 필드를 추가하여 기존 코드가 깨짐
+- 다른 모듈에서 기존 `UserPrincipal(id, email, role)` 사용 중
+
+**원인**
+- CMS/LO Controller에서 tenantId가 필요하여 UserPrincipal에 tenantId 필드를 추가했으나, 이는 기존 코드에 영향을 미침
+
+**해결**
+- 기존 코드 **원복** (추가가 아닌 변경은 허용되지 않음)
+- Controller에서 `UserRepository`를 주입받아 userId로 User를 조회하여 tenantId 획득
+
+| 파일 | 원복/수정 내용 |
+|------|---------------|
+| `UserPrincipal.java` | tenantId 필드 제거 (원복) |
+| `JwtProvider.java` | 기존 `createAccessToken(userId, email, role)` 유지 + tenantId 포함 오버로드 **추가** |
+| `JwtAuthenticationFilter.java` | tenantId 추출 로직 제거 (원복) |
+| `AuthService.java` | 기존 3인자 `createAccessToken` 호출로 원복 |
+| `ContentController.java` | UserRepository 주입, `getTenantId(userId)` 헬퍼 메서드 추가 |
+| `LearningObjectController.java` | UserRepository 주입, `getTenantId(userId)` 헬퍼 메서드 추가 |
+| `ContentFolderController.java` | UserRepository 주입, `getTenantId(userId)` 헬퍼 메서드 추가 |
+
+**수정 코드**
+
+```java
+// Controller의 getTenantId 헬퍼 메서드
+private Long getTenantId(Long userId) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(UserNotFoundException::new);
+    return user.getTenantId();
+}
+
+// 사용 예시
+@PostMapping
+public ResponseEntity<ApiResponse<LearningObjectResponse>> create(
+        @Valid @RequestBody CreateLearningObjectRequest request,
+        @AuthenticationPrincipal UserPrincipal principal
+) {
+    Long tenantId = getTenantId(principal.id());
+    LearningObjectResponse response = learningObjectService.create(request, tenantId);
+    return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+}
+```
+
+---
+
+### 오류 4: TenantRole.DESIGNER 미존재
+
+**증상**
+```
+error: cannot find symbol
+        testUser.updateRole(TenantRole.DESIGNER);
+                                      ^
+```
+
+**원인**
+- `TenantRole` enum에 `DESIGNER`가 없음 (TENANT_ADMIN, OPERATOR, USER만 존재)
+- DESIGNER는 CourseRole에 해당
+
+**해결**
+- 테스트에서 `TenantRole.OPERATOR` 사용 (Controller에서 `hasAnyRole('DESIGNER', 'OPERATOR', 'TENANT_ADMIN')` 체크)
+
+---
+
 ## 4. 브랜치 통합
 
 ### 통합 사유
@@ -186,8 +251,8 @@ git branch -m feat/cms-module feat/cms-lo-module
 
 | 파일 | 경로 | 설명 |
 |------|------|------|
-| LearningObjectControllerTest.java | `src/test/java/com/mzc/lp/domain/learning/controller/` | 학습객체 API 통합 테스트 (15개 케이스) |
-| ContentFolderControllerTest.java | `src/test/java/com/mzc/lp/domain/learning/controller/` | 콘텐츠 폴더 API 통합 테스트 (10개 케이스) |
+| LearningObjectControllerTest.java | `src/test/java/com/mzc/lp/domain/learning/controller/` | 학습객체 API 통합 테스트 (13개 케이스) |
+| ContentFolderControllerTest.java | `src/test/java/com/mzc/lp/domain/learning/controller/` | 콘텐츠 폴더 API 통합 테스트 (12개 케이스) |
 
 ---
 
@@ -197,10 +262,23 @@ git branch -m feat/cms-module feat/cms-lo-module
 |------|----------|
 | `LearningObjectResponse.java` | Instant → LocalDateTime 변환 로직 추가 |
 | `ContentFolderResponse.java` | Instant → LocalDateTime 변환 로직 추가 |
+| `LearningObjectController.java` | UserRepository 주입, getTenantId() 헬퍼 메서드 추가 |
+| `ContentFolderController.java` | UserRepository 주입, getTenantId() 헬퍼 메서드 추가 |
+| `ContentController.java` | UserRepository 주입, getTenantId() 헬퍼 메서드 추가 |
 
 ---
 
-## 7. 커밋 정보
+## 7. 원복 파일 요약
+
+| 파일 | 원복 사유 |
+|------|----------|
+| `UserPrincipal.java` | tenantId 필드 제거 - 기존 코드 호환성 유지 |
+| `JwtAuthenticationFilter.java` | tenantId 추출 로직 제거 - 기존 코드 호환성 유지 |
+| `AuthService.java` | 3인자 createAccessToken 호출로 복원 - 기존 코드 호환성 유지 |
+
+---
+
+## 8. 커밋 정보
 
 | 항목 | 내용 |
 |------|------|
@@ -217,6 +295,7 @@ git branch -m feat/cms-module feat/cms-lo-module
 | 2025-12-12 | Claude Code | CMS + LO 브랜치 통합 |
 | 2025-12-12 | Claude Code | LO 모듈 통합 테스트 작성 (25개 케이스) |
 | 2025-12-12 | Claude Code | DTO 타입 수정 (Instant → LocalDateTime 변환) |
+| 2025-12-12 | Claude Code | 기존 UM/auth 코드 원복 및 Controller tenantId 조회 방식 변경 |
 
 ---
 
