@@ -368,3 +368,4 @@ DELIMITER ;
 | [api.md](./api.md) | Course API 명세 |
 | [module-structure.md](../../context/module-structure.md) | 모듈 설계 개요 |
 | [learning/db.md](../learning/db.md) | LearningObject DB (FK 참조) |
+| [snapshot/db.md](../snapshot/db.md) | Snapshot DB (Course 깊은 복사) |

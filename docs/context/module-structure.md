@@ -599,6 +599,185 @@ public interface CourseRelationRepository extends JpaRepository<CourseRelation, 
 
 ---
 
+## 8.5 Snapshot (개설 강의)
+
+### 역할
+- Course(템플릿)로부터 실제 개설 강의 생성
+- 수강이력 불변성 보장 (템플릿 수정이 기존 강의에 영향 없음)
+- 상태 기반 수정 제한 (DRAFT/ACTIVE/COMPLETED/ARCHIVED)
+
+### 핵심 개념
+
+**템플릿 vs 스냅샷**:
+- **템플릿 (Course)**: 강의 설계도, 재사용 가능
+- **스냅샷 (CourseSnapshot)**: 실제 개설된 강의, 독립적 수정 가능
+
+**복사 전략**:
+```
+Course (템플릿)
+    │ 깊은 복사
+    ▼
+CourseSnapshot
+    │
+    ├── SnapshotItem (차시/폴더) ←── 깊은 복사
+    │       │
+    │       └── SnapshotLearningObject ←── 메타데이터 깊은 복사
+    │               │
+    │               └── Content ←── 공유 참조 (파일 불변)
+    │
+    └── SnapshotRelation (학습경로) ←── 깊은 복사
+```
+
+### Entity
+
+#### CourseSnapshot (개설 강의)
+
+```java
+@Entity
+@Table(name = "cm_snapshots")
+public class CourseSnapshot extends TenantEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // 원본 템플릿 (삭제 시 NULL)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_course_id")
+    private CourseMeta sourceCourse;
+
+    @Column(nullable = false)
+    private String snapshotName;
+
+    private String description;
+    private String hashtags;
+
+    @Column(nullable = false)
+    private Long createdBy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SnapshotStatus status;      // DRAFT, ACTIVE, COMPLETED, ARCHIVED
+
+    private Integer version;
+
+    @OneToMany(mappedBy = "snapshot", cascade = CascadeType.ALL)
+    private List<SnapshotItem> items = new ArrayList<>();
+
+    @OneToMany(mappedBy = "snapshot", cascade = CascadeType.ALL)
+    private List<SnapshotRelation> relations = new ArrayList<>();
+}
+```
+
+#### SnapshotItem (차시/폴더)
+
+```java
+@Entity
+@Table(name = "cm_snapshot_items")
+public class SnapshotItem extends TenantEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "snapshot_id", nullable = false)
+    private CourseSnapshot snapshot;
+
+    private Long sourceItemId;          // 원본 CourseItem ID (추적용)
+
+    // Self-reference
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private SnapshotItem parent;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    private List<SnapshotItem> children = new ArrayList<>();
+
+    // NULL이면 폴더
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "snapshot_lo_id")
+    private SnapshotLearningObject snapshotLo;
+
+    @Column(nullable = false)
+    private String itemName;
+
+    private Integer depth;
+    private String itemType;            // VIDEO, DOCUMENT 등
+}
+```
+
+#### SnapshotLearningObject (메타데이터 복사본)
+
+```java
+@Entity
+@Table(name = "cm_snapshot_los")
+public class SnapshotLearningObject extends TenantEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Long sourceLoId;            // 원본 LO ID (추적용)
+
+    // Content 공유 참조 (파일 불변)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "content_id", nullable = false)
+    private Content content;
+
+    @Column(nullable = false)
+    private String displayName;
+
+    private Integer duration;
+    private String thumbnailUrl;
+    private String resolution;
+    private String codec;
+    private Long bitrate;
+    private Integer pageCount;
+
+    private Boolean isCustomized = false;   // 수정 여부
+}
+```
+
+### 상태 관리
+
+```java
+public enum SnapshotStatus {
+    DRAFT,      // 준비중 - 전면 수정 가능
+    ACTIVE,     // 강의중 - 메타데이터만 수정 가능
+    COMPLETED,  // 강의종료 - 수정 불가
+    ARCHIVED    // 보관됨 - 수정 불가
+}
+```
+
+| 상태 | 아이템 추가/삭제 | 순서 변경 | 메타데이터 수정 |
+|-----|---------------|---------|--------------|
+| DRAFT | O | O | O |
+| ACTIVE | X | X | O |
+| COMPLETED | X | X | X |
+| ARCHIVED | X | X | X |
+
+**상태 전이**:
+```
+DRAFT ──publish()──> ACTIVE ──complete()──> COMPLETED ──archive()──> ARCHIVED
+```
+
+### 설계 의도 (Why)
+
+| 설계 결정 | 이유 |
+|----------|------|
+| **Content 공유 참조** | 파일 불변, 스토리지 절약 |
+| **메타데이터 깊은 복사** | 수강이력 불변성 보장 |
+| **source_*_id 추적** | 원본과의 관계 추적 (분석/리포팅용) |
+| **ON DELETE SET NULL** | 템플릿 삭제해도 스냅샷 유지 |
+| **상태 기반 수정 제한** | 진행 중 강의 무결성 보호 |
+
+### 구현 상세
+
+> API/DB 상세 명세 → [docs/structure/backend/snapshot/](../structure/backend/snapshot/)
+
+---
+
 ## 9. LO (Learning Object)
 
 ### 역할
@@ -882,29 +1061,41 @@ public enum ContentStatus {
                                    │ N:1
                                    ▼
 ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
-│cm_section_items │──N:1──│cm_course_       │──N:1──│  cm_courses     │
-│                 │       │   sections      │       │                 │
-├─────────────────┤       ├─────────────────┤       ├─────────────────┤
+│cm_course_items  │──N:1──│  cm_courses     │◄──────│  cm_snapshots   │
+│ (차시/폴더)      │       │   (템플릿)       │ SET   │  (개설 강의)     │
+├─────────────────┤       ├─────────────────┤ NULL  ├─────────────────┤
 │ id (PK)         │       │ id (PK)         │       │ id (PK)         │
-│ section_id (FK) │       │ course_id (FK)  │       │ title           │
-│ lo_id (FK)      │       │ title           │       │ description     │
-│ sort_order      │       │ sort_order      │       │ level           │
-│ is_mandatory    │       │ tenant_id       │       │ type            │
-│ tenant_id       │       └─────────────────┘       │ tenant_id       │
-└─────────────────┘                                 └────────┬────────┘
-                                                             │
-                                                             │ N:N
-                                                             ▼
+│ course_id (FK)  │       │ title           │       │ source_course_id│
+│ parent_id (FK)  │       │ description     │       │ snapshot_name   │
+│ lo_id (FK)      │       │ level           │       │ status          │
+│ item_name       │       │ type            │       │ version         │
+│ depth           │       │ tenant_id       │       │ tenant_id       │
+│ tenant_id       │       └────────┬────────┘       └────────┬────────┘
+└─────────────────┘                │                         │
+                                   │                         │ 1:N
+                                   ▼                         ▼
+                         ┌─────────────────┐       ┌─────────────────┐
+                         │cr_course_       │       │cm_snapshot_     │
+                         │   relations     │       │    items        │
+                         ├─────────────────┤       ├─────────────────┤
+                         │ id (PK)         │       │ id (PK)         │
+                         │ from_item_id    │       │ snapshot_id(FK) │
+                         │ to_item_id      │       │ parent_id (FK)  │
+                         │ tenant_id       │       │ snapshot_lo_id  │
+                         └─────────────────┘       │ item_name       │
+                                                   │ depth           │
+                                                   └────────┬────────┘
+                                                            │ N:1
+                                                            ▼
                                                    ┌─────────────────┐
-                                                   │cr_course_       │
-                                                   │   relations     │
+                                                   │cm_snapshot_los  │
+                                                   │(LO 메타데이터)   │
                                                    ├─────────────────┤
                                                    │ id (PK)         │
-                                                   │ source_id (FK)  │
-                                                   │ target_id (FK)  │
-                                                   │ type            │
-                                                   │ priority        │
-                                                   │ tenant_id       │
+                                                   │ content_id (FK) │───► cms_contents
+                                                   │ display_name    │     (공유 참조)
+                                                   │ duration        │
+                                                   │ is_customized   │
                                                    └─────────────────┘
 ```
 
@@ -932,3 +1123,12 @@ public enum ContentStatus {
 | [architecture.md](./architecture.md) | 전체 시스템 구조 |
 | [user-roles.md](./user-roles.md) | 사용자 역할 및 권한 |
 | [multi-tenancy.md](./multi-tenancy.md) | 테넌트 분리 전략 |
+
+### 구현 상세 명세
+
+| 문서 | 내용 |
+|------|------|
+| [course/](../structure/backend/course/) | Course(템플릿) API/DB 명세 |
+| [snapshot/](../structure/backend/snapshot/) | Snapshot(개설 강의) API/DB 명세 |
+| [learning/](../structure/backend/learning/) | LearningObject API/DB 명세 |
+| [content/](../structure/backend/content/) | Content API/DB 명세 |
