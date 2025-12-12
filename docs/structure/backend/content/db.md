@@ -8,6 +8,7 @@
 
 | 설계 결정 | 이유 |
 |----------|------|
+| **tenant_id 멀티테넌시** | B2C/B2B/KPOP 테넌트별 데이터 격리 |
 | **stored_file_name UUID** | 파일명 충돌 방지, 보안 (원본명 노출 X) |
 | **external_url 별도 컬럼** | 로컬 파일/외부 링크 공존, 통합 관리 |
 | **메타데이터 분리 저장** | duration, resolution, pageCount 등 타입별 최적화 |
@@ -21,7 +22,8 @@
 
 ```sql
 CREATE TABLE content (
-    content_id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id           BIGINT NOT NULL DEFAULT 1,
     original_file_name  VARCHAR(500),
     stored_file_name    VARCHAR(255),
     content_type        VARCHAR(50) NOT NULL,
@@ -34,6 +36,7 @@ CREATE TABLE content (
     created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    INDEX idx_tenant_id (tenant_id),
     INDEX idx_content_type (content_type),
     INDEX idx_created_at (created_at)
 );
@@ -41,7 +44,8 @@ CREATE TABLE content (
 
 | 컬럼 | 타입 | NULL | 설명 |
 |------|------|------|------|
-| content_id | BIGINT | NO | PK, Auto Increment |
+| id | BIGINT | NO | PK, Auto Increment |
+| tenant_id | BIGINT | NO | 테넌트 ID (기본값: 1 = B2C) |
 | original_file_name | VARCHAR(500) | YES | 원본 파일명 |
 | stored_file_name | VARCHAR(255) | YES | 저장된 파일명 (UUID) |
 | content_type | VARCHAR(50) | NO | 콘텐츠 타입 (ENUM) |
@@ -73,7 +77,8 @@ CREATE TABLE content (
 ┌─────────────────────────────────┐
 │           content               │
 ├─────────────────────────────────┤
-│ content_id (PK)                 │
+│ id (PK)                         │
+│ tenant_id (FK)                  │ ──► 멀티테넌시 (B2C/B2B/KPOP)
 │ original_file_name              │
 │ stored_file_name                │
 │ content_type                    │ ──► ENUM (VIDEO, DOCUMENT, ...)
@@ -103,10 +108,11 @@ CREATE TABLE content (
 
 ```sql
 INSERT INTO content (
-    content_id, original_file_name, stored_file_name, content_type,
+    id, tenant_id, original_file_name, stored_file_name, content_type,
     file_size, duration, resolution, file_path
 ) VALUES (
     1,
+    1,          -- B2C 테넌트
     'react-tutorial.mp4',
     '550e8400-e29b-41d4-a716-446655440000.mp4',
     'VIDEO',
@@ -121,10 +127,11 @@ INSERT INTO content (
 
 ```sql
 INSERT INTO content (
-    content_id, original_file_name, stored_file_name, content_type,
+    id, tenant_id, original_file_name, stored_file_name, content_type,
     file_size, page_count, file_path
 ) VALUES (
     2,
+    1,          -- B2C 테넌트
     'spring-guide.pdf',
     '6ba7b810-9dad-11d1-80b4-00c04fd430c8.pdf',
     'DOCUMENT',
@@ -138,10 +145,11 @@ INSERT INTO content (
 
 ```sql
 INSERT INTO content (
-    content_id, original_file_name, content_type,
+    id, tenant_id, original_file_name, content_type,
     duration, external_url
 ) VALUES (
     3,
+    1,          -- B2C 테넌트
     'React 공식 튜토리얼',
     'EXTERNAL_LINK',
     1523,       -- 25분 23초
@@ -153,10 +161,11 @@ INSERT INTO content (
 
 ```sql
 INSERT INTO content (
-    content_id, original_file_name, stored_file_name, content_type,
+    id, tenant_id, original_file_name, stored_file_name, content_type,
     file_size, resolution, file_path
 ) VALUES (
     4,
+    1,          -- B2C 테넌트
     'architecture-diagram.png',
     '6ba7b814-9dad-11d1-80b4-00c04fd430c8.png',
     'IMAGE',
@@ -170,10 +179,11 @@ INSERT INTO content (
 
 ```sql
 INSERT INTO content (
-    content_id, original_file_name, stored_file_name, content_type,
+    id, tenant_id, original_file_name, stored_file_name, content_type,
     file_size, duration, file_path
 ) VALUES (
     5,
+    1,          -- B2C 테넌트
     'podcast-episode1.mp3',
     '6ba7b818-9dad-11d1-80b4-00c04fd430c8.mp3',
     'AUDIO',
@@ -252,6 +262,7 @@ GROUP BY platform;
 
 | 인덱스 | 컬럼 | 용도 |
 |--------|------|------|
+| idx_tenant_id | tenant_id | 테넌트별 데이터 격리 |
 | idx_content_type | content_type | 타입별 필터링 |
 | idx_created_at | created_at | 최신순 정렬 |
 

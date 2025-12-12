@@ -551,23 +551,33 @@ public Content upload(MultipartFile file, Long folderId) {
 ## 8. 소스 위치
 
 ```
-backend/src/main/java/com/lms/platform/domain/content/
+src/main/java/com/mzc/lp/domain/content/
+├── constant/
+│   └── ContentType.java
 ├── controller/
 │   └── ContentController.java
 ├── service/
 │   ├── ContentService.java
+│   ├── ContentServiceImpl.java
 │   ├── FileStorageService.java
-│   └── MetadataExtractor.java
+│   └── FileStorageServiceImpl.java
 ├── repository/
 │   └── ContentRepository.java
 ├── entity/
-│   ├── Content.java
-│   └── ContentType.java
+│   └── Content.java
 ├── dto/
 │   ├── request/
 │   └── response/
-└── event/
-    └── ContentCreatedEvent.java
+├── event/
+│   ├── VideoUploadedEvent.java
+│   ├── DocumentUploadedEvent.java
+│   ├── ImageUploadedEvent.java
+│   ├── AudioUploadedEvent.java
+│   └── ExternalLinkCreatedEvent.java
+└── exception/
+    ├── ContentNotFoundException.java
+    ├── FileStorageException.java
+    └── UnsupportedContentTypeException.java
 ```
 
 ---

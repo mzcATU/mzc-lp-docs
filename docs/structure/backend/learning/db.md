@@ -8,6 +8,7 @@
 
 | 설계 결정 | 이유 |
 |----------|------|
+| **tenant_id 멀티테넌시** | B2C/B2B/KPOP 테넌트별 데이터 격리 |
 | **Content와 1:1 관계** | 하나의 콘텐츠 파일 = 하나의 학습 단위 |
 | **content_id ON DELETE SET NULL** | 원본 삭제되어도 LO 메타 유지 가능 |
 | **content_folder 3단계 제한** | 과도한 중첩 방지, UX 최적화 |
@@ -21,7 +22,8 @@
 
 ```sql
 CREATE TABLE learning_object (
-    learning_object_id  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id           BIGINT NOT NULL DEFAULT 1,
     name                VARCHAR(500) NOT NULL,
     content_id          BIGINT,
     folder_id           BIGINT,
@@ -29,10 +31,11 @@ CREATE TABLE learning_object (
     updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_lo_content FOREIGN KEY (content_id)
-        REFERENCES content(content_id) ON DELETE SET NULL,
+        REFERENCES content(id) ON DELETE SET NULL,
     CONSTRAINT fk_lo_folder FOREIGN KEY (folder_id)
-        REFERENCES content_folder(folder_id) ON DELETE SET NULL,
+        REFERENCES content_folder(id) ON DELETE SET NULL,
 
+    INDEX idx_tenant_id (tenant_id),
     INDEX idx_content (content_id),
     INDEX idx_folder (folder_id),
     INDEX idx_name (name)
@@ -41,7 +44,8 @@ CREATE TABLE learning_object (
 
 | 컬럼 | 타입 | NULL | 설명 |
 |------|------|------|------|
-| learning_object_id | BIGINT | NO | PK, Auto Increment |
+| id | BIGINT | NO | PK, Auto Increment |
+| tenant_id | BIGINT | NO | 테넌트 ID (기본값: 1 = B2C) |
 | name | VARCHAR(500) | NO | 학습객체 이름 |
 | content_id | BIGINT | YES | FK → content |
 | folder_id | BIGINT | YES | FK → content_folder |
@@ -52,7 +56,8 @@ CREATE TABLE learning_object (
 
 ```sql
 CREATE TABLE content_folder (
-    folder_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id       BIGINT NOT NULL DEFAULT 1,
     folder_name     VARCHAR(255) NOT NULL,
     parent_id       BIGINT,
     depth           INT NOT NULL DEFAULT 0,
@@ -60,8 +65,9 @@ CREATE TABLE content_folder (
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_folder_parent FOREIGN KEY (parent_id)
-        REFERENCES content_folder(folder_id) ON DELETE CASCADE,
+        REFERENCES content_folder(id) ON DELETE CASCADE,
 
+    INDEX idx_tenant_id (tenant_id),
     INDEX idx_parent (parent_id),
     INDEX idx_depth (depth)
 );
@@ -69,7 +75,8 @@ CREATE TABLE content_folder (
 
 | 컬럼 | 타입 | NULL | 설명 |
 |------|------|------|------|
-| folder_id | BIGINT | NO | PK, Auto Increment |
+| id | BIGINT | NO | PK, Auto Increment |
+| tenant_id | BIGINT | NO | 테넌트 ID (기본값: 1 = B2C) |
 | folder_name | VARCHAR(255) | NO | 폴더 이름 |
 | parent_id | BIGINT | YES | FK → content_folder (self-reference) |
 | depth | INT | NO | 깊이 (0, 1, 2 - 최대 3단계) |
@@ -84,8 +91,9 @@ CREATE TABLE content_folder (
 ┌─────────────────────────┐
 │    content_folder       │
 ├─────────────────────────┤
-│ folder_id (PK)          │◄──────┐
-│ folder_name             │       │ self-reference
+│ id (PK)                 │◄──────┐
+│ tenant_id (FK)          │       │ self-reference
+│ folder_name             │       │
 │ parent_id (FK)          │───────┘
 │ depth                   │
 └────────────┬────────────┘
@@ -94,7 +102,8 @@ CREATE TABLE content_folder (
 ┌─────────────────────────┐
 │   learning_object       │
 ├─────────────────────────┤
-│ learning_object_id (PK) │
+│ id (PK)                 │
+│ tenant_id (FK)          │
 │ name                    │
 │ content_id (FK)         │───────► content (CMS)
 │ folder_id (FK)          │
@@ -116,45 +125,45 @@ CREATE TABLE content_folder (
 
 ```sql
 -- 3단계 계층 구조
-INSERT INTO content_folder (folder_id, folder_name, parent_id, depth) VALUES
+INSERT INTO content_folder (id, tenant_id, folder_name, parent_id, depth) VALUES
 -- 최상위 폴더 (depth=0)
-(1, '교육자료', NULL, 0),
-(2, '실습자료', NULL, 0),
+(1, 1, '교육자료', NULL, 0),
+(2, 1, '실습자료', NULL, 0),
 
 -- 2단계 폴더 (depth=1)
-(3, '2024년', 1, 1),
-(4, '2025년', 1, 1),
+(3, 1, '2024년', 1, 1),
+(4, 1, '2025년', 1, 1),
 
 -- 3단계 폴더 (depth=2) - 최대 깊이
-(5, '1분기', 3, 2),
-(6, '2분기', 3, 2);
+(5, 1, '1분기', 3, 2),
+(6, 1, '2분기', 3, 2);
 ```
 
 결과 구조:
 ```
 콘텐츠 풀
-├── 교육자료 (folder_id=1, depth=0)
-│   ├── 2024년 (folder_id=3, depth=1)
-│   │   ├── 1분기 (folder_id=5, depth=2)
-│   │   └── 2분기 (folder_id=6, depth=2)
-│   └── 2025년 (folder_id=4, depth=1)
-└── 실습자료 (folder_id=2, depth=0)
+├── 교육자료 (id=1, depth=0)
+│   ├── 2024년 (id=3, depth=1)
+│   │   ├── 1분기 (id=5, depth=2)
+│   │   └── 2분기 (id=6, depth=2)
+│   └── 2025년 (id=4, depth=1)
+└── 실습자료 (id=2, depth=0)
 ```
 
 ### 3.2 learning_object 데이터
 
 ```sql
-INSERT INTO learning_object (learning_object_id, name, content_id, folder_id) VALUES
+INSERT INTO learning_object (id, tenant_id, name, content_id, folder_id) VALUES
 -- 폴더에 배치된 학습객체
-(1, 'react-tutorial.mp4', 10, 5),
-(2, 'spring-guide.pdf', 11, 5),
-(3, 'database-design.pptx', 12, 6),
+(1, 1, 'react-tutorial.mp4', 10, 5),
+(2, 1, 'spring-guide.pdf', 11, 5),
+(3, 1, 'database-design.pptx', 12, 6),
 
 -- 최상위에 배치된 학습객체 (folder_id = NULL)
-(4, '공지사항.pdf', 13, NULL),
+(4, 1, '공지사항.pdf', 13, NULL),
 
 -- 실습자료 폴더
-(5, '예제 코드.zip', 14, 2);
+(5, 1, '예제 코드.zip', 14, 2);
 ```
 
 결과 구조:
@@ -183,7 +192,7 @@ INSERT INTO learning_object (learning_object_id, name, content_id, folder_id) VA
 WITH RECURSIVE folder_tree AS (
     -- Base case: 최상위 폴더
     SELECT
-        folder_id, folder_name, parent_id, depth,
+        id, folder_name, parent_id, depth,
         CAST(folder_name AS CHAR(1000)) as path
     FROM content_folder
     WHERE parent_id IS NULL
@@ -192,10 +201,10 @@ WITH RECURSIVE folder_tree AS (
 
     -- Recursive case: 하위 폴더
     SELECT
-        cf.folder_id, cf.folder_name, cf.parent_id, cf.depth,
+        cf.id, cf.folder_name, cf.parent_id, cf.depth,
         CONCAT(ft.path, ' > ', cf.folder_name)
     FROM content_folder cf
-    INNER JOIN folder_tree ft ON cf.parent_id = ft.folder_id
+    INNER JOIN folder_tree ft ON cf.parent_id = ft.id
 )
 SELECT * FROM folder_tree
 ORDER BY path;
@@ -205,13 +214,13 @@ ORDER BY path;
 
 ```sql
 SELECT
-    cf.folder_id,
+    cf.id,
     cf.folder_name,
     cf.depth,
-    COUNT(lo.learning_object_id) as item_count
+    COUNT(lo.id) as item_count
 FROM content_folder cf
-LEFT JOIN learning_object lo ON lo.folder_id = cf.folder_id
-GROUP BY cf.folder_id, cf.folder_name, cf.depth
+LEFT JOIN learning_object lo ON lo.folder_id = cf.id
+GROUP BY cf.id, cf.folder_name, cf.depth
 ORDER BY cf.depth, cf.folder_name;
 ```
 
@@ -220,18 +229,18 @@ ORDER BY cf.depth, cf.folder_name;
 ```sql
 WITH RECURSIVE folder_descendants AS (
     -- Base case: 시작 폴더
-    SELECT folder_id FROM content_folder WHERE folder_id = 1
+    SELECT id FROM content_folder WHERE id = 1
 
     UNION ALL
 
     -- Recursive case: 하위 폴더
-    SELECT cf.folder_id
+    SELECT cf.id
     FROM content_folder cf
-    INNER JOIN folder_descendants fd ON cf.parent_id = fd.folder_id
+    INNER JOIN folder_descendants fd ON cf.parent_id = fd.id
 )
 SELECT lo.*
 FROM learning_object lo
-WHERE lo.folder_id IN (SELECT folder_id FROM folder_descendants)
+WHERE lo.folder_id IN (SELECT id FROM folder_descendants)
    OR lo.folder_id = 1;
 ```
 
@@ -239,15 +248,15 @@ WHERE lo.folder_id IN (SELECT folder_id FROM folder_descendants)
 
 ```sql
 SELECT
-    lo.learning_object_id,
+    lo.id,
     lo.name,
     c.content_type,
     c.duration,
     c.file_size,
     cf.folder_name
 FROM learning_object lo
-LEFT JOIN content c ON lo.content_id = c.content_id
-LEFT JOIN content_folder cf ON lo.folder_id = cf.folder_id
+LEFT JOIN content c ON lo.content_id = c.id
+LEFT JOIN content_folder cf ON lo.folder_id = cf.id
 WHERE lo.name LIKE '%react%'
 ORDER BY lo.created_at DESC;
 ```
@@ -257,10 +266,10 @@ ORDER BY lo.created_at DESC;
 ```sql
 SELECT
     lo.*,
-    COUNT(ci.item_id) as usage_count
+    COUNT(ci.id) as usage_count
 FROM learning_object lo
-LEFT JOIN course_item ci ON ci.learning_object_id = lo.learning_object_id
-GROUP BY lo.learning_object_id
+LEFT JOIN course_item ci ON ci.learning_object_id = lo.id
+GROUP BY lo.id
 HAVING usage_count > 0
 ORDER BY usage_count DESC;
 ```
@@ -273,6 +282,7 @@ ORDER BY usage_count DESC;
 
 | 인덱스 | 컬럼 | 용도 |
 |--------|------|------|
+| idx_tenant_id | tenant_id | 테넌트별 데이터 격리 |
 | idx_content | content_id | Content 연결 조회 |
 | idx_folder | folder_id | 폴더별 학습객체 조회 |
 | idx_name | name | 이름 검색 |
@@ -281,6 +291,7 @@ ORDER BY usage_count DESC;
 
 | 인덱스 | 컬럼 | 용도 |
 |--------|------|------|
+| idx_tenant_id | tenant_id | 테넌트별 데이터 격리 |
 | idx_parent | parent_id | 하위 폴더 조회 |
 | idx_depth | depth | 깊이별 필터링 |
 
