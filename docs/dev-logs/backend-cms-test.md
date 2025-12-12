@@ -209,17 +209,6 @@ error: cannot find symbol
 
 ---
 
-### 오류 4: 필드명 불일치 (`contentId` vs `id`)
-
-**증상**
-- Response DTO의 필드명과 Entity의 필드명 불일치
-
-**해결**
-- `ContentResponse`, `ContentListResponse`의 `contentId` → `id`로 변경
-- Entity의 `getId()` 메서드와 일치
-
----
-
 ## 4. 테스트 설정 파일
 
 ### test/resources/application.yml 추가 내용
@@ -252,8 +241,8 @@ file:
 | `JwtProvider.java` | tenantId claim 추가 |
 | `JwtAuthenticationFilter.java` | tenantId 추출 로직 추가 |
 | `AuthService.java` | createAccessToken() 호출 시 tenantId 전달 |
-| `ContentResponse.java` | Instant → LocalDateTime 변환 로직 추가, contentId → id |
-| `ContentListResponse.java` | Instant → LocalDateTime 변환 로직 추가, contentId → id |
+| `ContentResponse.java` | Instant → LocalDateTime 변환 로직 추가 |
+| `ContentListResponse.java` | Instant → LocalDateTime 변환 로직 추가 |
 | `test/resources/application.yml` | 파일 저장 설정 추가 |
 
 ---
