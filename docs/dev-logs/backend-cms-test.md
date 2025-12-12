@@ -154,28 +154,37 @@ error: incompatible types: Instant cannot be converted to LocalDateTime
 - `ContentResponse`, `ContentListResponse` DTO에서 `LocalDateTime` 타입으로 선언
 
 **해결**
+- DTO 필드 타입은 `LocalDateTime` 유지 (API 응답 일관성)
+- `from()` 메서드에서 `Instant` → `LocalDateTime` 변환 로직 추가
 
 | 파일 | 수정 내용 |
 |------|----------|
-| `ContentResponse.java` | `LocalDateTime` → `Instant` 변경 |
-| `ContentListResponse.java` | `LocalDateTime` → `Instant` 변경 |
+| `ContentResponse.java` | `from()` 메서드에서 Instant → LocalDateTime 변환 |
+| `ContentListResponse.java` | `from()` 메서드에서 Instant → LocalDateTime 변환 |
 
 **수정 코드**
 
 ```java
 // ContentResponse.java
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 public record ContentResponse(
         Long id,
         // ... 기타 필드
-        Instant createdAt,   // LocalDateTime → Instant
-        Instant updatedAt    // LocalDateTime → Instant
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
-    public static ContentResponse from(Content entity) {
+    public static ContentResponse from(Content content) {
         return new ContentResponse(
-                entity.getId(),
+                content.getId(),
                 // ...
-                entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                content.getCreatedAt() != null
+                        ? LocalDateTime.ofInstant(content.getCreatedAt(), ZoneId.systemDefault())
+                        : null,
+                content.getUpdatedAt() != null
+                        ? LocalDateTime.ofInstant(content.getUpdatedAt(), ZoneId.systemDefault())
+                        : null
         );
     }
 }
@@ -243,8 +252,8 @@ file:
 | `JwtProvider.java` | tenantId claim 추가 |
 | `JwtAuthenticationFilter.java` | tenantId 추출 로직 추가 |
 | `AuthService.java` | createAccessToken() 호출 시 tenantId 전달 |
-| `ContentResponse.java` | LocalDateTime → Instant, contentId → id |
-| `ContentListResponse.java` | LocalDateTime → Instant, contentId → id |
+| `ContentResponse.java` | Instant → LocalDateTime 변환 로직 추가, contentId → id |
+| `ContentListResponse.java` | Instant → LocalDateTime 변환 로직 추가, contentId → id |
 | `test/resources/application.yml` | 파일 저장 설정 추가 |
 
 ---
