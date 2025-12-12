@@ -24,7 +24,8 @@
 | 테스트 프레임워크 | JUnit 5 + Spring Boot Test |
 | 데이터베이스 | H2 In-Memory |
 | 어노테이션 | `@SpringBootTest`, `@AutoConfigureMockMvc` |
-| 트랜잭션 | `@Transactional` (테스트 후 롤백) |
+| 데이터 정리 | `@BeforeEach` deleteAll() |
+| 인증 방식 | 실제 로그인 API (`/api/auth/login`) 호출 |
 
 ### 테스트 대상 API
 
@@ -220,6 +221,76 @@ error: cannot find symbol
 
 ---
 
+### 오류 5: 테스트 인증 방식 불일치
+
+**증상**
+- LO 테스트는 `JwtProvider.createAccessToken()` 직접 호출
+- CMS 테스트는 실제 로그인 API 호출
+- 테스트 방식 불일치로 인한 일관성 문제
+
+**원인**
+- 초기 LO 테스트 작성 시 CMS 테스트 패턴 미적용
+
+**해결**
+- LO 테스트 코드를 CMS 테스트와 동일한 방식으로 변경
+
+| 항목 | 변경 전 | 변경 후 |
+|------|---------|---------|
+| 인증 방식 | `JwtProvider.createAccessToken()` | 실제 `/api/auth/login` 호출 |
+| 데이터 정리 | `@Transactional` 롤백 | `@BeforeEach` deleteAll() |
+| 비밀번호 | 평문 저장 | `PasswordEncoder` 인코딩 |
+| 프로파일 | `@ActiveProfiles("test")` | 제거 |
+
+**수정 코드**
+
+```java
+// 변경 전 (JwtProvider 직접 사용)
+@Autowired
+private JwtProvider jwtProvider;
+
+@BeforeEach
+void setUp() {
+    testUser = User.create("operator@test.com", "운영자", "encodedPassword");
+    testUser.updateRole(TenantRole.OPERATOR);
+    testUser = userRepository.save(testUser);
+    accessToken = jwtProvider.createAccessToken(
+            testUser.getId(), testUser.getEmail(), testUser.getRole().name());
+}
+
+// 변경 후 (실제 로그인 API 호출)
+@Autowired
+private PasswordEncoder passwordEncoder;
+
+@BeforeEach
+void setUp() {
+    learningObjectRepository.deleteAll();
+    contentFolderRepository.deleteAll();
+    contentRepository.deleteAll();
+    refreshTokenRepository.deleteAll();
+    userRepository.deleteAll();
+}
+
+private User createOperatorUser() {
+    User user = User.create("operator@example.com", "운영자",
+            passwordEncoder.encode("Password123!"));
+    user.updateRole(TenantRole.OPERATOR);
+    return userRepository.save(user);
+}
+
+private String loginAndGetAccessToken(String email, String password) throws Exception {
+    LoginRequest request = new LoginRequest(email, password);
+    MvcResult result = mockMvc.perform(post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andReturn();
+    String response = result.getResponse().getContentAsString();
+    return objectMapper.readTree(response).get("data").get("accessToken").asText();
+}
+```
+
+---
+
 ## 4. 브랜치 통합
 
 ### 통합 사유
@@ -296,6 +367,7 @@ git branch -m feat/cms-module feat/cms-lo-module
 | 2025-12-12 | Claude Code | LO 모듈 통합 테스트 작성 (25개 케이스) |
 | 2025-12-12 | Claude Code | DTO 타입 수정 (Instant → LocalDateTime 변환) |
 | 2025-12-12 | Claude Code | 기존 UM/auth 코드 원복 및 Controller tenantId 조회 방식 변경 |
+| 2025-12-12 | Claude Code | LO 테스트 인증 방식 CMS와 통일 (실제 로그인 API 호출) |
 
 ---
 
