@@ -565,13 +565,15 @@ public class LearningObjectEventListener {
 ## 5. 소스 위치
 
 ```
-backend/src/main/java/com/lms/platform/domain/learning/
+src/main/java/com/mzc/lp/domain/learning/
 ├── controller/
 │   ├── LearningObjectController.java
 │   └── ContentFolderController.java
 ├── service/
 │   ├── LearningObjectService.java
-│   └── ContentFolderService.java
+│   ├── LearningObjectServiceImpl.java
+│   ├── ContentFolderService.java
+│   └── ContentFolderServiceImpl.java
 ├── repository/
 │   ├── LearningObjectRepository.java
 │   └── ContentFolderRepository.java
@@ -580,9 +582,19 @@ backend/src/main/java/com/lms/platform/domain/learning/
 │   └── ContentFolder.java
 ├── dto/
 │   ├── request/
+│   │   ├── CreateLearningObjectRequest.java
+│   │   ├── UpdateLearningObjectRequest.java
+│   │   ├── CreateContentFolderRequest.java
+│   │   └── UpdateContentFolderRequest.java
 │   └── response/
-└── event/
-    └── LearningObjectEventListener.java
+│       ├── LearningObjectResponse.java
+│       └── ContentFolderResponse.java
+├── listener/
+│   └── LearningObjectEventListener.java
+└── exception/
+    ├── LearningObjectNotFoundException.java
+    ├── ContentFolderNotFoundException.java
+    └── MaxDepthExceededException.java
 ```
 
 ---
