@@ -426,10 +426,12 @@ public enum AssignmentStatus {
 
 ### 역할
 - 강의 메타데이터 관리
-- 커리큘럼 구성
+- 커리큘럼 구성 (폴더형 계층 구조)
 - 강의 카테고리/태그 관리
 
-### Entity (설계안)
+### Entity
+
+#### CourseMeta (강의 메타데이터)
 
 ```java
 @Entity
@@ -457,50 +459,61 @@ public class CourseMeta extends TenantEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Category category;
 
-    // 커리큘럼 (섹션 → 학습객체)
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    // 커리큘럼 (계층형 아이템)
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    @OrderBy("sortOrder")
-    private List<CourseSection> sections = new ArrayList<>();
-}
-
-@Entity
-@Table(name = "cm_course_sections")
-public class CourseSection extends TenantEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private CourseMeta course;
-
-    private String title;
-    private Integer sortOrder;
-
-    // 섹션 내 학습 객체들
-    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL)
-    @OrderBy("sortOrder")
-    private List<SectionItem> items = new ArrayList<>();
-}
-
-@Entity
-@Table(name = "cm_section_items")
-public class SectionItem extends TenantEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private CourseSection section;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private LearningObject learningObject;  // LO 모듈 연결
-
-    private Integer sortOrder;
-    private Boolean isMandatory;            // 필수 여부
+    private List<CourseItem> items = new ArrayList<>();
 }
 ```
+
+#### CourseItem (차시/폴더 - 계층형 구조)
+
+```java
+@Entity
+@Table(name = "cm_course_items")
+public class CourseItem extends TenantEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
+    private CourseMeta course;
+
+    // Self-reference: 무한 깊이 폴더 구조 지원
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private CourseItem parent;          // NULL이면 최상위
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    private List<CourseItem> children = new ArrayList<>();
+
+    @Column(nullable = false)
+    private String itemName;
+
+    private Integer depth;              // 깊이 (0~9, 최대 10단계)
+
+    // NULL이면 폴더, 값이 있으면 차시
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "learning_object_id")
+    private LearningObject learningObject;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
+```
+
+**폴더 vs 차시 구분**:
+- `learningObject = NULL` → 폴더
+- `learningObject != NULL` → 차시 (학습 콘텐츠)
+
+**설계 의도 (Why)**:
+- Self-reference로 무한 깊이 폴더 구조 지원 (실제는 depth로 10단계 제한)
+- 폴더/차시를 단일 테이블에서 처리하여 조인 최소화
+- ON DELETE CASCADE로 강의 삭제 시 하위 항목 자동 정리
 
 ### 구현 상세
 
@@ -511,9 +524,9 @@ public class SectionItem extends TenantEntity {
 ## 8. CR (Course Relation)
 
 ### 역할
-- 강의 간 관계 설정
-- 선수강 조건 관리
-- 연관/추천 강의 관리
+- **차시 간 학습 순서** 정의
+- 학습 경로 설정 (시작점, 다음 차시 연결)
+- 향후: 조건부 분기 (점수/완료 여부에 따른 경로 변경)
 
 ### Entity
 
@@ -526,50 +539,51 @@ public class CourseRelation extends TenantEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 이전 차시 (NULL이면 시작점)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_course_id")
-    private CourseMeta sourceCourse;
+    @JoinColumn(name = "from_item_id")
+    private CourseItem fromItem;
 
+    // 다음 차시
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_course_id")
-    private CourseMeta targetCourse;
+    @JoinColumn(name = "to_item_id", nullable = false)
+    private CourseItem toItem;
 
-    @Enumerated(EnumType.STRING)
-    private RelationType type;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    private Integer priority;           // 우선순위 (추천 시)
-}
-
-public enum RelationType {
-    PREREQUISITE,       // 선수강 (source를 먼저 들어야 target 수강 가능)
-    RECOMMENDED,        // 추천 (source 수료 후 target 추천)
-    RELATED,            // 연관 (비슷한 주제)
-    ADVANCED,           // 심화 (source의 심화 과정이 target)
-    BUNDLE              // 번들 (함께 수강 시 할인 등)
+    // 향후 확장: 조건부 분기
+    // private String conditionType;    // 'completion', 'score' 등
+    // private String conditionValue;   // JSON 형식 조건값
 }
 ```
 
-### 선수강 검증
+### 학습 순서 예시 (Linked List)
+
+```
+MVP1: 직렬 순서 (단순 체인)
+NULL ──► A ──► B ──► C ──► D
+
+향후: 조건부 분기 (미로 구조)
+     A ──(점수≥80)──► B
+      └─(점수<80)──► C ──► D
+                      └──► E
+```
+
+### 주요 쿼리
 
 ```java
-@Service
-public class CourseRelationService {
+@Repository
+public interface CourseRelationRepository extends JpaRepository<CourseRelation, Long> {
 
-    public boolean canEnroll(Long userId, Long courseId) {
-        List<CourseRelation> prerequisites = courseRelationRepository
-            .findByTargetCourseIdAndType(courseId, RelationType.PREREQUISITE);
+    // 시작점 조회 (fromItem = NULL)
+    Optional<CourseRelation> findByFromItemIsNull();
 
-        for (CourseRelation prereq : prerequisites) {
-            boolean completed = enrollmentRepository
-                .existsByUserIdAndCourseIdAndStatus(
-                    userId,
-                    prereq.getSourceCourse().getId(),
-                    EnrollmentStatus.COMPLETED
-                );
-            if (!completed) return false;
-        }
-        return true;
-    }
+    // 다음 차시 조회
+    Optional<CourseRelation> findByFromItem(CourseItem fromItem);
+
+    // 특정 강의의 모든 관계 조회
+    List<CourseRelation> findByToItemCourseId(Long courseId);
 }
 ```
 
@@ -577,10 +591,11 @@ public class CourseRelationService {
 
 > API/DB 상세 명세 → [docs/structure/backend/course/](../structure/backend/course/)
 
-**Why: Linked List 패턴 선택 이유**
+**설계 의도 (Why): Linked List 패턴 선택 이유**
 - 순서 변경 시 전체 재정렬 불필요 (특정 연결만 수정)
 - 시작점 명확 (from_item_id = NULL)
 - 삽입/삭제 O(1) 복잡도
+- 향후 조건부 분기로 확장 용이
 
 ---
 
