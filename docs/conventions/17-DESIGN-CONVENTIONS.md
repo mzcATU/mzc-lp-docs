@@ -163,7 +163,13 @@ export default {
 
         // Status
         'status-success': 'var(--color-status-success)',
+        'status-success-bg': 'var(--color-status-success-bg)',
+        'status-warning': 'var(--color-status-warning)',
+        'status-warning-bg': 'var(--color-status-warning-bg)',
         'status-error': 'var(--color-status-error)',
+        'status-error-bg': 'var(--color-status-error-bg)',
+        'status-disabled': 'var(--color-status-disabled)',
+        'status-disabled-bg': 'var(--color-status-disabled-bg)',
 
         // Sidebar (Nested)
         'sidebar-dark': {
@@ -218,6 +224,11 @@ export default {
 // src/components/common/Button/Button.tsx
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/cn';
+import { type ButtonHTMLAttributes, type ReactNode } from 'react';
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+}
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center font-medium transition-colors rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
@@ -315,7 +326,23 @@ export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
 ```typescript
 // 공통 레이아웃 패턴
-function Layout({ children }: { children: ReactNode }) {
+import { useState, type ReactNode } from 'react';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { designTokens } from '@/styles/design-tokens';
+
+interface LayoutProps {
+  children: ReactNode;
+}
+
+function Layout({ children }: LayoutProps) {
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  const handleMenuItemClick = (menuId: string) => {
+    // 메뉴 클릭 핸들러
+    console.log('Menu clicked:', menuId);
+  };
+
   return (
     <div className="flex h-screen" style={{ backgroundColor: designTokens.bg.app_default }}>
       <Sidebar
