@@ -2,7 +2,21 @@
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 
-> Frontend 디자인 구현 - TailwindCSS + MCP 연동
+> Frontend 디자인 구현 - TailwindCSS + Design Tokens + Radix UI
+
+---
+
+## 버전 정보
+
+| 항목 | 버전 | 비고 |
+|------|------|------|
+| React | ^19.0.0 | 최신 React 19 |
+| TypeScript | ~5.6.0 | 타입 안정성 |
+| TailwindCSS | ^3.4.0 | 유틸리티 CSS |
+| Radix UI | ^1.x | Headless UI 컴포넌트 |
+| CVA | ^0.7.1 | 컴포넌트 Variant 관리 |
+| Lucide React | ^0.487.0 | 아이콘 라이브러리 |
+| Vite | ^6.0.0 | 빌드 도구 |
 
 ---
 
@@ -10,163 +24,562 @@
 
 ```
 ✅ 디자인 토큰 사용 → 하드코딩 금지
-✅ MCP로 Figma 값 조회 → 최신 디자인 반영
-✅ 컴포넌트 재사용 → 중복 스타일 금지
-✅ 반응형 필수 → 모바일 우선 접근
+✅ CSS 변수 + TypeScript 토큰 동기화 → 일관성 유지
+✅ CVA로 컴포넌트 Variant 관리 → 타입 안전한 스타일링
+✅ Radix UI 기반 컴포넌트 → 접근성 보장
+✅ WCAG AA 준수 → 4.5:1 대비율 필수
 ```
 
 ---
 
-## 스타일링
+## 디자인 토큰 시스템
 
-### TailwindCSS + CSS 변수
+### 1. CSS 변수 (index.css)
 
-```typescript
-// ✅ 디자인 토큰 사용
-<button className="bg-primary text-white rounded-md px-4 py-2">
-
-// ❌ 하드코딩 금지
-<button className="bg-[#3B82F6] rounded-[8px]">
-```
-
-### CSS 변수 (globals.css)
 ```css
 :root {
-  --color-primary: #3B82F6;
-  --color-primary-hover: #2563EB;
-  --color-error: #EF4444;
-  --spacing-md: 16px;
+  /* === Background and Neutral Tones === */
+  --color-bg-default: #FFFFFF;       /* 주요 콘텐츠/카드 배경 */
+  --color-bg-app: #FAFAFA;           /* 전체 앱 배경 */
+  --color-bg-secondary: #F4F4F4;     /* Admin 페이지/테이블 헤더 */
+  --color-border: #E0E0E0;           /* 경계선, 인풋 테두리 */
+
+  /* === Text Colors === */
+  --color-text-primary: #333333;     /* 핵심 텍스트 */
+  --color-text-secondary: #666666;   /* 보조 텍스트/아이콘 */
+  --color-text-placeholder: #999999; /* 플레이스홀더 */
+
+  /* === Button - Neutral === */
+  --color-btn-neutral: #2A2A2A;
+  --color-btn-neutral-hover: #3D3D3D;
+  --color-btn-neutral-text: #FFFFFF;
+
+  /* === Button - Brand === */
+  --color-btn-brand: #4C2D9A;        /* 브랜드 컬러 (Indigo) */
+  --color-btn-brand-hover: #3D2478;
+  --color-btn-brand-text: #FFFFFF;
+
+  /* === Status Colors === */
+  --color-status-success: #388E3C;
+  --color-status-success-bg: #D4EDDA;
+  --color-status-warning: #FFA000;
+  --color-status-warning-bg: #FFF3CD;
+  --color-status-error: #D32F2F;
+  --color-status-error-bg: #FFEBEE;
+  --color-status-disabled: #666666;
+  --color-status-disabled-bg: #E0E0E0;
+
+  /* === Sidebar - Dark Mode === */
+  --sidebar-dark-bg: #2A2A2A;
+  --sidebar-dark-border: #3F3F3F;
+  --sidebar-dark-text-primary: #D4D4D4;
+  --sidebar-dark-text-secondary: #9E9E9E;
+  --sidebar-dark-hover: #353535;
+  --sidebar-dark-active-bg: #4A4A4A;
+  --sidebar-dark-active-text: #E8E8E8;
+
+  /* === Sidebar - Light Mode === */
+  --sidebar-light-bg: #EFEFEF;
+  --sidebar-light-border: #D0D0D0;
+  --sidebar-light-text-primary: #333333;
+  --sidebar-light-text-secondary: #666666;
+  --sidebar-light-hover: #E0E0E0;
+  --sidebar-light-active-bg: #D5D5D5;
+  --sidebar-light-active-text: #1F1F1F;
+
+  /* === Typography === */
+  --font-size-base: 16px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* === Spacing & Radius === */
+  --radius-sm: 4px;
   --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 }
 ```
 
-### Tailwind Config
+### 2. TypeScript 디자인 토큰 (design-tokens.ts)
+
 ```typescript
+// src/styles/design-tokens.ts
+export const designTokens = {
+  bg: {
+    default: '#FFFFFF',
+    app_default: '#FAFAFA',
+    secondary: '#F4F4F4',
+    border: '#E0E0E0',
+  },
+  text: {
+    primary: '#333333',
+    secondary: '#666666',
+    placeholder: '#999999',
+  },
+  button: {
+    neutral_default: '#2A2A2A',
+    neutral_hover: '#3D3D3D',
+    brand_default: '#4C2D9A',
+    brand_hover: '#3D2478',
+  },
+  status: {
+    success_text: '#388E3C',
+    success_background: '#D4EDDA',
+    error_text: '#D32F2F',
+    error_background: '#FFEBEE',
+  },
+  darkMode: { /* 사이드바 다크모드 색상 */ },
+  lightMode: { /* 사이드바 라이트모드 색상 */ },
+};
+```
+
+### 3. Tailwind Config (tailwind.config.js)
+
+```javascript
 export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        primary: 'var(--color-primary)',
-        'primary-hover': 'var(--color-primary-hover)',
+        // Background
+        'bg-default': 'var(--color-bg-default)',
+        'bg-app': 'var(--color-bg-app)',
+        'bg-secondary': 'var(--color-bg-secondary)',
+        border: 'var(--color-border)',
+
+        // Text
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'text-placeholder': 'var(--color-text-placeholder)',
+
+        // Button - Neutral
+        'btn-neutral': 'var(--color-btn-neutral)',
+        'btn-neutral-hover': 'var(--color-btn-neutral-hover)',
+
+        // Button - Brand
+        'btn-brand': 'var(--color-btn-brand)',
+        'btn-brand-hover': 'var(--color-btn-brand-hover)',
+
+        // Status
+        'status-success': 'var(--color-status-success)',
+        'status-success-bg': 'var(--color-status-success-bg)',
+        'status-warning': 'var(--color-status-warning)',
+        'status-warning-bg': 'var(--color-status-warning-bg)',
+        'status-error': 'var(--color-status-error)',
+        'status-error-bg': 'var(--color-status-error-bg)',
+        'status-disabled': 'var(--color-status-disabled)',
+        'status-disabled-bg': 'var(--color-status-disabled-bg)',
+
+        // Sidebar (Nested)
+        'sidebar-dark': {
+          bg: 'var(--sidebar-dark-bg)',
+          hover: 'var(--sidebar-dark-hover)',
+        },
+        'sidebar-light': {
+          bg: 'var(--sidebar-light-bg)',
+          hover: 'var(--sidebar-light-hover)',
+        },
+      },
+      borderRadius: {
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
       },
     },
   },
-}
+};
 ```
+
+---
+
+## 컬러 팔레트
+
+### 브랜드 컬러
+
+| 용도 | 색상 | HEX | 사용처 |
+|------|------|-----|--------|
+| Brand Primary | Indigo | `#4C2D9A` | 브랜드 버튼, 강조 |
+| Brand Hover | Dark Indigo | `#3D2478` | 브랜드 버튼 호버 |
+| Neutral Primary | Dark Gray | `#2A2A2A` | 주요 액션 버튼 |
+| Neutral Hover | Gray | `#3D3D3D` | 주요 버튼 호버 |
+
+### 시맨틱 컬러
+
+| 상태 | 텍스트 | 배경 | 용도 |
+|------|--------|------|------|
+| Success | `#388E3C` | `#D4EDDA` | 완료, 성공 |
+| Warning | `#FFA000` | `#FFF3CD` | 경고, 주의 |
+| Error | `#D32F2F` | `#FFEBEE` | 에러, 삭제 |
+| Disabled | `#666666` | `#E0E0E0` | 비활성 |
 
 ---
 
 ## 컴포넌트 패턴 (CVA)
 
+### Button 컴포넌트
+
 ```typescript
+// src/components/common/Button/Button.tsx
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/cn';
+import { type ButtonHTMLAttributes, type ReactNode } from 'react';
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+}
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center font-medium transition-colors',
+  'inline-flex items-center justify-center font-medium transition-colors rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-white hover:bg-primary-hover',
-        secondary: 'bg-gray-100 hover:bg-gray-200',
-        danger: 'bg-error text-white',
+        neutral: 'bg-btn-neutral text-white hover:bg-btn-neutral-hover',
+        brand: 'bg-btn-brand text-white hover:bg-btn-brand-hover',
+        ghost: 'bg-transparent text-text-secondary hover:bg-bg-secondary',
+        danger: 'bg-status-error-bg text-status-error hover:bg-red-100',
       },
       size: {
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-10 px-4',
-        lg: 'h-12 px-6 text-lg',
+        sm: 'h-8 px-3 text-sm gap-1',
+        md: 'h-10 px-4 gap-2',
+        lg: 'h-12 px-6 text-lg gap-2',
       },
     },
-    defaultVariants: { variant: 'primary', size: 'md' },
+    defaultVariants: {
+      variant: 'brand',
+      size: 'md',
+    },
   }
 );
 
-export const Button = ({ className, variant, size, ...props }: ButtonProps) => (
-  <button className={cn(buttonVariants({ variant, size }), className)} {...props} />
+export const Button = ({
+  className,
+  variant,
+  size,
+  children,
+  ...props
+}: ButtonProps & VariantProps<typeof buttonVariants>) => (
+  <button
+    className={cn(buttonVariants({ variant, size }), className)}
+    {...props}
+  >
+    {children}
+  </button>
 );
 ```
 
 ### cn 유틸리티
+
 ```typescript
+// src/utils/cn.ts
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 ```
 
 ---
 
-## 반응형 (모바일 우선)
+## UI 컴포넌트 라이브러리
+
+### Radix UI 컴포넌트 목록
+
+| 컴포넌트 | 패키지 | 용도 |
+|----------|--------|------|
+| Accordion | `@radix-ui/react-accordion` | 아코디언 |
+| AlertDialog | `@radix-ui/react-alert-dialog` | 확인 다이얼로그 |
+| Checkbox | `@radix-ui/react-checkbox` | 체크박스 |
+| Dialog | `@radix-ui/react-dialog` | 모달 |
+| DropdownMenu | `@radix-ui/react-dropdown-menu` | 드롭다운 메뉴 |
+| Popover | `@radix-ui/react-popover` | 팝오버 |
+| Select | `@radix-ui/react-select` | 셀렉트 박스 |
+| Tabs | `@radix-ui/react-tabs` | 탭 |
+| Tooltip | `@radix-ui/react-tooltip` | 툴팁 |
+| Switch | `@radix-ui/react-switch` | 토글 스위치 |
+
+### 기타 UI 라이브러리
+
+| 라이브러리 | 용도 |
+|------------|------|
+| `lucide-react` | 아이콘 |
+| `react-day-picker` | 날짜 선택기 |
+| `recharts` | 차트 |
+| `react-dropzone` | 파일 업로드 |
+| `sonner` | 토스트 알림 |
+| `cmdk` | 커맨드 팔레트 |
+
+---
+
+## 레이아웃 시스템
+
+### 역할별 레이아웃
+
+```
+/sa/*  → SuperAdminLayout    (슈퍼 관리자)
+/ta/*  → TenantAdminLayout   (테넌트 관리자)
+/to/*  → TenantOperatorLayout (테넌트 운영자)
+/tu/*  → TenantUserLayout    (테넌트 사용자)
+```
+
+### 레이아웃 구조
 
 ```typescript
-// ✅ 모바일 → 데스크톱
-<div className="px-4 md:px-6 lg:px-8">
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+// 공통 레이아웃 패턴
+import { useState, type ReactNode } from 'react';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { designTokens } from '@/styles/design-tokens';
 
-// 숨기기/보이기
-<nav className="hidden md:flex">데스크톱</nav>
-<nav className="md:hidden">모바일</nav>
+interface LayoutProps {
+  children: ReactNode;
+}
+
+function Layout({ children }: LayoutProps) {
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  const handleMenuItemClick = (menuId: string) => {
+    // 메뉴 클릭 핸들러
+    console.log('Menu clicked:', menuId);
+  };
+
+  return (
+    <div className="flex h-screen" style={{ backgroundColor: designTokens.bg.app_default }}>
+      <Sidebar
+        isExpanded={isSidebarExpanded}
+        isDarkMode={isDarkMode}
+        onMenuItemClick={handleMenuItemClick}
+      />
+      <main className="flex-1 overflow-auto">{children}</main>
+    </div>
+  );
+}
 ```
+
+### 사이드바 테마
+
+```css
+/* 다크 모드 스크롤바 */
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #606060;
+}
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #707070;
+}
+
+/* 라이트 모드 스크롤바 */
+.sidebar-scrollbar-light::-webkit-scrollbar-thumb {
+  background-color: #C8C8C8;
+}
+.sidebar-scrollbar-light::-webkit-scrollbar-thumb:hover {
+  background-color: #B0B0B0;
+}
+```
+
+---
+
+## 타이포그래피
+
+### 기본 설정
+
+```css
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+}
+
+h1 { @apply text-2xl; }  /* 24px */
+h2 { @apply text-xl; }   /* 20px */
+h3 { @apply text-lg; }   /* 18px */
+h4 { @apply text-base; } /* 16px */
+```
+
+### Font Weight
+
+| 이름 | 값 | 용도 |
+|------|-----|------|
+| normal | 400 | 본문 |
+| medium | 500 | 헤딩, 레이블 |
+| semibold | 600 | 강조 |
 
 ---
 
 ## 상태 스타일링
 
+### 인터랙티브 요소
+
 ```typescript
-// 버튼
+// 버튼 상태
 <button className="
-  hover:bg-primary-hover
-  focus:ring-2 focus:ring-primary
+  hover:bg-btn-neutral-hover
+  focus:ring-2 focus:ring-offset-2
   disabled:opacity-50 disabled:cursor-not-allowed
 ">
 
-// 입력 필드
+// 입력 필드 상태
 <input className={cn(
   'border rounded-md px-3 py-2',
-  error && 'border-error',
-  !error && 'border-gray-300 focus:ring-primary'
+  'focus:ring-2 focus:ring-btn-brand focus:border-transparent',
+  error && 'border-status-error',
+  !error && 'border-border'
 )} />
 ```
 
 ---
 
-## 레이아웃
+## 반응형 디자인
+
+### 브레이크포인트
+
+| 이름 | 크기 | 대상 | 사용 예시 |
+|------|------|------|-----------|
+| sm | 640px | 모바일 | `sm:flex` |
+| md | 768px | 태블릿 | `md:grid-cols-2` |
+| lg | 1024px | 데스크톱 | `lg:px-8` |
+| xl | 1280px | 대형 화면 | `xl:max-w-7xl` |
+| 2xl | 1536px | 초대형 화면 | `2xl:grid-cols-4` |
+
+### 모바일 우선 접근 (Mobile First)
 
 ```typescript
-// 페이지
-<div className="min-h-screen flex flex-col">
-  <Navbar />
-  <main className="flex-1 container mx-auto px-4 py-6">{children}</main>
-  <Footer />
+// ✅ 모바일 → 데스크톱 (권장)
+<div className="px-4 md:px-6 lg:px-8">
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+// ❌ 데스크톱 → 모바일 (지양)
+<div className="px-8 sm:px-4">  // 역순 브레이크포인트 사용 금지
+```
+
+### 반응형 컴포넌트 패턴
+
+```typescript
+// 사이드바 반응형
+<aside className="hidden md:flex w-64">데스크톱 사이드바</aside>
+<nav className="md:hidden fixed bottom-0 w-full">모바일 하단 네비게이션</nav>
+
+// 카드 그리드 반응형
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  {items.map(item => <Card key={item.id} />)}
 </div>
 
-// 자동 그리드
-<div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
+// 테이블 → 카드 전환 (모바일)
+<table className="hidden md:table">...</table>
+<div className="md:hidden space-y-4">
+  {data.map(row => <MobileCard key={row.id} data={row} />)}
+</div>
 
-// 센터링
-<div className="flex items-center justify-center min-h-screen">
+// 폼 레이아웃 반응형
+<form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <Input label="이름" className="md:col-span-1" />
+  <Input label="이메일" className="md:col-span-1" />
+  <Textarea label="설명" className="md:col-span-2" />
+</form>
+```
+
+### 반응형 타이포그래피
+
+```typescript
+// 제목 크기 반응형
+<h1 className="text-xl md:text-2xl lg:text-3xl">제목</h1>
+
+// 본문 크기 반응형
+<p className="text-sm md:text-base">본문 텍스트</p>
+```
+
+### 반응형 간격 (Spacing)
+
+```typescript
+// 패딩 반응형
+<div className="p-4 md:p-6 lg:p-8">
+
+// 마진 반응형
+<section className="my-8 md:my-12 lg:my-16">
+
+// 갭 반응형
+<div className="flex flex-col md:flex-row gap-4 md:gap-6">
+```
+
+### 반응형 체크리스트
+
+```
+✅ 모바일 우선 설계 (기본 스타일 = 모바일)
+✅ 터치 타겟 최소 44x44px (모바일)
+✅ 사이드바 → 하단 네비게이션 전환
+✅ 테이블 → 카드 레이아웃 전환
+✅ 폼 필드 스택 → 그리드 전환
+✅ 이미지/미디어 반응형 처리
+✅ 모든 브레이크포인트에서 테스트
 ```
 
 ---
 
-## MCP 워크플로우
+## 접근성 (A11y)
 
-```
-1. mcp__figma__get_styles() → CSS 변수 업데이트
-2. mcp__figma__get_component("Button") → 구현
-3. mcp__figma__get_frame("Login") → 검증
-```
+### WCAG AA 준수
+
+| 항목 | 요구사항 | 현재 상태 |
+|------|----------|-----------|
+| 텍스트 대비율 | 4.5:1 이상 | ✅ `#333333` on `#FFFFFF` = 12.6:1 |
+| 포커스 표시 | 명확한 표시 | ✅ `focus:ring-2` |
+| 키보드 접근 | 전체 탐색 가능 | ✅ Radix UI 기본 지원 |
+
+### 다크 모드 대비율
+
+| 요소 | 대비율 | 상태 |
+|------|--------|------|
+| Primary Text | `#D4D4D4` on `#2A2A2A` | ✅ 9.7:1 |
+| Secondary Text | `#9E9E9E` on `#2A2A2A` | ✅ 5.2:1 |
+| Active Text | `#E8E8E8` on `#4A4A4A` | ✅ 6.8:1 |
 
 ---
 
 ## 체크리스트
 
-- [ ] Figma 컴포넌트 확인 (MCP)
-- [ ] 디자인 토큰 사용 (하드코딩 금지)
-- [ ] 반응형 적용
-- [ ] 상태 스타일 (hover, focus, disabled)
-- [ ] Figma 비교 검증
+### 디자인 토큰
+- [ ] CSS 변수와 TS 토큰 동기화 확인
+- [ ] 하드코딩 색상 사용 금지
+- [ ] Tailwind 클래스로 토큰 참조
+
+### 컴포넌트
+- [ ] CVA로 variant 정의
+- [ ] cn() 유틸리티로 클래스 병합
+- [ ] Radix UI 기반 접근성 확보
+
+### 레이아웃
+- [ ] 역할별 레이아웃 적용
+- [ ] 사이드바 다크/라이트 모드 지원
+- [ ] 반응형 브레이크포인트 적용
+
+### 접근성
+- [ ] WCAG AA 대비율 준수
+- [ ] 포커스 스타일 명확
+- [ ] 키보드 네비게이션 테스트
+
+---
+
+## 파일 구조
+
+```
+src/
+├── styles/
+│   └── design-tokens.ts     # TypeScript 디자인 토큰
+├── index.css                # CSS 변수 + 글로벌 스타일
+├── components/
+│   ├── common/              # 공통 UI 컴포넌트
+│   │   ├── Button/
+│   │   ├── Input/
+│   │   └── ...
+│   └── layout/              # 레이아웃 컴포넌트
+│       ├── SuperAdminLayout.tsx
+│       ├── TenantAdminLayout.tsx
+│       └── AdminSidebar/
+├── utils/
+│   └── cn.ts                # 클래스 병합 유틸리티
+└── tailwind.config.js       # Tailwind 설정
+```
 
 ---
 
 > 화면 정의서 → [design-specs/](../design-specs/)
-> 컴포넌트 → [12-REACT-COMPONENT-CONVENTIONS](./12-REACT-COMPONENT-CONVENTIONS.md)
+> 컴포넌트 컨벤션 → [12-REACT-COMPONENT-CONVENTIONS](./12-REACT-COMPONENT-CONVENTIONS.md)
+> 프로젝트 구조 → [11-REACT-PROJECT-STRUCTURE](./11-REACT-PROJECT-STRUCTURE.md)
