@@ -286,6 +286,12 @@ courseRepository.findByIdAndTenantId(courseId, DEFAULT_TENANT_ID);
 
 ---
 
+## 관련 문서
+
+- [Phase 2 Fix](phase2-fix.md) - 필드 정합성 수정 (thumbnailUrl 추가, instructorId/sortOrder 제거)
+
+---
+
 ## 변경 이력
 
 | 날짜 | 작업자 | 내용 |
