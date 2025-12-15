@@ -8,6 +8,7 @@
 
 | 항목 | 내용 |
 |------|------|
+| **작업자** | 신동구 |
 | **작업 일자** | 2025-12-11 |
 | **관련 이슈** | [#13](https://github.com/mzcATU/mzc-lp-backend/issues/13) |
 | **담당 모듈** | UM (User Master) |

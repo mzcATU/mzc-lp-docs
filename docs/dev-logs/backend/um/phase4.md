@@ -8,6 +8,7 @@
 
 | 항목 | 내용 |
 |------|------|
+| **작업자** | 신동구 |
 | **작업 일자** | 2025-12-12 |
 | **관련 이슈** | [#24](https://github.com/mzcATU/mzc-lp-backend/issues/24) |
 | **관련 PR** | [#38](https://github.com/mzcATU/mzc-lp-backend/pull/38) |
