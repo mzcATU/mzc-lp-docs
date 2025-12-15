@@ -85,10 +85,13 @@ folderId: 1 (optional)
     "duration": 1800,
     "resolution": "1920x1080",
     "filePath": "/uploads/2025/01/550e8400-e29b-41d4-a716-446655440000.mp4",
+    "thumbnailPath": "/uploads/thumbnails/2025/01/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
     "createdAt": "2025-01-15T10:00:00"
   }
 }
 ```
+
+> **썸네일 자동 생성**: VIDEO, IMAGE, PDF 파일 업로드 시 썸네일이 자동 생성됩니다.
 
 ### 1.3 외부 링크 등록
 
@@ -159,6 +162,7 @@ Authorization: Bearer {accessToken}
         "fileSize": 104857600,
         "duration": 1800,
         "resolution": "1920x1080",
+        "thumbnailPath": "/uploads/thumbnails/2025/01/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
         "createdAt": "2025-01-15T10:00:00"
       }
     ],
@@ -192,6 +196,7 @@ Authorization: Bearer {accessToken}
     "pageCount": null,
     "externalUrl": null,
     "filePath": "/uploads/2025/01/550e8400-e29b-41d4-a716-446655440000.mp4",
+    "thumbnailPath": "/uploads/thumbnails/2025/01/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
     "createdAt": "2025-01-15T10:00:00",
     "updatedAt": "2025-01-15T10:00:00"
   }
@@ -455,11 +460,23 @@ Authorization: Bearer {accessToken}
 
 | 콘텐츠 타입 | 추출 항목 | 라이브러리 |
 |-------------|-----------|------------|
-| VIDEO | duration, resolution | FFprobe |
+| VIDEO | duration, resolution, **thumbnailPath** | FFprobe, **FFmpeg** |
 | AUDIO | duration | FFprobe |
-| DOCUMENT (PDF) | pageCount | Apache PDFBox |
-| IMAGE | resolution | ImageIO |
+| DOCUMENT (PDF) | pageCount, **thumbnailPath** | Apache PDFBox |
+| IMAGE | resolution, **thumbnailPath** | ImageIO |
 | EXTERNAL_LINK (YouTube) | duration | YouTube Data API |
+
+### 썸네일 자동 생성
+
+파일 업로드 시 다음 콘텐츠 타입에 대해 썸네일이 자동 생성됩니다:
+
+| 콘텐츠 타입 | 썸네일 생성 방법 | 크기 |
+|-------------|------------------|------|
+| VIDEO | FFmpeg로 1초 지점 프레임 추출 | 320x180 |
+| IMAGE | Java ImageIO로 리사이즈 | 320x180 |
+| DOCUMENT (PDF) | PDFBox로 첫 페이지 렌더링 | 320x180 |
+
+> **저장 경로**: `/uploads/thumbnails/YYYY/MM/{uuid}.jpg`
 
 ### 추출 예시
 
@@ -560,7 +577,9 @@ src/main/java/com/mzc/lp/domain/content/
 │   ├── ContentService.java
 │   ├── ContentServiceImpl.java
 │   ├── FileStorageService.java
-│   └── FileStorageServiceImpl.java
+│   ├── FileStorageServiceImpl.java
+│   ├── ThumbnailService.java
+│   └── ThumbnailServiceImpl.java
 ├── repository/
 │   └── ContentRepository.java
 ├── entity/
