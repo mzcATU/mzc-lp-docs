@@ -16,6 +16,16 @@
 
 ---
 
+## 0. 사전 요구사항
+
+| 요구사항 | 용도 | 설치 방법 |
+|----------|------|-----------|
+| FFmpeg | VIDEO 썸네일 생성 | `apt-get install ffmpeg` (Linux) / `brew install ffmpeg` (Mac) / `choco install ffmpeg` (Windows) |
+
+> FFmpeg 미설치 시 VIDEO 썸네일만 생성되지 않으며, IMAGE/PDF 썸네일은 정상 동작합니다.
+
+---
+
 ## 1. 구현 개요
 
 콘텐츠 업로드 시 타입에 따라 썸네일을 자동 생성하는 기능 구현:
@@ -173,5 +183,5 @@ BUILD SUCCESSFUL in 9s
 
 | 문서 | 설명 |
 |------|------|
-| [api.md](../structure/backend/content/api.md) | Content API 명세 |
-| [backend-cms-phase1.md](./backend-cms-phase1.md) | CMS 1차 개발 로그 |
+| [api.md](../../../structure/backend/content/api.md) | Content API 명세 |
+| [phase1.md](./phase1.md) | CMS 1차 개발 로그 |
