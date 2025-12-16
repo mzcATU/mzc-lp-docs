@@ -3,7 +3,9 @@
     "allow": [
       "Bash(find:*)",
       "Bash(git pull:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(mysql:*)",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysql\" -u root -pmzanewlp123 -e \"USE mza_newlp; SHOW TABLES LIKE ''sis%''; DESC sis_enrollments;\")"
     ],
     "deny": [],
     "ask": []

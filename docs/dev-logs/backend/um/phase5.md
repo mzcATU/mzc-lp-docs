@@ -455,5 +455,5 @@ Branch: feat/um-profile-image
 
 ---
 
-**작성자**: Claude Sonnet 4.5
+**작성자**: 신동구
 **최종 수정**: 2025-12-12

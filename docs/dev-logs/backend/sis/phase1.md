@@ -8,7 +8,7 @@
 
 | 항목 | 내용 |
 |------|------|
-| **작업자** | Claude Code |
+| **작업자** | 신동구 |
 | **작업 일자** | 2025-12-15 |
 | **관련 이슈** | [#49](https://github.com/mzcATU/mzc-lp-backend/issues/49) |
 | **담당 모듈** | SIS (Student Information System - 수강 관리) |
@@ -299,7 +299,7 @@ DESC sis_enrollments;
 
 | 날짜 | 작업자 | 내용 |
 |------|--------|------|
-| 2025-12-15 | Claude Code | Phase 1 구현 완료 (Entity, Repository, Exception 5개, ErrorCode 5개) |
+| 2025-12-15 | 신동구 | Phase 1 구현 완료 (Entity, Repository, Exception 5개, ErrorCode 5개) |
 
 ---
 
