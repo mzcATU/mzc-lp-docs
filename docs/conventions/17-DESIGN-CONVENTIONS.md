@@ -580,6 +580,5 @@ src/
 
 ---
 
-> 화면 정의서 → [design-specs/](../design-specs/)
 > 컴포넌트 컨벤션 → [12-REACT-COMPONENT-CONVENTIONS](./12-REACT-COMPONENT-CONVENTIONS.md)
 > 프로젝트 구조 → [11-REACT-PROJECT-STRUCTURE](./11-REACT-PROJECT-STRUCTURE.md)
