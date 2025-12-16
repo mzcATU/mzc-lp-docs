@@ -90,20 +90,20 @@ domain/ts/
 
 | Method | Endpoint | 설명 | 권한 |
 |--------|----------|------|------|
-| POST | `/api/ts/course-times` | 차수 생성 | OPERATOR, TENANT_ADMIN |
-| GET | `/api/ts/course-times` | 차수 목록 조회 | 인증된 사용자 |
-| GET | `/api/ts/course-times/{id}` | 차수 상세 조회 | 인증된 사용자 |
-| PATCH | `/api/ts/course-times/{id}` | 차수 수정 | OPERATOR, TENANT_ADMIN |
-| DELETE | `/api/ts/course-times/{id}` | 차수 삭제 | OPERATOR, TENANT_ADMIN |
+| POST | `/api/times` | 차수 생성 | OPERATOR, TENANT_ADMIN |
+| GET | `/api/times` | 차수 목록 조회 | 인증된 사용자 |
+| GET | `/api/times/{id}` | 차수 상세 조회 | 인증된 사용자 |
+| PATCH | `/api/times/{id}` | 차수 수정 | OPERATOR, TENANT_ADMIN |
+| DELETE | `/api/times/{id}` | 차수 삭제 | OPERATOR, TENANT_ADMIN |
 
 ### 상태 전이 API
 
 | Method | Endpoint | 설명 | 전이 |
 |--------|----------|------|------|
-| POST | `/api/ts/course-times/{id}/open` | 모집 시작 | DRAFT → RECRUITING |
-| POST | `/api/ts/course-times/{id}/start` | 수업 시작 | RECRUITING → ONGOING |
-| POST | `/api/ts/course-times/{id}/close` | 수업 종료 | ONGOING → CLOSED |
-| POST | `/api/ts/course-times/{id}/archive` | 보관 처리 | CLOSED → ARCHIVED |
+| POST | `/api/times/{id}/open` | 모집 시작 | DRAFT → RECRUITING |
+| POST | `/api/times/{id}/start` | 수업 시작 | RECRUITING → ONGOING |
+| POST | `/api/times/{id}/close` | 수업 종료 | ONGOING → CLOSED |
+| POST | `/api/times/{id}/archive` | 보관 처리 | CLOSED → ARCHIVED |
 
 ---
 
@@ -163,15 +163,15 @@ DRAFT → RECRUITING → ONGOING → CLOSED → ARCHIVED
 
 | API | 결과 |
 |-----|------|
-| POST /api/ts/course-times | ✅ 생성 성공 |
-| GET /api/ts/course-times | ✅ 목록 조회 성공 |
-| GET /api/ts/course-times/{id} | ✅ 상세 조회 성공 |
-| PATCH /api/ts/course-times/{id} | ✅ 수정 성공 |
-| DELETE /api/ts/course-times/{id} | ✅ 삭제 성공 |
-| POST /api/ts/course-times/{id}/open | ✅ DRAFT → RECRUITING |
-| POST /api/ts/course-times/{id}/start | ✅ RECRUITING → ONGOING |
-| POST /api/ts/course-times/{id}/close | ✅ ONGOING → CLOSED |
-| POST /api/ts/course-times/{id}/archive | ✅ CLOSED → ARCHIVED |
+| POST /api/times | ✅ 생성 성공 |
+| GET /api/times | ✅ 목록 조회 성공 |
+| GET /api/times/{id} | ✅ 상세 조회 성공 |
+| PATCH /api/times/{id} | ✅ 수정 성공 |
+| DELETE /api/times/{id} | ✅ 삭제 성공 |
+| POST /api/times/{id}/open | ✅ DRAFT → RECRUITING |
+| POST /api/times/{id}/start | ✅ RECRUITING → ONGOING |
+| POST /api/times/{id}/close | ✅ ONGOING → CLOSED |
+| POST /api/times/{id}/archive | ✅ CLOSED → ARCHIVED |
 
 ---
 

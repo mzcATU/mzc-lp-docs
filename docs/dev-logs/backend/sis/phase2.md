@@ -36,9 +36,9 @@
 
 | Method | Endpoint | 설명 | 권한 | 비고 |
 |--------|----------|------|------|------|
-| POST | `/api/ts/course-times/{id}/enrollments` | 수강신청 | AUTH | 본인 수강 신청 |
-| POST | `/api/ts/course-times/{id}/enrollments/force` | 강제배정 | OPERATOR | 운영자 다수 배정 |
-| GET | `/api/ts/course-times/{id}/enrollments` | 수강생 목록 | OPERATOR | 차수별 수강생 |
+| POST | `/api/times/{id}/enrollments` | 수강신청 | AUTH | 본인 수강 신청 |
+| POST | `/api/times/{id}/enrollments/force` | 강제배정 | OPERATOR | 운영자 다수 배정 |
+| GET | `/api/times/{id}/enrollments` | 수강생 목록 | OPERATOR | 차수별 수강생 |
 | DELETE | `/api/enrollments/{id}` | 수강 취소 | AUTH | 취소 시 좌석 반환 |
 
 ### 수강 관리
@@ -377,9 +377,9 @@ id  user_id  course_time_id  status     type       progress  score  enrolled_at 
 feat(sis): 수강신청 CRUD API 구현
 
 - EnrollmentController: 10개 API 엔드포인트 구현
-  - POST /api/ts/course-times/{id}/enrollments (수강신청)
-  - POST /api/ts/course-times/{id}/enrollments/force (강제배정)
-  - GET /api/ts/course-times/{id}/enrollments (수강생 목록)
+  - POST /api/times/{id}/enrollments (수강신청)
+  - POST /api/times/{id}/enrollments/force (강제배정)
+  - GET /api/times/{id}/enrollments (수강생 목록)
   - GET /api/enrollments/{id} (수강 상세)
   - PATCH /api/enrollments/{id}/progress (진도 업데이트)
   - PATCH /api/enrollments/{id}/complete (수료 처리)

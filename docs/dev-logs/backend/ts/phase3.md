@@ -87,8 +87,8 @@ test/.../ts/
 
 | Method | Endpoint | 설명 | 권한 |
 |--------|----------|------|------|
-| GET | `/api/ts/course-times/{id}/capacity` | 정원 조회 | permitAll |
-| GET | `/api/ts/course-times/{id}/price` | 가격 조회 | permitAll |
+| GET | `/api/times/{id}/capacity` | 정원 조회 | permitAll |
+| GET | `/api/times/{id}/price` | 가격 조회 | permitAll |
 
 ### 내부 메서드 (SIS 모듈에서 호출)
 

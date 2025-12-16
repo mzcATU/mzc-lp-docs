@@ -278,8 +278,8 @@ DESC sis_enrollments;
 
 | Method | Endpoint | 기능 |
 |--------|----------|------|
-| POST | `/api/ts/course-times/{id}/enrollments` | 수강 신청 |
-| GET | `/api/ts/course-times/{id}/enrollments` | 차수별 수강생 목록 |
+| POST | `/api/times/{id}/enrollments` | 수강 신청 |
+| GET | `/api/times/{id}/enrollments` | 차수별 수강생 목록 |
 | GET | `/api/enrollments/me` | 내 수강 목록 |
 | GET | `/api/enrollments/{id}` | 수강 상세 |
 | PATCH | `/api/enrollments/{id}/progress` | 진도율 업데이트 |

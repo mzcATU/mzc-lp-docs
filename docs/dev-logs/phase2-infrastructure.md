@@ -38,7 +38,7 @@
 
 | Method | Endpoint | 설명 | 권한 |
 |--------|----------|------|------|
-| PATCH | `/api/ts/course-times/{id}/capacity` | 정원 변경 | OPERATOR, TENANT_ADMIN |
+| PATCH | `/api/times/{id}/capacity` | 정원 변경 | OPERATOR, TENANT_ADMIN |
 | GET | `/api/public/course-times` | 공개 차수 목록 | 인증 불필요 |
 | GET | `/api/public/course-times/{id}` | 공개 차수 상세 | 인증 불필요 |
 

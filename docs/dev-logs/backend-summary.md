@@ -97,15 +97,15 @@
 
 | Method | Endpoint | 설명 | 권한 |
 |--------|----------|------|------|
-| POST | `/api/ts/course-times` | 차수 생성 | OPERATOR, TENANT_ADMIN |
-| GET | `/api/ts/course-times` | 차수 목록 조회 | 인증된 사용자 |
-| GET | `/api/ts/course-times/{id}` | 차수 상세 조회 | 인증된 사용자 |
-| PATCH | `/api/ts/course-times/{id}` | 차수 수정 | OPERATOR, TENANT_ADMIN |
-| DELETE | `/api/ts/course-times/{id}` | 차수 삭제 | OPERATOR, TENANT_ADMIN |
-| POST | `/api/ts/course-times/{id}/open` | 모집 시작 | OPERATOR, TENANT_ADMIN |
-| POST | `/api/ts/course-times/{id}/start` | 수업 시작 | OPERATOR, TENANT_ADMIN |
-| POST | `/api/ts/course-times/{id}/close` | 수업 종료 | OPERATOR, TENANT_ADMIN |
-| POST | `/api/ts/course-times/{id}/archive` | 보관 처리 | OPERATOR, TENANT_ADMIN |
+| POST | `/api/times` | 차수 생성 | OPERATOR, TENANT_ADMIN |
+| GET | `/api/times` | 차수 목록 조회 | 인증된 사용자 |
+| GET | `/api/times/{id}` | 차수 상세 조회 | 인증된 사용자 |
+| PATCH | `/api/times/{id}` | 차수 수정 | OPERATOR, TENANT_ADMIN |
+| DELETE | `/api/times/{id}` | 차수 삭제 | OPERATOR, TENANT_ADMIN |
+| POST | `/api/times/{id}/open` | 모집 시작 | OPERATOR, TENANT_ADMIN |
+| POST | `/api/times/{id}/start` | 수업 시작 | OPERATOR, TENANT_ADMIN |
+| POST | `/api/times/{id}/close` | 수업 종료 | OPERATOR, TENANT_ADMIN |
+| POST | `/api/times/{id}/archive` | 보관 처리 | OPERATOR, TENANT_ADMIN |
 
 **상태 전이**: DRAFT → RECRUITING → ONGOING → CLOSED → ARCHIVED
 

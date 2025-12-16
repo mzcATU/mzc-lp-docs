@@ -9,7 +9,7 @@
 ### 1.1 수강 신청
 
 ```http
-POST /api/ts/course-times/{courseTimeId}/enrollments
+POST /api/times/{courseTimeId}/enrollments
 Authorization: Bearer {accessToken}
 ```
 
@@ -49,7 +49,7 @@ Authorization: Bearer {accessToken}
 ### 1.2 필수 수강 강제 신청 (OPERATOR)
 
 ```http
-POST /api/ts/course-times/{courseTimeId}/enrollments/force
+POST /api/times/{courseTimeId}/enrollments/force
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
@@ -98,7 +98,7 @@ Content-Type: application/json
 ### 1.3 차수별 수강생 목록 조회
 
 ```http
-GET /api/ts/course-times/{courseTimeId}/enrollments
+GET /api/times/{courseTimeId}/enrollments
 Authorization: Bearer {accessToken}
 ```
 
@@ -416,7 +416,7 @@ Content-Type: application/json
 ### 3.1 차수별 수강 통계 조회
 
 ```http
-GET /api/ts/course-times/{courseTimeId}/enrollments/stats
+GET /api/times/{courseTimeId}/enrollments/stats
 Authorization: Bearer {accessToken}
 ```
 

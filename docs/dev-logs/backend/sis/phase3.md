@@ -34,7 +34,7 @@
 ### 2.1 차수별 수강 통계
 
 ```
-GET /api/ts/course-times/{courseTimeId}/enrollments/stats
+GET /api/times/{courseTimeId}/enrollments/stats
 ```
 
 **권한**: OPERATOR, TENANT_ADMIN
@@ -355,7 +355,7 @@ WHERE e.courseTimeId = :courseTimeId
 ### OPERATOR, TENANT_ADMIN 전용
 
 ```java
-@GetMapping("/api/ts/course-times/{courseTimeId}/enrollments/stats")
+@GetMapping("/api/times/{courseTimeId}/enrollments/stats")
 @PreAuthorize("hasAnyRole('OPERATOR', 'TENANT_ADMIN')")
 public ResponseEntity<ApiResponse<CourseTimeEnrollmentStatsResponse>> getCourseTimeStats(
         @PathVariable Long courseTimeId
@@ -484,7 +484,7 @@ GROUP BY status;
 feat(sis): 학습 통계 API 구현
 
 - 차수별 수강 통계 API 구현
-  - GET /api/ts/course-times/{id}/enrollments/stats
+  - GET /api/times/{id}/enrollments/stats
   - 총 수강생, 상태별 카운트, 평균 진도율, 수료율
 - 사용자별 수강 통계 API 구현
   - GET /api/users/{userId}/enrollments/stats
