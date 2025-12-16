@@ -24,13 +24,14 @@ CREATE TABLE um_users (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id       BIGINT NOT NULL,
     email           VARCHAR(255) NOT NULL,
-    password        VARCHAR(255) NOT NULL,
+    password        VARCHAR(255),
     name            VARCHAR(50) NOT NULL,
     phone           VARCHAR(20),
     profile_image_url VARCHAR(500),
     role            VARCHAR(20) NOT NULL DEFAULT 'USER',
     status          VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     organization_id BIGINT,
+    primary_provider VARCHAR(20),
     created_at      DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at      DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
 
@@ -43,7 +44,8 @@ CREATE TABLE um_users (
     INDEX idx_tenant (tenant_id),
     INDEX idx_organization (organization_id),
     INDEX idx_status (status),
-    INDEX idx_role (role)
+    INDEX idx_role (role),
+    INDEX idx_primary_provider (primary_provider)
 );
 ```
 
@@ -52,13 +54,14 @@ CREATE TABLE um_users (
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | FK → tenants |
 | email | VARCHAR(255) | NO | 이메일 (테넌트 내 unique) |
-| password | VARCHAR(255) | NO | BCrypt 해시 |
+| password | VARCHAR(255) | YES | BCrypt 해시 (소셜 로그인만 사용 시 NULL) |
 | name | VARCHAR(50) | NO | 이름 |
 | phone | VARCHAR(20) | YES | 전화번호 |
 | profile_image_url | VARCHAR(500) | YES | 프로필 이미지 URL |
 | role | VARCHAR(20) | NO | 테넌트 역할 (USER, OPERATOR, TENANT_ADMIN) |
 | status | VARCHAR(20) | NO | 상태 (ACTIVE, INACTIVE, SUSPENDED, WITHDRAWN) |
 | organization_id | BIGINT | YES | FK → um_organizations (B2B 전용) |
+| primary_provider | VARCHAR(20) | YES | 주 로그인 방식 (NULL=이메일, GOOGLE, KAKAO, NAVER) |
 | created_at | DATETIME(6) | NO | 생성일시 |
 | updated_at | DATETIME(6) | NO | 수정일시 |
 
@@ -152,7 +155,59 @@ CREATE TABLE um_organizations (
 | created_at | DATETIME(6) | NO | 생성일시 |
 | updated_at | DATETIME(6) | NO | 수정일시 |
 
-### 1.4 um_refresh_tokens (리프레시 토큰)
+### 1.4 um_social_accounts (소셜 계정 연동)
+
+```sql
+CREATE TABLE um_social_accounts (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT NOT NULL,
+    provider        VARCHAR(20) NOT NULL,
+    provider_id     VARCHAR(255) NOT NULL,
+    email           VARCHAR(255),
+    name            VARCHAR(100),
+    profile_image_url VARCHAR(500),
+    access_token    VARCHAR(2000),
+    refresh_token   VARCHAR(2000),
+    token_expires_at DATETIME(6),
+    created_at      DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at      DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+
+    CONSTRAINT fk_social_user FOREIGN KEY (user_id)
+        REFERENCES um_users(id) ON DELETE CASCADE,
+
+    UNIQUE KEY uk_provider_id (provider, provider_id),
+    UNIQUE KEY uk_user_provider (user_id, provider),
+    INDEX idx_user (user_id),
+    INDEX idx_provider (provider)
+);
+```
+
+| 컬럼 | 타입 | NULL | 설명 |
+|------|------|------|------|
+| id | BIGINT | NO | PK, Auto Increment |
+| user_id | BIGINT | NO | FK → um_users |
+| provider | VARCHAR(20) | NO | 소셜 제공자 (GOOGLE, KAKAO, NAVER) |
+| provider_id | VARCHAR(255) | NO | 소셜 제공자의 사용자 고유 ID |
+| email | VARCHAR(255) | YES | 소셜 계정 이메일 |
+| name | VARCHAR(100) | YES | 소셜 계정 이름 |
+| profile_image_url | VARCHAR(500) | YES | 소셜 프로필 이미지 URL |
+| access_token | VARCHAR(2000) | YES | 소셜 Access Token (암호화 저장) |
+| refresh_token | VARCHAR(2000) | YES | 소셜 Refresh Token (암호화 저장) |
+| token_expires_at | DATETIME(6) | YES | 토큰 만료 시간 |
+| created_at | DATETIME(6) | NO | 연동 일시 |
+| updated_at | DATETIME(6) | NO | 수정일시 |
+
+**SocialProvider Enum:**
+- `GOOGLE`: Google OAuth 2.0
+- `KAKAO`: Kakao 로그인
+- `NAVER`: 네이버 로그인
+
+**설계 포인트:**
+- `uk_provider_id`: 같은 소셜 계정이 여러 사용자에 연동되는 것 방지
+- `uk_user_provider`: 한 사용자가 같은 제공자에 중복 연동되는 것 방지
+- 토큰은 API 연동 필요시에만 저장 (선택적)
+
+### 1.5 um_refresh_tokens (리프레시 토큰)
 
 ```sql
 CREATE TABLE um_refresh_tokens (
@@ -225,6 +280,17 @@ CREATE TABLE um_refresh_tokens (
                                    │ token                   │
                                    │ expires_at              │
                                    └─────────────────────────┘
+
+                                   ┌─────────────────────────┐
+                                   │   um_social_accounts    │
+                                   ├─────────────────────────┤
+                                   │ id (PK)                 │
+                                   │ user_id (FK) ───────────┼──► um_users
+                                   │ provider                │
+                                   │ provider_id             │
+                                   │ email                   │
+                                   │ access_token            │
+                                   └─────────────────────────┘
 ```
 
 ---
@@ -234,18 +300,20 @@ CREATE TABLE um_refresh_tokens (
 ### 3.1 um_users 데이터
 
 ```sql
-INSERT INTO um_users (id, tenant_id, email, password, name, phone, role, status, organization_id) VALUES
+INSERT INTO um_users (id, tenant_id, email, password, name, phone, role, status, organization_id, primary_provider) VALUES
 -- B2C 테넌트 (tenant_id = 1)
-(1, 1, 'admin@mzc.com', '$2a$10$...', '플랫폼관리자', NULL, 'TENANT_ADMIN', 'ACTIVE', NULL),
-(2, 1, 'operator@mzc.com', '$2a$10$...', '운영자', NULL, 'OPERATOR', 'ACTIVE', NULL),
-(3, 1, 'instructor@example.com', '$2a$10$...', '홍길동', '010-1234-5678', 'USER', 'ACTIVE', NULL),
-(4, 1, 'student@example.com', '$2a$10$...', '김학생', '010-9876-5432', 'USER', 'ACTIVE', NULL),
+(1, 1, 'admin@mzc.com', '$2a$10$...', '플랫폼관리자', NULL, 'TENANT_ADMIN', 'ACTIVE', NULL, NULL),
+(2, 1, 'operator@mzc.com', '$2a$10$...', '운영자', NULL, 'OPERATOR', 'ACTIVE', NULL, NULL),
+(3, 1, 'instructor@example.com', '$2a$10$...', '홍길동', '010-1234-5678', 'USER', 'ACTIVE', NULL, NULL),
+(4, 1, 'student@example.com', '$2a$10$...', '김학생', '010-9876-5432', 'USER', 'ACTIVE', NULL, NULL),
+-- 소셜 로그인 전용 사용자
+(5, 1, 'social@gmail.com', NULL, '김소셜', NULL, 'USER', 'ACTIVE', NULL, 'GOOGLE'),
 
 -- B2B 테넌트 (tenant_id = 2, 삼성)
-(10, 2, 'admin@samsung.com', '$2a$10$...', '삼성관리자', NULL, 'TENANT_ADMIN', 'ACTIVE', NULL),
-(11, 2, 'hr@samsung.com', '$2a$10$...', '인사담당', NULL, 'OPERATOR', 'ACTIVE', 1),
-(12, 2, 'dev@samsung.com', '$2a$10$...', '개발자A', '010-1111-2222', 'USER', 'ACTIVE', 2),
-(13, 2, 'dev2@samsung.com', '$2a$10$...', '개발자B', '010-3333-4444', 'USER', 'ACTIVE', 2);
+(10, 2, 'admin@samsung.com', '$2a$10$...', '삼성관리자', NULL, 'TENANT_ADMIN', 'ACTIVE', NULL, NULL),
+(11, 2, 'hr@samsung.com', '$2a$10$...', '인사담당', NULL, 'OPERATOR', 'ACTIVE', 1, NULL),
+(12, 2, 'dev@samsung.com', '$2a$10$...', '개발자A', '010-1111-2222', 'USER', 'ACTIVE', 2, NULL),
+(13, 2, 'dev2@samsung.com', '$2a$10$...', '개발자B', '010-3333-4444', 'USER', 'ACTIVE', 2, NULL);
 ```
 
 ### 3.2 um_organizations 데이터 (B2B)
@@ -282,6 +350,18 @@ INSERT INTO um_user_course_roles (id, user_id, course_id, role, revenue_share_pe
 
 -- B2B: 개발자A가 "사내교육" 강의의 INSTRUCTOR로 배정
 (3, 12, 10, 'INSTRUCTOR', NULL);
+```
+
+### 3.4 um_social_accounts 데이터
+
+```sql
+INSERT INTO um_social_accounts (id, user_id, provider, provider_id, email, name, profile_image_url) VALUES
+-- 소셜 로그인 전용 사용자 (Google)
+(1, 5, 'GOOGLE', '118234567890123456789', 'social@gmail.com', '김소셜', 'https://lh3.googleusercontent.com/...'),
+
+-- 기존 사용자가 소셜 계정 연동 (이메일+Google+Kakao)
+(2, 3, 'GOOGLE', '109876543210987654321', 'instructor@gmail.com', '홍길동', 'https://lh3.googleusercontent.com/...'),
+(3, 3, 'KAKAO', '2345678901', 'instructor@kakao.com', '홍길동', 'https://k.kakaocdn.net/...');
 ```
 
 ---
@@ -379,6 +459,9 @@ WHERE ucr.role = 'DESIGNER'
 | um_organizations | idx_parent | 부모별 자식 조회 |
 | um_refresh_tokens | uk_token | 토큰 유니크 |
 | um_refresh_tokens | idx_expires | 만료 토큰 정리 |
+| um_social_accounts | uk_provider_id | 소셜 계정 중복 방지 |
+| um_social_accounts | uk_user_provider | 사용자당 제공자 유니크 |
+| um_social_accounts | idx_user | 사용자별 소셜 계정 조회 |
 
 ---
 

@@ -125,9 +125,262 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 2. 사용자 API
+## 2. 소셜 로그인 API
 
-### 2.1 내 정보 조회
+> OAuth 2.0 기반 소셜 로그인 (Google, Kakao, Naver)
+
+### 2.1 소셜 로그인 URL 요청
+
+```http
+GET /api/auth/oauth/{provider}
+```
+
+**Path Parameters**:
+| 파라미터 | 타입 | 설명 |
+|----------|------|------|
+| provider | String | 소셜 제공자 (google, kakao, naver) |
+
+**Query Parameters**:
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| redirectUri | String | X | 로그인 완료 후 리다이렉트 URL |
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth?client_id=xxx&redirect_uri=xxx&scope=email%20profile&response_type=code&state=xxx"
+  }
+}
+```
+
+### 2.2 소셜 로그인 콜백 (인가 코드 처리)
+
+```http
+POST /api/auth/oauth/{provider}/callback
+Content-Type: application/json
+```
+
+**Path Parameters**:
+| 파라미터 | 타입 | 설명 |
+|----------|------|------|
+| provider | String | 소셜 제공자 (google, kakao, naver) |
+
+**Request Body**:
+```json
+{
+  "code": "authorization_code_from_provider",
+  "state": "csrf_state_token"
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| code | String | O | OAuth 인가 코드 |
+| state | String | O | CSRF 방지용 state 토큰 |
+
+**Response** (`200 OK`) - 기존 회원:
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": 3600,
+    "isNewUser": false,
+    "user": {
+      "userId": 1,
+      "email": "user@gmail.com",
+      "name": "홍길동",
+      "role": "USER",
+      "tenantId": 1,
+      "provider": "GOOGLE",
+      "profileImageUrl": "https://lh3.googleusercontent.com/..."
+    }
+  }
+}
+```
+
+**Response** (`200 OK`) - 신규 회원 (자동 가입):
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": 3600,
+    "isNewUser": true,
+    "user": {
+      "userId": 100,
+      "email": "newuser@gmail.com",
+      "name": "김신규",
+      "role": "USER",
+      "tenantId": 1,
+      "provider": "GOOGLE",
+      "profileImageUrl": "https://lh3.googleusercontent.com/..."
+    }
+  }
+}
+```
+
+**Error Responses**:
+| 상황 | HTTP | ErrorCode | Message |
+|------|------|-----------|---------|
+| 지원하지 않는 제공자 | 400 | UNSUPPORTED_PROVIDER | Unsupported OAuth provider |
+| 인가 코드 오류 | 400 | INVALID_OAUTH_CODE | Invalid authorization code |
+| state 불일치 | 400 | INVALID_STATE | Invalid state token |
+| 이메일 미제공 | 400 | EMAIL_REQUIRED | Email permission is required |
+| 이미 다른 방식으로 가입 | 409 | EMAIL_ALREADY_REGISTERED | Email already registered with different provider |
+
+### 2.3 소셜 계정 연동 (기존 회원)
+
+> 이메일/비밀번호로 가입한 기존 회원이 소셜 계정 연동
+
+```http
+POST /api/users/me/oauth/{provider}/link
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "code": "authorization_code_from_provider",
+  "state": "csrf_state_token"
+}
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "userId": 1,
+    "linkedProviders": ["GOOGLE", "KAKAO"],
+    "message": "소셜 계정이 연동되었습니다."
+  }
+}
+```
+
+**Error Responses**:
+| 상황 | HTTP | ErrorCode | Message |
+|------|------|-----------|---------|
+| 이미 연동됨 | 409 | PROVIDER_ALREADY_LINKED | This provider is already linked |
+| 다른 계정에 연동됨 | 409 | PROVIDER_LINKED_TO_OTHER | This social account is linked to another user |
+
+### 2.4 소셜 계정 연동 해제
+
+```http
+DELETE /api/users/me/oauth/{provider}
+Authorization: Bearer {accessToken}
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "userId": 1,
+    "linkedProviders": ["KAKAO"],
+    "message": "소셜 계정 연동이 해제되었습니다."
+  }
+}
+```
+
+**Error Responses**:
+| 상황 | HTTP | ErrorCode | Message |
+|------|------|-----------|---------|
+| 연동된 계정 아님 | 404 | PROVIDER_NOT_LINKED | This provider is not linked |
+| 마지막 로그인 수단 | 400 | CANNOT_UNLINK_LAST_PROVIDER | Cannot unlink the only login method |
+
+### 2.5 내 소셜 연동 현황 조회
+
+```http
+GET /api/users/me/oauth
+Authorization: Bearer {accessToken}
+```
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "hasPassword": true,
+    "linkedProviders": [
+      {
+        "provider": "GOOGLE",
+        "email": "user@gmail.com",
+        "linkedAt": "2025-01-15T10:00:00"
+      },
+      {
+        "provider": "KAKAO",
+        "email": "user@kakao.com",
+        "linkedAt": "2025-02-01T14:30:00"
+      }
+    ]
+  }
+}
+```
+
+### 2.6 소셜 제공자별 설정
+
+| Provider | Scope | 가져오는 정보 |
+|----------|-------|--------------|
+| **GOOGLE** | `email profile` | 이메일, 이름, 프로필 이미지 |
+| **KAKAO** | `profile_nickname profile_image account_email` | 이메일, 닉네임, 프로필 이미지 |
+| **NAVER** | `name email profile_image` | 이메일, 이름, 프로필 이미지 |
+
+### 2.7 소셜 로그인 플로우
+
+```
+┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐
+│ Client  │      │ Backend │      │ OAuth   │      │ DB      │
+│(Browser)│      │ Server  │      │ Provider│      │         │
+└────┬────┘      └────┬────┘      └────┬────┘      └────┬────┘
+     │                │                │                │
+     │ GET /oauth/google              │                │
+     │───────────────>│                │                │
+     │                │                │                │
+     │ authorizationUrl               │                │
+     │<───────────────│                │                │
+     │                │                │                │
+     │ Redirect to Google             │                │
+     │───────────────────────────────>│                │
+     │                │                │                │
+     │    User Login & Consent        │                │
+     │<───────────────────────────────│                │
+     │                │                │                │
+     │ Redirect with code             │                │
+     │<───────────────────────────────│                │
+     │                │                │                │
+     │ POST /oauth/google/callback    │                │
+     │───────────────>│                │                │
+     │                │                │                │
+     │                │ Exchange code for token        │
+     │                │───────────────>│                │
+     │                │                │                │
+     │                │ Access token + user info       │
+     │                │<───────────────│                │
+     │                │                │                │
+     │                │ Find or create user            │
+     │                │───────────────────────────────>│
+     │                │                │                │
+     │                │ User data                      │
+     │                │<───────────────────────────────│
+     │                │                │                │
+     │ JWT tokens + user info         │                │
+     │<───────────────│                │                │
+     │                │                │                │
+```
+
+---
+
+## 3. 사용자 API
+
+### 3.1 내 정보 조회
 
 ```http
 GET /api/users/me
@@ -154,7 +407,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-### 2.2 내 정보 수정
+### 3.2 내 정보 수정
 
 ```http
 PUT /api/users/me
@@ -186,7 +439,7 @@ Content-Type: application/json
 }
 ```
 
-### 2.3 비밀번호 변경
+### 3.3 비밀번호 변경
 
 ```http
 PUT /api/users/me/password
@@ -212,7 +465,7 @@ Content-Type: application/json
 }
 ```
 
-### 2.4 회원 탈퇴
+### 3.4 회원 탈퇴
 
 ```http
 DELETE /api/users/me
@@ -237,7 +490,7 @@ Content-Type: application/json
 
 **Response** (`204 No Content`)
 
-### 2.5 사용자 목록 조회 (OPERATOR+)
+### 3.5 사용자 목록 조회 (OPERATOR+)
 
 ```http
 GET /api/users
@@ -278,7 +531,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-### 2.5 사용자 상세 조회
+### 3.6 사용자 상세 조회
 
 ```http
 GET /api/users/{userId}
@@ -314,7 +567,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-### 2.6 사용자 역할 변경 (B2B OPERATOR)
+### 3.7 사용자 역할 변경 (B2B OPERATOR)
 
 ```http
 PUT /api/users/{userId}/role
@@ -349,7 +602,7 @@ Content-Type: application/json
 }
 ```
 
-### 2.7 사용자 상태 변경 (OPERATOR+)
+### 3.8 사용자 상태 변경 (OPERATOR+)
 
 ```http
 PUT /api/users/{userId}/status
@@ -379,9 +632,9 @@ Content-Type: application/json
 
 ---
 
-## 3. 강의 역할 API (CourseRole)
+## 4. 강의 역할 API (CourseRole)
 
-### 3.1 강의 설계자 권한 요청 (B2C)
+### 4.1 강의 설계자 권한 요청 (B2C)
 
 ```http
 POST /api/users/me/course-roles/designer
@@ -403,7 +656,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-### 3.2 강의 역할 부여 (B2B OPERATOR)
+### 4.2 강의 역할 부여 (B2B OPERATOR)
 
 ```http
 POST /api/users/{userId}/course-roles
@@ -438,7 +691,7 @@ Content-Type: application/json
 }
 ```
 
-### 3.3 강의 역할 회수 (B2B OPERATOR)
+### 4.3 강의 역할 회수 (B2B OPERATOR)
 
 ```http
 DELETE /api/users/{userId}/course-roles/{courseRoleId}
@@ -447,7 +700,7 @@ Authorization: Bearer {accessToken}
 
 **Response** (`204 No Content`)
 
-### 3.4 내 강의 역할 목록 조회
+### 4.4 내 강의 역할 목록 조회
 
 ```http
 GET /api/users/me/course-roles
@@ -480,9 +733,9 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 4. 조직 API (B2B 전용)
+## 5. 조직 API (B2B 전용)
 
-### 4.1 조직 생성
+### 5.1 조직 생성
 
 ```http
 POST /api/organizations
@@ -512,7 +765,7 @@ Content-Type: application/json
 }
 ```
 
-### 4.2 조직 목록 조회
+### 5.2 조직 목록 조회
 
 ```http
 GET /api/organizations
@@ -543,7 +796,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-### 4.3 조직 수정
+### 5.3 조직 수정
 
 ```http
 PUT /api/organizations/{organizationId}
@@ -558,7 +811,7 @@ Content-Type: application/json
 }
 ```
 
-### 4.4 조직 삭제
+### 5.4 조직 삭제
 
 ```http
 DELETE /api/organizations/{organizationId}
@@ -567,7 +820,7 @@ Authorization: Bearer {accessToken}
 
 **Response** (`204 No Content`)
 
-### 4.5 사용자 조직 배정
+### 5.5 사용자 조직 배정
 
 ```http
 PUT /api/users/{userId}/organization
@@ -584,7 +837,7 @@ Content-Type: application/json
 
 ---
 
-## 5. 에러 응답
+## 6. 에러 응답
 
 ### 공통 에러 형식
 
@@ -617,7 +870,7 @@ Content-Type: application/json
 
 ---
 
-## 6. 소스 위치
+## 7. 소스 위치
 
 ```
 backend/src/main/java/com/lms/platform/domain/user/
@@ -647,7 +900,7 @@ backend/src/main/java/com/lms/platform/domain/user/
 
 ---
 
-## 7. 관련 문서
+## 8. 관련 문서
 
 | 문서 | 내용 |
 |------|------|
