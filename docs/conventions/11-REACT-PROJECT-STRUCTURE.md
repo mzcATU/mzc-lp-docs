@@ -10,6 +10,11 @@
 
 ```
 src/
+├── assets/                        # 정적 리소스
+│   ├── images/
+│   ├── icons/
+│   └── fonts/
+│
 ├── components/                    # 재사용 컴포넌트
 │   ├── common/                    # 공통 UI (Button, Input, Modal, Badge)
 │   ├── ui/                        # Radix 기반 Headless UI
@@ -22,15 +27,23 @@ src/
 │   ├── to/                        # Tenant Operator
 │   └── tu/                        # Tenant User
 │
-├── hooks/                         # 커스텀 훅
-│   ├── useAuth.ts
-│   ├── useUser.ts
-│   └── useCourse.ts
+├── hooks/                         # 커스텀 훅 (역할별 분리)
+│   ├── common/                    # 공통 훅
+│   │   ├── useAuth.ts
+│   │   └── useLocalStorage.ts
+│   ├── sa/                        # Super Admin 전용
+│   ├── ta/                        # Tenant Admin 전용
+│   ├── to/                        # Tenant Operator 전용
+│   └── tu/                        # Tenant User 전용
 │
-├── store/                         # 전역 상태 (Zustand)
-│   ├── authStore.ts
-│   ├── userStore.ts
-│   └── uiStore.ts
+├── store/                         # 전역 상태 Zustand (역할별 분리)
+│   ├── common/                    # 공통 스토어
+│   │   ├── authStore.ts
+│   │   └── uiStore.ts
+│   ├── sa/                        # Super Admin 전용
+│   ├── ta/                        # Tenant Admin 전용
+│   ├── to/                        # Tenant Operator 전용
+│   └── tu/                        # Tenant User 전용
 │
 ├── services/                      # API 통신
 │   ├── api/
@@ -209,8 +222,28 @@ export interface PaginatedResponse<T> {
 
 ## 5. Hooks
 
+### 폴더 구조
+
+```
+hooks/
+├── common/                    # 공통 훅 (모든 역할에서 사용)
+│   ├── useAuth.ts
+│   ├── useLocalStorage.ts
+│   └── useDebounce.ts
+├── sa/                        # Super Admin 전용 훅
+│   └── useTenantManagement.ts
+├── ta/                        # Tenant Admin 전용 훅
+│   └── useUserManagement.ts
+├── to/                        # Tenant Operator 전용 훅
+│   └── useContentManagement.ts
+└── tu/                        # Tenant User 전용 훅
+    └── useMyLearning.ts
+```
+
+### 예제
+
 ```typescript
-// hooks/useUser.ts
+// hooks/common/useUser.ts
 import { useState, useEffect } from 'react';
 import { userService } from '@/services/userService';
 import type { User } from '@/types/user.types';
@@ -244,8 +277,27 @@ export const useUser = (userId: number) => {
 
 ## 6. Store (Zustand)
 
+### 폴더 구조
+
+```
+store/
+├── common/                    # 공통 스토어 (모든 역할에서 사용)
+│   ├── authStore.ts           # 인증 상태
+│   └── uiStore.ts             # UI 상태 (사이드바, 다크모드)
+├── sa/                        # Super Admin 전용 스토어
+│   └── tenantStore.ts
+├── ta/                        # Tenant Admin 전용 스토어
+│   └── userManagementStore.ts
+├── to/                        # Tenant Operator 전용 스토어
+│   └── contentStore.ts
+└── tu/                        # Tenant User 전용 스토어
+    └── learningStore.ts
+```
+
+### 예제
+
 ```typescript
-// store/authStore.ts
+// store/common/authStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '@/types/user.types';
@@ -273,7 +325,7 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-// store/uiStore.ts
+// store/common/uiStore.ts
 import { create } from 'zustand';
 
 interface UIState {
