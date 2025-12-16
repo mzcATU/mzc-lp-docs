@@ -459,7 +459,7 @@ Authorization: Bearer {accessToken}
 ### 3.4 차수 수정 (OPERATOR)
 
 ```http
-PUT /api/times/{timeId}
+PATCH /api/times/{timeId}
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
@@ -488,7 +488,7 @@ Content-Type: application/json
 ### 3.5 차수 상태 변경 (OPERATOR)
 
 ```http
-PUT /api/times/{timeId}/status
+PATCH /api/times/{timeId}/status
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```

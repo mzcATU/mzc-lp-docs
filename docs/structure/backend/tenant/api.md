@@ -188,7 +188,7 @@ Content-Type: application/json
 ### 1.5 테넌트 상태 변경
 
 ```http
-PUT /api/tenants/{tenantId}/status
+PATCH /api/tenants/{tenantId}/status
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
