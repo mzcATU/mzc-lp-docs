@@ -21,6 +21,7 @@
 
 | 구성요소 | 내용 |
 |----------|------|
+| Repository | AssignmentHistoryRepository에 액션 필터링 메서드 추가 |
 | Service | InstructorAssignmentService에 이력 조회 메서드 추가 |
 | Controller | InstructorAssignmentController에 이력 조회 엔드포인트 추가 |
 | Test | 이력 조회 테스트 코드 작성 |
@@ -41,6 +42,12 @@
 ---
 
 ## 3. 신규/수정 파일
+
+### Repository
+
+| 파일 | 작업 | 설명 |
+|------|------|------|
+| AssignmentHistoryRepository.java | 수정 | 액션 필터링 조회 메서드 추가 |
 
 ### Service
 
