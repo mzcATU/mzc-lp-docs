@@ -32,8 +32,8 @@ const MAX_RETRY_COUNT = 3;
 // 1. Import
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { User } from '@/types';
-import { userService } from '@/services/userService';
+import type { User } from '@/types/common/user.types';
+import { userService } from '@/services/common/userService';
 
 // 2. Types
 interface UserProfileProps {
@@ -116,6 +116,9 @@ interface CardProps {
 const [isOpen, setIsOpen] = useState(false);  // UI 상태
 
 // ✅ 커스텀 훅: use로 시작 (서버 상태는 React Query 래핑)
+// hooks/common/useUser.ts
+import { userService } from '@/services/common/userService';
+
 const useUser = (userId: number) => {
   return useQuery({
     queryKey: ['user', userId],
@@ -199,17 +202,38 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 ## Import 순서
 
 ```typescript
-import React, { useState } from 'react';        // 1. React
-import { useNavigate } from 'react-router-dom'; // 2. 외부 라이브러리
-import { Button } from '@/components/common';   // 3. 절대 경로 (@/)
-import { userService } from './userService';    // 4. 상대 경로
-import type { User } from '@/types';            // 5. 타입
+import React, { useState } from 'react';              // 1. React
+import { useNavigate } from 'react-router-dom';       // 2. 외부 라이브러리
+import { Button } from '@/components/common';         // 3. 공통 컴포넌트
+import { userService } from '@/services/common/userService';  // 4. 서비스
+import { useAuthStore } from '@/store/common/authStore';      // 5. 스토어
+import type { User } from '@/types/common/user.types';        // 6. 타입
+import './styles.css';                                // 7. 스타일 (있을 경우)
+```
+
+### 역할별 Import 경로 규칙
+
+```typescript
+// 공통
+import { Button } from '@/components/common';
+import { useAuth } from '@/hooks/common/useAuth';
+import { authStore } from '@/store/common/authStore';
+import { userService } from '@/services/common/userService';
+import type { User } from '@/types/common/user.types';
+
+// 역할별 (예: Tenant User)
+import { TenantUserLayout } from '@/components/layout/tu';
+import { useMyLearning } from '@/hooks/tu/useMyLearning';
+import { learningStore } from '@/store/tu/learningStore';
+import { learningService } from '@/services/tu/learningService';
+import type { LearningProgress } from '@/types/tu/learning.types';
 ```
 
 ---
 
 ## 상세 컨벤션 참조
 
+- Project Structure: [11-REACT-PROJECT-STRUCTURE.md](./11-REACT-PROJECT-STRUCTURE.md)
 - Component: [12-REACT-COMPONENT-CONVENTIONS.md](./12-REACT-COMPONENT-CONVENTIONS.md)
 - State: [13-REACT-STATE-MANAGEMENT.md](./13-REACT-STATE-MANAGEMENT.md)
 - API: [14-REACT-API-INTEGRATION.md](./14-REACT-API-INTEGRATION.md)
