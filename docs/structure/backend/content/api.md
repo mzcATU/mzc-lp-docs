@@ -454,7 +454,125 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 5. 메타데이터 추출
+## 5. DESIGNER용 API
+
+DESIGNER 역할 전용 API입니다. 본인이 생성한 콘텐츠만 조회/관리할 수 있습니다.
+
+### 5.1 내 콘텐츠 목록 조회
+
+```http
+GET /api/contents/my?status={status}&keyword={keyword}&page={page}&size={size}
+Authorization: Bearer {accessToken}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|---------|------|------|------|
+| status | String | N | `ACTIVE`, `ARCHIVED` 필터 |
+| keyword | String | N | 파일명 검색 |
+| page | int | N | 페이지 번호 (default: 0) |
+| size | int | N | 페이지 크기 (default: 20) |
+
+**Response** (`200 OK`)
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "originalFileName": "lecture.mp4",
+        "contentType": "VIDEO",
+        "status": "ACTIVE",
+        "fileSize": 1048576,
+        "duration": 3600,
+        "resolution": "1920x1080",
+        "thumbnailPath": "/uploads/thumbnails/2025/12/uuid.jpg",
+        "createdAt": "2025-12-16T10:00:00"
+      }
+    ],
+    "totalElements": 10,
+    "totalPages": 1
+  }
+}
+```
+
+### 5.2 콘텐츠 보관 (Archive)
+
+콘텐츠를 ARCHIVED 상태로 변경합니다 (Soft Delete).
+
+```http
+POST /api/contents/{contentId}/archive
+Authorization: Bearer {accessToken}
+```
+
+**Response** (`200 OK`)
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "originalFileName": "lecture.mp4",
+    "contentType": "VIDEO",
+    "status": "ARCHIVED",
+    "createdBy": 3,
+    ...
+  }
+}
+```
+
+**Error Cases**
+
+| HTTP Status | Error Code | 설명 |
+|-------------|------------|------|
+| 403 Forbidden | CT008 | 본인이 생성한 콘텐츠가 아님 |
+| 404 Not Found | CT001 | 콘텐츠를 찾을 수 없음 |
+
+### 5.3 콘텐츠 복원 (Restore)
+
+ARCHIVED 상태의 콘텐츠를 ACTIVE 상태로 복원합니다.
+
+```http
+POST /api/contents/{contentId}/restore
+Authorization: Bearer {accessToken}
+```
+
+**Response** (`200 OK`)
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "originalFileName": "lecture.mp4",
+    "contentType": "VIDEO",
+    "status": "ACTIVE",
+    "createdBy": 3,
+    ...
+  }
+}
+```
+
+**Error Cases**
+
+| HTTP Status | Error Code | 설명 |
+|-------------|------------|------|
+| 403 Forbidden | CT008 | 본인이 생성한 콘텐츠가 아님 |
+| 404 Not Found | CT001 | 콘텐츠를 찾을 수 없음 |
+
+### ContentStatus Enum
+
+| 값 | 설명 |
+|----|------|
+| ACTIVE | 사용 중 (기본값) |
+| ARCHIVED | 보관됨 (Soft Delete) |
+
+---
+
+## 6. 메타데이터 추출
 
 ### 자동 추출 정보
 
@@ -505,7 +623,7 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 6. 에러 응답
+## 7. 에러 응답
 
 ### 공통 에러 형식
 
@@ -542,7 +660,7 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 7. 이벤트 발행
+## 8. 이벤트 발행
 
 ### ContentCreatedEvent
 

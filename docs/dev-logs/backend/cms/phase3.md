@@ -418,7 +418,55 @@ CREATE INDEX idx_content_created_by ON content(tenant_id, created_by);
 | 날짜 | 작업자 | 내용 |
 |------|--------|------|
 | 2025-12-16 | Claude Code | 콘텐츠 상태 관리 구현 (Feature 1) |
+| 2025-12-17 | Claude Code | [Bug Fix] createdBy null 버그 수정 (#88, #90) |
 
 ---
 
-*최종 업데이트: 2025-12-16*
+## 10. Bug Fix: createdBy null 버그 (2025-12-17)
+
+### 문제
+콘텐츠 업로드/외부 링크 생성 시 `createdBy`가 `null`로 저장되어 archive/restore 기능이 동작하지 않음
+
+### 원인
+- `ContentController`에서 `userId`를 추출하지 않고 서비스 호출
+- `ContentService`의 `uploadFile`, `createExternalLink` 메서드에 `userId` 파라미터 누락
+
+### 수정 내용
+
+**ContentController.java**
+```java
+// Before
+ContentResponse response = contentService.uploadFile(file, folderId, tenantId);
+
+// After
+Long userId = principal.id();
+ContentResponse response = contentService.uploadFile(file, folderId, tenantId, userId);
+```
+
+**ContentService.java**
+```java
+// Before
+ContentResponse uploadFile(MultipartFile file, Long folderId, Long tenantId);
+ContentResponse createExternalLink(CreateExternalLinkRequest request, Long tenantId);
+
+// After
+ContentResponse uploadFile(MultipartFile file, Long folderId, Long tenantId, Long userId);
+ContentResponse createExternalLink(CreateExternalLinkRequest request, Long tenantId, Long userId);
+```
+
+**ContentServiceImpl.java**
+```java
+// userId를 Content 팩토리 메서드에 전달
+Content content = Content.createFile(..., userId);
+Content content = Content.createExternalLink(..., userId);
+```
+
+### 관련 링크
+- Issue: [#88](https://github.com/mzcATU/mzc-lp-backend/issues/88)
+- PR: [#90](https://github.com/mzcATU/mzc-lp-backend/pull/90)
+- Branch: `feat/content-createdby-fix`
+- Commit: `9238d42`
+
+---
+
+*최종 업데이트: 2025-12-17*
