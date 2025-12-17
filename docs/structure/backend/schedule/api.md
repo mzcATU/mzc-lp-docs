@@ -565,26 +565,58 @@ Authorization: Bearer {accessToken}
 
 ## 5. 소스 위치
 
+### 5.1 Program (강의 개설 신청/승인) - ✅ 구현 완료
+
 ```
-backend/src/main/java/com/lms/platform/domain/schedule/
-├── controller/
-│   ├── CourseController.java
-│   └── CourseTimeController.java
-├── service/
-│   ├── CourseService.java
-│   ├── CourseTimeService.java
-│   └── CourseApprovalService.java
-├── repository/
-│   ├── CourseRepository.java
-│   └── CourseTimeRepository.java
+mzc-lp-backend/src/main/java/com/mzc/lp/domain/program/
+├── constant/
+│   ├── ProgramStatus.java      # DRAFT, PENDING, APPROVED, REJECTED, CLOSED
+│   ├── ProgramLevel.java       # BEGINNER, INTERMEDIATE, ADVANCED
+│   └── ProgramType.java        # ONLINE, OFFLINE, BLENDED, SELF_PACED
 ├── entity/
-│   ├── Course.java
-│   ├── CourseTime.java
-│   ├── CourseStatus.java
-│   └── TimeStatus.java
-└── dto/
-    ├── request/
-    └── response/
+│   └── Program.java            # 강의 개설 Entity (TenantEntity 상속)
+├── repository/
+│   └── ProgramRepository.java
+├── service/
+│   ├── ProgramService.java
+│   └── ProgramServiceImpl.java
+├── controller/
+│   └── ProgramController.java
+├── dto/
+│   ├── request/
+│   │   ├── CreateProgramRequest.java
+│   │   ├── UpdateProgramRequest.java
+│   │   ├── ApproveProgramRequest.java
+│   │   └── RejectProgramRequest.java
+│   └── response/
+│       ├── ProgramResponse.java
+│       ├── ProgramDetailResponse.java
+│       └── ProgramListResponse.java
+└── exception/
+    ├── ProgramNotFoundException.java
+    ├── ProgramStatusException.java
+    └── ProgramNotModifiableException.java
+```
+
+### 5.2 CourseTime (차수 관리) - ⏳ 구현 예정
+
+```
+mzc-lp-backend/src/main/java/com/mzc/lp/domain/ts/
+├── constant/
+│   └── CourseTimeStatus.java   # SCHEDULED, OPEN, IN_PROGRESS, COMPLETED, CANCELLED
+├── entity/
+│   └── CourseTime.java         # 차수 Entity (TenantEntity 상속, program_id FK 추가됨)
+├── repository/
+│   └── CourseTimeRepository.java
+├── service/
+│   ├── CourseTimeService.java
+│   └── CourseTimeServiceImpl.java
+├── controller/
+│   └── CourseTimeController.java
+├── dto/
+│   ├── request/
+│   └── response/
+└── exception/
 ```
 
 ---

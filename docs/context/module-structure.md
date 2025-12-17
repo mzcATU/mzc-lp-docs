@@ -257,6 +257,134 @@ public class TimeScheduleService {
 
 ---
 
+## 4.5 Program (강의 개설 신청/승인) - ✅ 구현 완료
+
+### 역할
+- 강의 개설 신청 관리
+- 승인 워크플로우 (DRAFT → PENDING → APPROVED/REJECTED → CLOSED)
+- Snapshot(개설 강의) 연결
+- CourseTime(차수) 생성의 전제 조건
+
+### 주요 Entity
+
+#### Program (강의 개설 신청)
+
+```java
+@Entity
+@Table(name = "cm_programs")
+public class Program extends TenantEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255)
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "thumbnail_url", length = 500)
+    private String thumbnailUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ProgramLevel level;         // BEGINNER, INTERMEDIATE, ADVANCED
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ProgramType type;           // ONLINE, OFFLINE, BLENDED, SELF_PACED
+
+    @Column(name = "estimated_hours")
+    private Integer estimatedHours;
+
+    // Snapshot 연결 (개설 강의)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "snapshot_id")
+    private CourseSnapshot snapshot;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ProgramStatus status;       // DRAFT, PENDING, APPROVED, REJECTED, CLOSED
+
+    @Column(name = "creator_id", nullable = false)
+    private Long creatorId;
+
+    // 승인 정보
+    @Column(name = "approved_by")
+    private Long approvedBy;
+
+    @Column(name = "approved_at")
+    private Instant approvedAt;
+
+    @Column(name = "approval_comment", length = 500)
+    private String approvalComment;
+
+    // 반려 정보
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
+    @Column(name = "rejected_at")
+    private Instant rejectedAt;
+
+    // 제출 정보
+    @Column(name = "submitted_at")
+    private Instant submittedAt;
+
+    // === 비즈니스 메서드 ===
+    public void submit() { ... }        // DRAFT/REJECTED → PENDING
+    public void approve(Long operatorId, String comment) { ... }  // PENDING → APPROVED
+    public void reject(Long operatorId, String reason) { ... }    // PENDING → REJECTED
+    public void close() { ... }         // APPROVED/DRAFT → CLOSED
+}
+```
+
+### 승인 워크플로우
+
+```
+                    ┌─────────────────────────────────┐
+                    │                                 │
+                    ▼                                 │
+DRAFT ──submit()──> PENDING ──approve()──> APPROVED ──close()──> CLOSED
+   ▲                   │                      │
+   │                   │                      │
+   │           reject()│                      │close()
+   │                   │                      │
+   │                   ▼                      │
+   └──────────── REJECTED ◄───────────────────┘
+       (수정 후 재제출 가능)
+```
+
+### 역할별 권한
+
+| 역할 | 생성 | 수정/삭제 | 제출 | 승인/반려 | 종료 |
+|------|------|----------|------|----------|------|
+| DESIGNER | O | O (본인만) | O (본인만) | X | X |
+| OPERATOR | O | O | O | O | O |
+| TENANT_ADMIN | O | O | O | O | O |
+
+### API 엔드포인트
+
+| Method | Endpoint | 권한 | 설명 |
+|--------|----------|------|------|
+| POST | `/api/programs` | DESIGNER+ | 프로그램 생성 |
+| GET | `/api/programs` | DESIGNER+ | 목록 조회 |
+| GET | `/api/programs/{id}` | DESIGNER+ | 상세 조회 |
+| PUT | `/api/programs/{id}` | DESIGNER+ | 수정 (DRAFT/REJECTED만) |
+| DELETE | `/api/programs/{id}` | DESIGNER+ | 삭제 (DRAFT만) |
+| POST | `/api/programs/{id}/submit` | DESIGNER+ | 승인 요청 |
+| POST | `/api/programs/{id}/approve` | OPERATOR+ | 승인 |
+| POST | `/api/programs/{id}/reject` | OPERATOR+ | 반려 |
+| POST | `/api/programs/{id}/close` | OPERATOR+ | 종료 |
+
+### 구현 상세
+
+> 소스 경로: `domain/program/`
+> API/DB 상세 명세 → [docs/structure/backend/schedule/](../structure/backend/schedule/)
+> 개발 로그 → [docs/dev-logs/backend/cm/phase6.md](../dev-logs/backend/cm/phase6.md)
+
+---
+
 ## 5. SIS (Student Information System)
 
 ### 역할

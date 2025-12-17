@@ -17,34 +17,36 @@
 
 ## 1. 테이블 구조
 
-### 1.1 ts_programs (강의/프로그램)
+### 1.1 cm_programs (강의/프로그램) - ✅ 구현 완료
+
+> **실제 구현 테이블명**: `cm_programs` (CM 도메인에서 관리)
 
 ```sql
-CREATE TABLE ts_programs (
+CREATE TABLE cm_programs (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id           BIGINT NOT NULL,
     title               VARCHAR(255) NOT NULL,
     description         TEXT,
     thumbnail_url       VARCHAR(500),
-    level               VARCHAR(20) DEFAULT 'BEGINNER',
-    type                VARCHAR(20) DEFAULT 'ONLINE',
+    level               VARCHAR(20),
+    type                VARCHAR(20),
     estimated_hours     INT,
-    category_id         BIGINT,
+    snapshot_id         BIGINT,                              -- CourseSnapshot 연결
     status              VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     creator_id          BIGINT NOT NULL,
     approved_at         DATETIME(6),
     approved_by         BIGINT,
+    approval_comment    VARCHAR(500),                        -- 승인 코멘트
     rejected_at         DATETIME(6),
-    rejected_reason     VARCHAR(500),
+    rejection_reason    VARCHAR(500),
+    submitted_at        DATETIME(6),                         -- 제출 시점
     created_at          DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at          DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
 
-    INDEX idx_tenant (tenant_id),
-    INDEX idx_status (status),
-    INDEX idx_creator (creator_id),
-    INDEX idx_category (category_id),
-    INDEX idx_level (level),
-    INDEX idx_type (type)
+    INDEX idx_program_tenant (tenant_id),
+    INDEX idx_program_status (status),
+    INDEX idx_program_creator (creator_id),
+    INDEX idx_program_snapshot (snapshot_id)
 );
 ```
 
@@ -56,15 +58,17 @@ CREATE TABLE ts_programs (
 | description | TEXT | YES | 강의 설명 |
 | thumbnail_url | VARCHAR(500) | YES | 썸네일 이미지 URL |
 | level | VARCHAR(20) | YES | 난이도 (BEGINNER, INTERMEDIATE, ADVANCED) |
-| type | VARCHAR(20) | YES | 유형 (ONLINE, OFFLINE, BLENDED) |
+| type | VARCHAR(20) | YES | 유형 (ONLINE, OFFLINE, BLENDED, SELF_PACED) |
 | estimated_hours | INT | YES | 예상 학습 시간 |
-| category_id | BIGINT | YES | 카테고리 ID (FK → ts_categories) |
+| snapshot_id | BIGINT | YES | FK → cm_snapshots (개설 강의 연결) |
 | status | VARCHAR(20) | NO | 상태 (DRAFT, PENDING, APPROVED, REJECTED, CLOSED) |
 | creator_id | BIGINT | NO | 생성자 ID (um_users.id 참조) |
 | approved_at | DATETIME(6) | YES | 승인 시점 |
 | approved_by | BIGINT | YES | 승인자 ID (OPERATOR) |
+| approval_comment | VARCHAR(500) | YES | 승인 코멘트 |
 | rejected_at | DATETIME(6) | YES | 반려 시점 |
-| rejected_reason | VARCHAR(500) | YES | 반려 사유 |
+| rejection_reason | VARCHAR(500) | YES | 반려 사유 |
+| submitted_at | DATETIME(6) | YES | 승인 요청 제출 시점 |
 | created_at | DATETIME(6) | NO | 생성일시 |
 | updated_at | DATETIME(6) | NO | 수정일시 |
 
@@ -77,6 +81,7 @@ CREATE TABLE ts_programs (
 - `ONLINE`: 온라인 (비대면)
 - `OFFLINE`: 오프라인 (대면)
 - `BLENDED`: 블렌디드 (혼합)
+- `SELF_PACED`: 자기 주도형
 
 **ProgramStatus Enum:**
 - `DRAFT`: 작성 중
@@ -85,13 +90,18 @@ CREATE TABLE ts_programs (
 - `REJECTED`: 반려됨
 - `CLOSED`: 종료됨
 
-### 1.2 ts_course_times (차수)
+### 1.2 ts_course_times (차수) - ⏳ 구현 예정
+
+> **실제 구현 테이블명**: `ts_course_times` (TS 도메인에서 관리)
+> **참고**: `program_id` FK 추가됨 (cm_programs 연결)
 
 ```sql
 CREATE TABLE ts_course_times (
     id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id               BIGINT NOT NULL,
-    program_id              BIGINT NOT NULL,
+    program_id              BIGINT,                             -- cm_programs 연결 (신규 추가)
+    cm_course_id            BIGINT,                             -- deprecated (program.snapshot 사용)
+    cm_course_version_id    BIGINT,                             -- deprecated (program.snapshot 사용)
     time_number             INT NOT NULL,
     start_date              DATETIME(6) NOT NULL,
     end_date                DATETIME(6) NOT NULL,
@@ -104,7 +114,7 @@ CREATE TABLE ts_course_times (
     updated_at              DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
 
     CONSTRAINT fk_time_program FOREIGN KEY (program_id)
-        REFERENCES ts_programs(id) ON DELETE CASCADE,
+        REFERENCES cm_programs(id) ON DELETE SET NULL,
 
     UNIQUE KEY uk_program_time_number (program_id, time_number),
     INDEX idx_tenant (tenant_id),
@@ -119,7 +129,9 @@ CREATE TABLE ts_course_times (
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | 테넌트 ID |
-| program_id | BIGINT | NO | FK → ts_programs |
+| program_id | BIGINT | YES | FK → cm_programs (신규 추가) |
+| cm_course_id | BIGINT | YES | @Deprecated - program.snapshot 사용 권장 |
+| cm_course_version_id | BIGINT | YES | @Deprecated - program.snapshot 사용 권장 |
 | time_number | INT | NO | 차수 번호 (1, 2, 3...) |
 | start_date | DATETIME(6) | NO | 수강 시작일 |
 | end_date | DATETIME(6) | NO | 수강 종료일 |
@@ -180,50 +192,78 @@ CREATE TABLE ts_categories (
            │
            │ creator_id / approved_by / created_by
            │
-┌──────────┼──────────────────────────────────────────────┐
-│          │                                              │
-│          ▼                                              │
-│ ┌─────────────────────┐     ┌─────────────────────────┐ │
-│ │    ts_categories    │     │      ts_programs        │ │
-│ ├─────────────────────┤     ├─────────────────────────┤ │
-│ │ id (PK)             │     │ id (PK)                 │ │
-│ │ tenant_id           │     │ tenant_id               │ │
-│ │ name                │◄────│ category_id (FK)        │ │
-│ │ parent_id (FK)──────┘     │ title                   │ │
-│ │ sort_order          │     │ description             │ │
-│ └─────────────────────┘     │ level                   │ │
-│   self-reference            │ type                    │ │
-│                             │ status                  │ │
-│                             │ creator_id ─────────────┼─┼──► um_users.id
-│                             │ approved_by ────────────┼─┼──► um_users.id
-│                             └───────────┬─────────────┘ │
-│                                         │ 1:N           │
-│                                         ▼               │
-│                             ┌─────────────────────────┐ │
-│                             │    ts_course_times      │ │
-│                             ├─────────────────────────┤ │
-│                             │ id (PK)                 │ │
-│                             │ tenant_id               │ │
-│                             │ program_id (FK)         │ │
-│                             │ time_number             │ │
-│                             │ start_date              │ │
-│                             │ end_date                │ │
-│                             │ enrollment_start_date   │ │
-│                             │ enrollment_end_date     │ │
-│                             │ capacity                │ │
-│                             │ status                  │ │
-│                             │ created_by ─────────────┼─┼──► um_users.id
-│                             └─────────────────────────┘ │
-└─────────────────────────────────────────────────────────┘
+┌──────────┼────────────────────────────────────────────────────────────────┐
+│          │                                                                │
+│          ▼                                                                │
+│ ┌─────────────────────┐                                                   │
+│ │    ts_categories    │                                                   │
+│ ├─────────────────────┤                                                   │
+│ │ id (PK)             │                                                   │
+│ │ tenant_id           │                                                   │
+│ │ name                │                                                   │
+│ │ parent_id (FK)──────┘                                                   │
+│ │ sort_order          │                                                   │
+│ └─────────────────────┘                                                   │
+│   self-reference                                                          │
+│                                                                           │
+│                       ┌─────────────────────────┐                         │
+│                       │    cm_snapshots         │                         │
+│                       │    (개설 강의)          │                         │
+│                       └───────────┬─────────────┘                         │
+│                                   │ snapshot_id                           │
+│                                   ▼                                       │
+│                       ┌─────────────────────────┐                         │
+│                       │      cm_programs        │ ✅ 구현 완료            │
+│                       ├─────────────────────────┤                         │
+│                       │ id (PK)                 │                         │
+│                       │ tenant_id               │                         │
+│                       │ snapshot_id (FK) ───────┼──► cm_snapshots.id      │
+│                       │ title                   │                         │
+│                       │ description             │                         │
+│                       │ level                   │                         │
+│                       │ type                    │                         │
+│                       │ status                  │                         │
+│                       │ creator_id ─────────────┼─────► um_users.id       │
+│                       │ approved_by ────────────┼─────► um_users.id       │
+│                       │ approval_comment        │                         │
+│                       │ rejection_reason        │                         │
+│                       │ submitted_at            │                         │
+│                       └───────────┬─────────────┘                         │
+│                                   │ 1:N                                   │
+│                                   ▼                                       │
+│                       ┌─────────────────────────┐                         │
+│                       │    ts_course_times      │ ⏳ 구현 예정            │
+│                       ├─────────────────────────┤                         │
+│                       │ id (PK)                 │                         │
+│                       │ tenant_id               │                         │
+│                       │ program_id (FK) ────────┼──► cm_programs.id       │
+│                       │ time_number             │                         │
+│                       │ start_date              │                         │
+│                       │ end_date                │                         │
+│                       │ enrollment_start_date   │                         │
+│                       │ enrollment_end_date     │                         │
+│                       │ capacity                │                         │
+│                       │ status                  │                         │
+│                       │ created_by ─────────────┼─────► um_users.id       │
+│                       └─────────────────────────┘                         │
+└───────────────────────────────────────────────────────────────────────────┘
                                          │
                     ┌────────────────────┼────────────────────┐
                     │                    │                    │
                     ▼                    ▼                    ▼
            ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-           │ SIS (수강)   │    │ IIS (강사)   │    │  CM (커리큘럼)│
-           │ time_key     │    │ time_key     │    │  course_id   │
+           │ SIS (수강)   │    │ IIS (강사)   │    │  LO (학습)   │
+           │ time_id (FK) │    │ time_id (FK) │    │  via snapshot│
            └──────────────┘    └──────────────┘    └──────────────┘
 ```
+
+### 연결 관계 요약
+
+| 관계 | 설명 |
+|------|------|
+| Program → Snapshot | 승인된 프로그램은 개설 강의(Snapshot)를 참조 |
+| CourseTime → Program | 차수는 승인된 프로그램에만 생성 가능 |
+| Snapshot → LO | 학습 콘텐츠는 Snapshot을 통해 접근 |
 
 ---
 

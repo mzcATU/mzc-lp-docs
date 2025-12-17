@@ -101,8 +101,10 @@ public enum SystemRole {
 
 ```java
 public enum TenantRole {
+    SYSTEM_ADMIN,   // 시스템 최고 관리자 (테넌트 관리)
     TENANT_ADMIN,   // 테넌트 최고 관리자
     OPERATOR,       // 운영자 (강의 검토, 차수 생성, 역할 부여)
+    DESIGNER,       // 설계자 (강의 개설 신청)
     USER            // 일반 사용자 (수강)
 }
 ```
@@ -112,7 +114,8 @@ public enum TenantRole {
 
 | 역할 | B2C | B2B | KPOP |
 |------|-----|-----|------|
-| **USER** | 수강 + 강의개설 버튼 접근 | 수강만 (역할 부여 전까지) | 수강 |
+| **USER** | 수강 | 수강만 (역할 부여 전까지) | 수강 |
+| **DESIGNER** | 강의 개설 신청 가능 | OPERATOR가 부여 | OPERATOR가 부여 |
 | **OPERATOR** | 강의 승인, 차수 관리 | 강의 승인 + **역할 부여/회수** | 강의/스케줄 관리 |
 
 ### 3.3 Operator 역할 상세 (B2C)
