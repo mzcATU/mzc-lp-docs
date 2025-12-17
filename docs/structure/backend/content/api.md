@@ -572,7 +572,182 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 6. 메타데이터 추출
+## 6. 버전 관리 API
+
+콘텐츠의 변경 이력을 관리하고 이전 버전으로 복원할 수 있는 API입니다.
+
+> **권한**: DESIGNER, OPERATOR, TENANT_ADMIN
+> **소유권 검증**: 본인이 생성한 콘텐츠만 접근 가능
+
+### 6.1 버전 이력 조회
+
+```http
+GET /api/contents/{contentId}/versions
+Authorization: Bearer {accessToken}
+```
+
+**Response** (`200 OK`)
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 17,
+      "contentId": 23,
+      "versionNumber": 2,
+      "changeType": "METADATA_UPDATE",
+      "originalFileName": "react-tutorial.mp4",
+      "contentType": "VIDEO",
+      "fileSize": 104857600,
+      "duration": 1800,
+      "resolution": "1920x1080",
+      "changeSummary": "Metadata updated",
+      "createdBy": 28,
+      "createdAt": "2025-12-17T15:56:54"
+    },
+    {
+      "id": 16,
+      "contentId": 23,
+      "versionNumber": 1,
+      "changeType": "FILE_UPLOAD",
+      "originalFileName": "react-tutorial.mp4",
+      "contentType": "VIDEO",
+      "fileSize": 104857600,
+      "duration": 1800,
+      "resolution": "1920x1080",
+      "changeSummary": "Initial upload",
+      "createdBy": 28,
+      "createdAt": "2025-12-17T15:50:00"
+    }
+  ]
+}
+```
+
+> 버전 번호 내림차순으로 정렬됩니다.
+
+### 6.2 특정 버전 조회
+
+```http
+GET /api/contents/{contentId}/versions/{versionNumber}
+Authorization: Bearer {accessToken}
+```
+
+**Path Parameters**
+
+| 파라미터 | 타입 | 설명 |
+|----------|------|------|
+| contentId | Long | 콘텐츠 ID |
+| versionNumber | Integer | 버전 번호 |
+
+**Response** (`200 OK`)
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 16,
+    "contentId": 23,
+    "versionNumber": 1,
+    "changeType": "FILE_UPLOAD",
+    "originalFileName": "react-tutorial.mp4",
+    "contentType": "VIDEO",
+    "fileSize": 104857600,
+    "duration": 1800,
+    "resolution": "1920x1080",
+    "changeSummary": "Initial upload",
+    "createdBy": 28,
+    "createdAt": "2025-12-17T15:50:00"
+  }
+}
+```
+
+### 6.3 버전 복원
+
+특정 버전의 상태로 콘텐츠를 복원합니다.
+
+```http
+POST /api/contents/{contentId}/versions/{versionNumber}/restore
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+```
+
+**Request Body** (선택)
+
+```json
+{
+  "changeSummary": "Restoring to version 1"
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| changeSummary | String | X | 복원 사유 |
+
+**Response** (`200 OK`)
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 23,
+    "originalFileName": "react-tutorial.mp4",
+    "contentType": "VIDEO",
+    "fileSize": 104857600,
+    "currentVersion": 3,
+    "createdAt": "2025-12-17T15:50:00",
+    "updatedAt": "2025-12-17T16:30:00"
+  }
+}
+```
+
+> 복원 전 현재 상태가 새 버전으로 자동 저장됩니다.
+
+### VersionChangeType Enum
+
+| 값 | 설명 |
+|----|------|
+| FILE_UPLOAD | 파일 업로드 (최초 생성) |
+| FILE_REPLACE | 파일 교체 |
+| METADATA_UPDATE | 메타데이터 수정 |
+
+### 버전 기록 시점
+
+| 작업 | 기록 타입 | 설명 |
+|------|-----------|------|
+| 파일 업로드 | FILE_UPLOAD | 콘텐츠 최초 생성 시 |
+| 파일 교체 | FILE_REPLACE | `PUT /api/contents/{id}/file` 호출 시 |
+| 메타데이터 수정 | METADATA_UPDATE | `PATCH /api/contents/{id}` 호출 시 |
+| 버전 복원 | FILE_REPLACE | 복원 전 현재 상태 백업 |
+
+### 수정 제한
+
+강의(LearningObject)에 포함된 콘텐츠는 수정/교체/복원이 불가능합니다.
+
+**Error Response** (`409 Conflict`)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "CT010",
+    "message": "Content 23 is in use by learning objects and cannot be modified"
+  }
+}
+```
+
+### Error Cases
+
+| HTTP Status | Error Code | 설명 |
+|-------------|------------|------|
+| 403 Forbidden | CT008 | 본인이 생성한 콘텐츠가 아님 |
+| 404 Not Found | CT001 | 콘텐츠를 찾을 수 없음 |
+| 404 Not Found | CT009 | 버전을 찾을 수 없음 |
+| 409 Conflict | CT010 | 강의에서 사용 중인 콘텐츠 |
+
+---
+
+## 7. 메타데이터 추출
 
 ### 자동 추출 정보
 

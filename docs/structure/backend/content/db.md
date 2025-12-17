@@ -33,12 +33,18 @@ CREATE TABLE content (
     page_count          INT,
     external_url        VARCHAR(2000),
     file_path           VARCHAR(1000),
+    thumbnail_path      VARCHAR(1000),
+    status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    current_version     INT NOT NULL DEFAULT 1,
+    created_by          BIGINT,
     created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     INDEX idx_tenant_id (tenant_id),
     INDEX idx_content_type (content_type),
-    INDEX idx_created_at (created_at)
+    INDEX idx_created_at (created_at),
+    INDEX idx_status (status),
+    INDEX idx_created_by (created_by)
 );
 ```
 
@@ -55,10 +61,73 @@ CREATE TABLE content (
 | page_count | INT | YES | 페이지 수 (DOCUMENT) |
 | external_url | VARCHAR(2000) | YES | 외부 링크 URL |
 | file_path | VARCHAR(1000) | YES | 파일 저장 경로 |
+| thumbnail_path | VARCHAR(1000) | YES | 썸네일 경로 |
+| status | VARCHAR(20) | NO | 상태 (ACTIVE, ARCHIVED) |
+| current_version | INT | NO | 현재 버전 번호 |
+| created_by | BIGINT | YES | 생성자 ID |
 | created_at | DATETIME | NO | 생성일시 |
 | updated_at | DATETIME | NO | 수정일시 |
 
-### 1.2 ContentType ENUM
+### 1.2 content_version (콘텐츠 버전)
+
+```sql
+CREATE TABLE content_version (
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id           BIGINT NOT NULL DEFAULT 1,
+    content_id          BIGINT NOT NULL,
+    version_number      INT NOT NULL,
+    change_type         VARCHAR(50) NOT NULL,
+    original_file_name  VARCHAR(500),
+    stored_file_name    VARCHAR(255),
+    content_type        VARCHAR(50),
+    file_size           BIGINT,
+    duration            INT,
+    resolution          VARCHAR(20),
+    page_count          INT,
+    external_url        VARCHAR(2000),
+    file_path           VARCHAR(1000),
+    thumbnail_path      VARCHAR(1000),
+    change_summary      VARCHAR(500),
+    created_by          BIGINT,
+    created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_content_version (content_id, version_number),
+    INDEX idx_tenant_content (tenant_id, content_id),
+    CONSTRAINT fk_version_content FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
+);
+```
+
+| 컬럼 | 타입 | NULL | 설명 |
+|------|------|------|------|
+| id | BIGINT | NO | PK, Auto Increment |
+| tenant_id | BIGINT | NO | 테넌트 ID |
+| content_id | BIGINT | NO | 콘텐츠 ID (FK) |
+| version_number | INT | NO | 버전 번호 (1, 2, 3...) |
+| change_type | VARCHAR(50) | NO | 변경 타입 (ENUM) |
+| original_file_name | VARCHAR(500) | YES | 해당 버전의 원본 파일명 |
+| stored_file_name | VARCHAR(255) | YES | 해당 버전의 저장 파일명 |
+| content_type | VARCHAR(50) | YES | 해당 버전의 콘텐츠 타입 |
+| file_size | BIGINT | YES | 해당 버전의 파일 크기 |
+| duration | INT | YES | 해당 버전의 재생 시간 |
+| resolution | VARCHAR(20) | YES | 해당 버전의 해상도 |
+| page_count | INT | YES | 해당 버전의 페이지 수 |
+| external_url | VARCHAR(2000) | YES | 해당 버전의 외부 URL |
+| file_path | VARCHAR(1000) | YES | 해당 버전의 파일 경로 |
+| thumbnail_path | VARCHAR(1000) | YES | 해당 버전의 썸네일 경로 |
+| change_summary | VARCHAR(500) | YES | 변경 요약 |
+| created_by | BIGINT | YES | 변경한 사용자 ID |
+| created_at | DATETIME | NO | 버전 생성일시 |
+
+### 1.3 VersionChangeType ENUM
+
+```sql
+-- change_type 컬럼 값
+'FILE_UPLOAD'      -- 파일 업로드 (최초 생성)
+'FILE_REPLACE'     -- 파일 교체
+'METADATA_UPDATE'  -- 메타데이터 수정
+```
+
+### 1.4 ContentType ENUM
 
 ```sql
 -- content_type 컬럼 값
@@ -88,9 +157,36 @@ CREATE TABLE content (
 │ page_count                      │ ──► DOCUMENT (PDF)
 │ external_url                    │ ──► EXTERNAL_LINK
 │ file_path                       │
+│ status                          │ ──► ACTIVE, ARCHIVED
+│ current_version                 │
+│ created_by                      │
 │ created_at                      │
 │ updated_at                      │
 └─────────────────────────────────┘
+         │
+         │ 1:N (버전 이력)
+         ▼
+┌─────────────────────────────────┐
+│       content_version           │
+├─────────────────────────────────┤
+│ id (PK)                         │
+│ tenant_id                       │
+│ content_id (FK)                 │ ──► content.id
+│ version_number                  │
+│ change_type                     │ ──► FILE_UPLOAD, FILE_REPLACE, METADATA_UPDATE
+│ original_file_name              │
+│ stored_file_name                │
+│ content_type                    │
+│ file_size                       │
+│ duration                        │
+│ resolution                      │
+│ file_path                       │
+│ thumbnail_path                  │
+│ change_summary                  │
+│ created_by                      │
+│ created_at                      │
+└─────────────────────────────────┘
+
          │
          │ 1:1 (연결됨)
          ▼
