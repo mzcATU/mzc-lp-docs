@@ -13,12 +13,13 @@
 ├── 📄 POLY-REPO.md              # 폴리레포 구성 가이드
 ├── 📄 MONOREPO.md               # 모노레포 설정 가이드
 │
-├── 📁 conventions/              # 코딩 컨벤션 (25개)
+├── 📁 conventions/              # 코딩 컨벤션
 │   ├── 00-CONVENTIONS-CORE.md   # 공통 핵심 규칙
 │   ├── 01~09: Backend 컨벤션
 │   ├── 10~16: Frontend 컨벤션
-│   ├── 17~20: Infrastructure 컨벤션
-│   └── 21~25: 품질/기타 컨벤션
+│   ├── design/: Design 컨벤션 (00-02)
+│   ├── 17~19: Infrastructure 컨벤션
+│   └── 20~24: 품질/기타 컨벤션
 │
 ├── 📁 context/                  # 프로젝트 컨텍스트
 │   ├── architecture.md          # 시스템 아키텍처
@@ -32,11 +33,9 @@
 │   ├── backend/                 # Backend 모듈 문서
 │   └── frontend/                # Frontend 모듈 문서
 │
-├── 📁 design-specs/             # 화면 정의서
-│   ├── TO-screen-spec.md        # TO (운영자) 핵심 가이드
-│   ├── TO-screens-detail.md     # TO 화면별 상세
-│   ├── TU-screen-spec.md        # TU (수강생) 핵심 가이드
-│   └── TU-screens-detail.md     # TU 화면별 상세
+├── 📁 dev-logs/                 # 개발 로그
+│   ├── backend/                 # 백엔드 모듈별 로그
+│   └── frontend/                # 프론트엔드 역할별 로그
 │
 └── 📁 templates/                # 작업 템플릿
     ├── md-writing-guide.md      # 문서 작성 가이드
@@ -75,19 +74,26 @@
 | 15 | BACKEND-TEST | JUnit5, MockMvc |
 | 16 | FRONTEND-TEST | Vitest, React Testing Library |
 
-### Infrastructure & 품질 (17-25)
+### Design (design/00-02)
 
 | # | 컨벤션 | 설명 |
 |---|--------|------|
-| 17 | DESIGN | TailwindCSS, 디자인 시스템 |
-| 18 | DOCKER | Docker, docker-compose |
-| 19 | DATABASE | MySQL, 스키마 설계 |
-| 20 | AWS | ECS, RDS, S3, CI/CD |
-| 21 | SECURITY | 인증, 보안, 취약점 방지 |
-| 22 | PERFORMANCE | N+1, 캐싱, 최적화 |
-| 23 | EXTERNAL-API | 외부 연동, 재시도 |
-| 24 | MULTI-TENANCY | 멀티테넌트 아키텍처 |
-| 25 | IGNORE | .gitignore, .dockerignore |
+| 00 | DESIGN-CONVENTIONS | TailwindCSS, CVA, Radix UI |
+| 01 | DESIGN-TOKENS-COMMON | Admin 공통 디자인 토큰 |
+| 02 | DESIGN-TOKENS-TENANT | 테넌시별 디자인 토큰 |
+
+### Infrastructure & 품질 (17-24)
+
+| # | 컨벤션 | 설명 |
+|---|--------|------|
+| 17 | DOCKER | Docker, docker-compose |
+| 18 | DATABASE | MySQL, 스키마 설계 |
+| 19 | AWS | ECS, RDS, S3, CI/CD |
+| 20 | SECURITY | 인증, 보안, 취약점 방지 |
+| 21 | PERFORMANCE | N+1, 캐싱, 최적화 |
+| 22 | EXTERNAL-API | 외부 연동, 재시도 |
+| 23 | MULTI-TENANCY | 멀티테넌트 아키텍처 |
+| 24 | IGNORE | .gitignore, .dockerignore |
 
 ---
 
@@ -101,7 +107,7 @@
 | 전체 구조 파악 | context/architecture.md |
 | 저장소 설정 | POLY-REPO.md → backend-setup.md, frontend-setup.md |
 | 문서 작성 | templates/md-writing-guide.md |
-| 화면 정의서 참조 | design-specs/TO-screen-spec.md, TU-screen-spec.md |
+| 개발 로그 | dev-logs/ (백엔드/프론트엔드) |
 
 ---
 

@@ -159,7 +159,7 @@ npm install && npm run dev
 | 작업 | 문서 |
 |------|------|
 | 컨벤션 | mzc-lp/docs/conventions/ |
-| 화면 정의서 | mzc-lp/docs/design-specs/ |
+| 디자인 | mzc-lp/docs/conventions/design/ |
 | 설정 가이드 | mzc-lp/docs/context/frontend-setup.md |
 
 > 상세 → [mzc-lp/docs/CLAUDE.md](https://github.com/mzcATU/mzc-lp/docs/CLAUDE.md)

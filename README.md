@@ -173,4 +173,4 @@ IIS (Instructor)     ← 강사 정보
 | 아키텍처 | [docs/context/architecture.md](docs/context/architecture.md) | 시스템 아키텍처 |
 | 모듈 구조 | [docs/context/module-structure.md](docs/context/module-structure.md) | 백엔드 모듈 상세 |
 | 컨벤션 | [docs/conventions/](docs/conventions/) | 개발 컨벤션 |
-| 화면 정의서 | [docs/design-specs/](docs/design-specs/) | TO/TU 화면 설계 |
+| 개발 로그 | [docs/dev-logs/](docs/dev-logs/) | 모듈별 개발 내역 |
