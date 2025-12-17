@@ -198,4 +198,4 @@ public ApiResponse fallback(ApiRequest request, Exception e) {
 
 ---
 
-> 보안 → [21-SECURITY-CONVENTIONS.md](./21-SECURITY-CONVENTIONS.md)
+> 보안 → [20-SECURITY-CONVENTIONS.md](./20-SECURITY-CONVENTIONS.md)

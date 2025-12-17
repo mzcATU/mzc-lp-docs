@@ -319,4 +319,4 @@ export const useNaming = () => {
 
 ---
 
-**관련**: [multi-tenancy.md](../docs/context/multi-tenancy.md) (개요) · [06-ENTITY](./06-ENTITY.md) · [21-SECURITY](./21-SECURITY-CONVENTIONS.md)
+**관련**: [multi-tenancy.md](../context/multi-tenancy.md) (개요) · [06-ENTITY](./06-ENTITY-CONVENTIONS.md) · [20-SECURITY](./20-SECURITY-CONVENTIONS.md)

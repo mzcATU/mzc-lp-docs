@@ -397,4 +397,4 @@ export const TenantLink = ({ href, children }) => {
 
 - [18-DESIGN-TOKENS-COMMON](./18-DESIGN-TOKENS-COMMON.md) - Admin 공통 디자인 토큰
 - [17-DESIGN-CONVENTIONS](./17-DESIGN-CONVENTIONS.md) - 디자인 구현 컨벤션
-- [24-MULTI-TENANCY](../24-MULTI-TENANCY.md) - 멀티테넌시 아키텍처
+- [23-MULTI-TENANCY](../23-MULTI-TENANCY.md) - 멀티테넌시 아키텍처

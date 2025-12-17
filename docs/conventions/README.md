@@ -17,15 +17,16 @@
 | Exception 생성 | 08 |
 | React 컴포넌트 | 12 (+ 10 참조) |
 | API 연동 | 14 (+ 13 참조) |
-| 디자인/UI | 17 |
+| 디자인/UI | design/ |
 | 테스트 | 15 (Backend) / 16 (Frontend) |
-| Docker | 18 |
-| DB 설계 | 19 |
-| AWS 배포 | 20 |
-| 보안 | 21 |
-| 성능 최적화 | 22 |
-| 외부 API | 23 |
-| Ignore 설정 | 25 (+ 02, 18 참조) |
+| Docker | 17 |
+| DB 설계 | 18 |
+| AWS 배포 | 19 |
+| 보안 | 20 |
+| 성능 최적화 | 21 |
+| 외부 API | 22 |
+| 멀티테넌시 | 23 |
+| Ignore 설정 | 24 (+ 02, 17 참조) |
 
 ---
 
@@ -60,45 +61,55 @@
 
 ---
 
-## Infrastructure (17-20)
+## Design (design/)
 
 | # | 문서 | 설명 |
 |---|------|------|
-| 17-18 | [DESIGN](./design/) | TailwindCSS, 디자인 시스템, 디자인 토큰 |
-| 18 | [DOCKER](./18-DOCKER-CONVENTIONS.md) | Docker, docker-compose |
-| 19 | [DATABASE](./19-DATABASE-CONVENTIONS.md) | MySQL, 스키마 설계 |
-| 20 | [AWS](./20-AWS-CONVENTIONS.md) | ECS, RDS, S3, CI/CD |
+| 17 | [DESIGN-CONVENTIONS](./design/17-DESIGN-CONVENTIONS.md) | TailwindCSS, CVA, Radix UI |
+| 18 | [DESIGN-TOKENS-COMMON](./design/18-DESIGN-TOKENS-COMMON.md) | Admin 공통 디자인 토큰 |
+| 19 | [DESIGN-TOKENS-TENANT](./design/19-DESIGN-TOKENS-TENANT-TEMPLATE.md) | 테넌시별 디자인 토큰 템플릿 |
 
 ---
 
-## 품질 (21-23)
+## Infrastructure (17-19)
 
 | # | 문서 | 설명 |
 |---|------|------|
-| 21 | [SECURITY](./21-SECURITY-CONVENTIONS.md) | 인증, 보안, 취약점 방지 |
-| 22 | [PERFORMANCE](./22-PERFORMANCE-CONVENTIONS.md) | N+1, 캐싱, 최적화 |
-| 23 | [EXTERNAL-API](./23-EXTERNAL-API-CONVENTIONS.md) | 외부 연동, 재시도, 타임아웃 |
+| 17 | [DOCKER](./17-DOCKER-CONVENTIONS.md) | Docker, docker-compose |
+| 18 | [DATABASE](./18-DATABASE-CONVENTIONS.md) | MySQL, 스키마 설계 |
+| 19 | [AWS](./19-AWS-CONVENTIONS.md) | ECS, RDS, S3, CI/CD |
 
 ---
 
-## 기타 (24-25)
+## 품질 (20-22)
 
 | # | 문서 | 설명 |
 |---|------|------|
-| 24 | [MULTI-TENANCY](./24-MULTI-TENANCY-CONVENTIONS.md) | 멀티테넌트 아키텍처 |
-| 25 | [IGNORE](./25-IGNORE-CONVENTIONS.md) | .gitignore, .dockerignore 설정 |
+| 20 | [SECURITY](./20-SECURITY-CONVENTIONS.md) | 인증, 보안, 취약점 방지 |
+| 21 | [PERFORMANCE](./21-PERFORMANCE-CONVENTIONS.md) | N+1, 캐싱, 최적화 |
+| 22 | [EXTERNAL-API](./22-EXTERNAL-API-CONVENTIONS.md) | 외부 연동, 재시도, 타임아웃 |
+
+---
+
+## 기타 (23-24)
+
+| # | 문서 | 설명 |
+|---|------|------|
+| 23 | [MULTI-TENANCY](./23-MULTI-TENANCY.md) | 멀티테넌트 아키텍처 |
+| 24 | [IGNORE](./24-IGNORE-CONVENTIONS.md) | .gitignore, .dockerignore 설정 |
 
 ---
 
 ## 문서 통계
 
 ```
-총 문서 수: 26개 (컨벤션)
+총 문서 수: 25개 (컨벤션)
 - Backend: 10개 (00-09)
 - Frontend: 7개 (10-16)
-- Infrastructure: 4개 (17-20)
-- 품질: 3개 (21-23)
-- 기타: 2개 (24-25)
+- Design: 3개 (design/17-19)
+- Infrastructure: 3개 (17-19)
+- 품질: 3개 (20-22)
+- 기타: 2개 (23-24)
 ```
 
 ---
