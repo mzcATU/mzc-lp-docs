@@ -8,9 +8,9 @@
 
 | 문서 | 설명 |
 |------|------|
-| [17-DESIGN-CONVENTIONS](./17-DESIGN-CONVENTIONS.md) | 디자인 구현 컨벤션 (CVA, Radix UI, 레이아웃, 반응형) |
-| [18-DESIGN-TOKENS-COMMON](./18-DESIGN-TOKENS-COMMON.md) | Admin 공통 디자인 토큰 (SA, TA, TO, TU) |
-| [19-DESIGN-TOKENS-TENANT-TEMPLATE](./19-DESIGN-TOKENS-TENANT-TEMPLATE.md) | 테넌시별 커스텀 디자인 토큰 템플릿 |
+| [00-DESIGN-CONVENTIONS](./00-DESIGN-CONVENTIONS.md) | 디자인 구현 컨벤션 (CVA, Radix UI, 레이아웃, 반응형) |
+| [01-DESIGN-TOKENS-COMMON](./01-DESIGN-TOKENS-COMMON.md) | Admin 공통 디자인 토큰 (SA, TA, TO, TU) |
+| [02-DESIGN-TOKENS-TENANT-TEMPLATE](./02-DESIGN-TOKENS-TENANT-TEMPLATE.md) | 테넌시별 커스텀 디자인 토큰 템플릿 |
 
 ---
 
@@ -31,8 +31,8 @@
 
 | 구분 | 문서 | 적용 대상 |
 |------|------|----------|
-| **Common** | 18-DESIGN-TOKENS-COMMON | SA, TA, TO, TU 관리자 화면 |
-| **Tenant** | 19-DESIGN-TOKENS-TENANT-TEMPLATE | 테넌트별 학습자 화면 |
+| **Common** | 01-DESIGN-TOKENS-COMMON | SA, TA, TO, TU 관리자 화면 |
+| **Tenant** | 02-DESIGN-TOKENS-TENANT-TEMPLATE | 테넌트별 학습자 화면 |
 
 ---
 

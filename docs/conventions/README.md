@@ -65,9 +65,9 @@
 
 | # | 문서 | 설명 |
 |---|------|------|
-| 17 | [DESIGN-CONVENTIONS](./design/17-DESIGN-CONVENTIONS.md) | TailwindCSS, CVA, Radix UI |
-| 18 | [DESIGN-TOKENS-COMMON](./design/18-DESIGN-TOKENS-COMMON.md) | Admin 공통 디자인 토큰 |
-| 19 | [DESIGN-TOKENS-TENANT](./design/19-DESIGN-TOKENS-TENANT-TEMPLATE.md) | 테넌시별 디자인 토큰 템플릿 |
+| 00 | [DESIGN-CONVENTIONS](./design/00-DESIGN-CONVENTIONS.md) | TailwindCSS, CVA, Radix UI |
+| 01 | [DESIGN-TOKENS-COMMON](./design/01-DESIGN-TOKENS-COMMON.md) | Admin 공통 디자인 토큰 |
+| 02 | [DESIGN-TOKENS-TENANT](./design/02-DESIGN-TOKENS-TENANT-TEMPLATE.md) | 테넌시별 디자인 토큰 템플릿 |
 
 ---
 
@@ -106,7 +106,7 @@
 총 문서 수: 25개 (컨벤션)
 - Backend: 10개 (00-09)
 - Frontend: 7개 (10-16)
-- Design: 3개 (design/17-19)
+- Design: 3개 (design/00-02)
 - Infrastructure: 3개 (17-19)
 - 품질: 3개 (20-22)
 - 기타: 2개 (23-24)
