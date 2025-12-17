@@ -1,8 +1,8 @@
-# 18. Design Tokens
+# 18. Design Tokens - Common (Admin)
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](../00-CONVENTIONS-CORE.md)
 
-> 디자인 토큰 시스템 - CSS 변수 + TypeScript 토큰 + Tailwind 연동
+> Admin 스타일 공통 디자인 토큰 - SA, TA, TO, TU 공통 사용
 
 ---
 
@@ -422,4 +422,5 @@ src/
 ---
 
 > 디자인 컨벤션 → [17-DESIGN-CONVENTIONS](./17-DESIGN-CONVENTIONS.md)
+> 테넌트 토큰 템플릿 → [19-DESIGN-TOKENS-TENANT-TEMPLATE](./19-DESIGN-TOKENS-TENANT-TEMPLATE.md)
 > 컴포넌트 컨벤션 → [12-REACT-COMPONENT-CONVENTIONS](../12-REACT-COMPONENT-CONVENTIONS.md)
