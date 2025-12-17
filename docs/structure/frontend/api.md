@@ -1,6 +1,6 @@
 # Frontend API 클라이언트
 
-> Frontend API 모듈 구조
+> Frontend API 모듈 구조 (역할별 분리)
 
 ---
 
@@ -9,7 +9,7 @@
 ### 1.1 Axios 인스턴스
 
 ```typescript
-// src/api/client.ts
+// src/services/common/api/axiosInstance.ts
 import axios from 'axios';
 
 const apiClient = axios.create({
@@ -55,9 +55,9 @@ export default apiClient;
 ### 2.1 courseApi.ts
 
 ```typescript
-// src/api/courseApi.ts
-import apiClient from './client';
-import { Course, CourseItem, CourseRelation, CreateCourseRequest } from '@/types/course';
+// src/services/tu/api/courseApi.ts
+import apiClient from '@/services/common/api/axiosInstance';
+import type { Course, CourseItem, CourseRelation, CreateCourseRequest } from '@/types/tu/course';
 
 export const courseApi = {
   // 강의 CRUD
@@ -110,7 +110,7 @@ export const courseApi = {
 ### 2.2 타입 정의
 
 ```typescript
-// src/types/course.ts
+// src/types/tu/course.ts
 export interface Course {
   courseId: number;
   courseName: string;
@@ -165,9 +165,9 @@ export interface RelationInput {
 ### 3.1 contentApi.ts
 
 ```typescript
-// src/api/contentApi.ts
-import apiClient from './client';
-import { Content, ExternalLinkRequest } from '@/types/content';
+// src/services/tu/api/contentApi.ts
+import apiClient from '@/services/common/api/axiosInstance';
+import type { Content, ExternalLinkRequest } from '@/types/tu/content';
 
 export const contentApi = {
   // 파일 업로드
@@ -218,7 +218,7 @@ export const contentApi = {
 ### 3.2 타입 정의
 
 ```typescript
-// src/types/content.ts
+// src/types/tu/content.ts
 export type ContentType = 'VIDEO' | 'DOCUMENT' | 'IMAGE' | 'AUDIO' | 'EXTERNAL_LINK';
 
 export interface Content {
@@ -257,9 +257,9 @@ export interface ContentQueryParams {
 ### 4.1 learningApi.ts
 
 ```typescript
-// src/api/learningApi.ts
-import apiClient from './client';
-import { LearningObject, ContentFolder } from '@/types/learning';
+// src/services/tu/api/learningApi.ts
+import apiClient from '@/services/common/api/axiosInstance';
+import type { LearningObject, ContentFolder } from '@/types/tu/learning';
 
 export const learningApi = {
   // 학습객체 CRUD
@@ -301,7 +301,7 @@ export const learningApi = {
 ### 4.2 타입 정의
 
 ```typescript
-// src/types/learning.ts
+// src/types/tu/learning.ts
 export interface LearningObject {
   learningObjectId: number;
   name: string;
@@ -343,7 +343,7 @@ export interface CreateFolderRequest {
 ### 5.1 API Response
 
 ```typescript
-// src/types/api.ts
+// src/types/common/api.ts
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -372,9 +372,9 @@ export interface PageResponse<T> {
 ### 6.1 useCourses
 
 ```typescript
-// src/hooks/useCourses.ts
+// src/hooks/tu/useCourses.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { courseApi } from '@/api/courseApi';
+import { courseApi } from '@/services/tu/api/courseApi';
 
 export const useCourses = () => {
   return useQuery({
@@ -420,18 +420,40 @@ export const useDeleteCourse = () => {
 
 ```
 frontend/src/
-├── api/
-│   ├── client.ts           # Axios 인스턴스
-│   ├── courseApi.ts        # 강의 API (CM + CR)
-│   ├── contentApi.ts       # 콘텐츠 API (CMS)
-│   └── learningApi.ts      # 학습객체 API (LO)
+├── services/
+│   ├── common/
+│   │   ├── api/
+│   │   │   ├── axiosInstance.ts    # Axios 인스턴스
+│   │   │   └── endpoints.ts        # API 엔드포인트 상수
+│   │   └── authService.ts          # 인증 서비스
+│   ├── sa/                         # Super Admin 서비스
+│   │   └── api/
+│   ├── ta/                         # Tenant Admin 서비스
+│   │   └── api/
+│   ├── to/                         # Tenant Operator 서비스
+│   │   └── api/
+│   └── tu/                         # Tenant User 서비스
+│       └── api/
+│           ├── courseApi.ts        # 강의 API (CM + CR)
+│           ├── contentApi.ts       # 콘텐츠 API (CMS)
+│           └── learningApi.ts      # 학습객체 API (LO)
 ├── types/
-│   ├── api.ts              # 공통 API 타입
-│   ├── course.ts           # 강의 타입
-│   ├── content.ts          # 콘텐츠 타입
-│   └── learning.ts         # 학습객체 타입
+│   ├── common/
+│   │   └── api.ts                  # 공통 API 타입
+│   ├── sa/
+│   ├── ta/
+│   ├── to/
+│   └── tu/
+│       ├── course.ts               # 강의 타입
+│       ├── content.ts              # 콘텐츠 타입
+│       └── learning.ts             # 학습객체 타입
 └── hooks/
-    ├── useCourses.ts       # 강의 React Query Hooks
-    ├── useContents.ts      # 콘텐츠 React Query Hooks
-    └── useLearningObjects.ts  # 학습객체 React Query Hooks
+    ├── common/
+    ├── sa/
+    ├── ta/
+    ├── to/
+    └── tu/
+        ├── useCourses.ts           # 강의 React Query Hooks
+        ├── useContents.ts          # 콘텐츠 React Query Hooks
+        └── useLearningObjects.ts   # 학습객체 React Query Hooks
 ```

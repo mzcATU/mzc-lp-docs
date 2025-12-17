@@ -1,6 +1,6 @@
 # Frontend 페이지 구조
 
-> Frontend 페이지 컴포넌트
+> Frontend 페이지 컴포넌트 (역할별 분리)
 
 ---
 
@@ -8,28 +8,178 @@
 
 ```
 frontend/src/pages/
-├── courses/                    # 강의 관리 (CM)
-│   ├── CourseListPage.tsx      # 강의 목록
-│   ├── CourseDetailPage.tsx    # 강의 상세/편집
-│   └── CourseCreatePage.tsx    # 강의 생성
-├── content/                    # 콘텐츠 관리 (CMS)
-│   ├── ContentPoolPage.tsx     # 콘텐츠 풀 (파일 관리)
-│   └── ContentUploadPage.tsx   # 콘텐츠 업로드
-└── learning/                   # 학습객체 관리 (LO)
-    └── LearningObjectsPage.tsx # 학습객체 목록
+├── sa/                           # Super Admin (SA)
+│   ├── dashboard/
+│   │   └── DashboardPage.tsx
+│   ├── tenants/
+│   │   ├── TenantListPage.tsx
+│   │   └── TenantDetailPage.tsx
+│   └── settings/
+│       └── SystemSettingsPage.tsx
+├── ta/                           # Tenant Admin (TA)
+│   ├── dashboard/
+│   │   └── DashboardPage.tsx
+│   ├── users/
+│   │   └── UserManagementPage.tsx
+│   └── settings/
+│       └── TenantSettingsPage.tsx
+├── to/                           # Tenant Operator (TO)
+│   ├── dashboard/
+│   │   └── DashboardPage.tsx
+│   ├── contents/
+│   │   ├── ContentListPage.tsx
+│   │   └── ContentDetailPage.tsx
+│   └── learning/
+│       └── LearningManagementPage.tsx
+└── tu/                           # Tenant User (TU)
+    ├── dashboard/
+    │   └── DashboardPage.tsx
+    ├── learning/
+    │   └── MyLearningPage.tsx
+    └── teaching/
+        ├── courses/
+        │   ├── CourseListPage.tsx
+        │   ├── CourseDetailPage.tsx
+        │   └── CourseCreatePage.tsx
+        └── content/
+            ├── ContentPoolPage.tsx
+            └── ContentUploadPage.tsx
 ```
 
 ---
 
-## 2. 강의 관리 페이지 (CM)
+## 2. Super Admin 페이지 (SA)
 
-### 2.1 CourseListPage
+### 2.1 DashboardPage
+
+시스템 전체 현황을 표시합니다.
+
+```tsx
+// src/pages/sa/dashboard/DashboardPage.tsx
+import { useSADashboard } from '@/hooks/sa/useDashboard';
+import { SuperAdminLayout } from '@/components/layout/sa';
+
+export const DashboardPage = () => {
+  const { data: stats, isLoading } = useSADashboard();
+
+  return (
+    <SuperAdminLayout>
+      <div className="dashboard-page">
+        <h1>시스템 대시보드</h1>
+        <div className="stats-grid">
+          <StatCard title="전체 테넌트" value={stats?.totalTenants} />
+          <StatCard title="활성 사용자" value={stats?.activeUsers} />
+          <StatCard title="총 강의 수" value={stats?.totalCourses} />
+        </div>
+      </div>
+    </SuperAdminLayout>
+  );
+};
+```
+
+### 2.2 TenantListPage
+
+테넌트 목록을 관리합니다.
+
+```tsx
+// src/pages/sa/tenants/TenantListPage.tsx
+import { useTenants } from '@/hooks/sa/useTenants';
+import { SuperAdminLayout } from '@/components/layout/sa';
+
+export const TenantListPage = () => {
+  const { data: tenants, isLoading } = useTenants();
+
+  return (
+    <SuperAdminLayout>
+      <div className="tenant-list-page">
+        <header>
+          <h1>테넌트 관리</h1>
+          <Button onClick={() => navigate('/sa/tenants/create')}>
+            + 새 테넌트
+          </Button>
+        </header>
+        <table>
+          {/* 테넌트 목록 */}
+        </table>
+      </div>
+    </SuperAdminLayout>
+  );
+};
+```
+
+---
+
+## 3. Tenant Admin 페이지 (TA)
+
+### 3.1 UserManagementPage
+
+테넌트 내 사용자를 관리합니다.
+
+```tsx
+// src/pages/ta/users/UserManagementPage.tsx
+import { useUsers } from '@/hooks/ta/useUsers';
+import { TenantAdminLayout } from '@/components/layout/ta';
+
+export const UserManagementPage = () => {
+  const { data: users, isLoading } = useUsers();
+
+  return (
+    <TenantAdminLayout>
+      <div className="user-management-page">
+        <header>
+          <h1>사용자 관리</h1>
+          <Button onClick={handleInviteUser}>+ 사용자 초대</Button>
+        </header>
+        {/* 사용자 목록 테이블 */}
+      </div>
+    </TenantAdminLayout>
+  );
+};
+```
+
+---
+
+## 4. Tenant Operator 페이지 (TO)
+
+### 4.1 ContentListPage
+
+운영자용 콘텐츠 목록을 관리합니다.
+
+```tsx
+// src/pages/to/contents/ContentListPage.tsx
+import { useContents } from '@/hooks/to/useContents';
+import { TenantOperatorLayout } from '@/components/layout/to';
+
+export const ContentListPage = () => {
+  const { data: contents, isLoading } = useContents();
+
+  return (
+    <TenantOperatorLayout>
+      <div className="content-list-page">
+        <header>
+          <h1>콘텐츠 관리</h1>
+        </header>
+        <ContentGrid contents={contents} />
+      </div>
+    </TenantOperatorLayout>
+  );
+};
+```
+
+---
+
+## 5. Tenant User 페이지 (TU)
+
+### 5.1 강의 관리 페이지 (CM)
+
+#### CourseListPage
 
 강의 목록을 표시하고 CRUD 기능을 제공합니다.
 
 ```tsx
-// src/pages/courses/CourseListPage.tsx
-import { useCourses, useDeleteCourse } from '@/hooks/useCourses';
+// src/pages/tu/teaching/courses/CourseListPage.tsx
+import { useCourses, useDeleteCourse } from '@/hooks/tu/useCourses';
+import { TenantUserLayout } from '@/components/layout/tu';
 
 export const CourseListPage = () => {
   const { data: courses, isLoading } = useCourses();
@@ -42,43 +192,45 @@ export const CourseListPage = () => {
   };
 
   return (
-    <div className="course-list-page">
-      <header>
-        <h1>강의 관리</h1>
-        <Link to="/courses/create">
-          <Button>+ 새 강의</Button>
-        </Link>
-      </header>
+    <TenantUserLayout>
+      <div className="course-list-page">
+        <header>
+          <h1>강의 관리</h1>
+          <Link to="/tu/teaching/courses/create">
+            <Button>+ 새 강의</Button>
+          </Link>
+        </header>
 
-      <table>
-        <thead>
-          <tr>
-            <th>강의명</th>
-            <th>차시 수</th>
-            <th>생성일</th>
-            <th>액션</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses?.map((course) => (
-            <tr key={course.courseId}>
-              <td>
-                <Link to={`/courses/${course.courseId}`}>
-                  {course.courseName}
-                </Link>
-              </td>
-              <td>{course.itemCount}개</td>
-              <td>{formatDate(course.createdAt)}</td>
-              <td>
-                <Button onClick={() => handleDelete(course.courseId)}>
-                  삭제
-                </Button>
-              </td>
+        <table>
+          <thead>
+            <tr>
+              <th>강의명</th>
+              <th>차시 수</th>
+              <th>생성일</th>
+              <th>액션</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {courses?.map((course) => (
+              <tr key={course.courseId}>
+                <td>
+                  <Link to={`/tu/teaching/courses/${course.courseId}`}>
+                    {course.courseName}
+                  </Link>
+                </td>
+                <td>{course.itemCount}개</td>
+                <td>{formatDate(course.createdAt)}</td>
+                <td>
+                  <Button onClick={() => handleDelete(course.courseId)}>
+                    삭제
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </TenantUserLayout>
   );
 };
 ```
@@ -89,14 +241,15 @@ export const CourseListPage = () => {
 - 강의 삭제
 - 강의 상세 페이지 이동
 
-### 2.2 CourseDetailPage
+#### CourseDetailPage
 
 강의 상세 정보와 차시/폴더 계층 구조를 편집합니다.
 
 ```tsx
-// src/pages/courses/CourseDetailPage.tsx
-import { useCourse, useCourseHierarchy } from '@/hooks/useCourses';
-import { TreeView } from '@/components/TreeView';
+// src/pages/tu/teaching/courses/CourseDetailPage.tsx
+import { useCourse, useCourseHierarchy } from '@/hooks/tu/useCourses';
+import { TreeView } from '@/components/common/TreeView';
+import { TenantUserLayout } from '@/components/layout/tu';
 
 export const CourseDetailPage = () => {
   const { id } = useParams();
@@ -104,45 +257,47 @@ export const CourseDetailPage = () => {
   const { data: hierarchy } = useCourseHierarchy(Number(id));
 
   return (
-    <div className="course-detail-page">
-      {/* 강의 정보 */}
-      <section className="course-info">
-        <h1>{course?.courseName}</h1>
-        <Button onClick={handleEditCourse}>수정</Button>
-      </section>
+    <TenantUserLayout>
+      <div className="course-detail-page">
+        {/* 강의 정보 */}
+        <section className="course-info">
+          <h1>{course?.courseName}</h1>
+          <Button onClick={handleEditCourse}>수정</Button>
+        </section>
 
-      {/* 차시/폴더 계층 구조 */}
-      <section className="course-structure">
-        <header>
-          <h2>커리큘럼 구성</h2>
-          <div className="actions">
-            <Button onClick={handleAddFolder}>+ 폴더</Button>
-            <Button onClick={handleAddItem}>+ 차시</Button>
-          </div>
-        </header>
+        {/* 차시/폴더 계층 구조 */}
+        <section className="course-structure">
+          <header>
+            <h2>커리큘럼 구성</h2>
+            <div className="actions">
+              <Button onClick={handleAddFolder}>+ 폴더</Button>
+              <Button onClick={handleAddItem}>+ 차시</Button>
+            </div>
+          </header>
 
-        <TreeView
-          data={hierarchy}
-          onDragDrop={handleReorder}
-          renderItem={(item) => (
-            <CourseItemRow
-              item={item}
-              onEdit={handleEditItem}
-              onDelete={handleDeleteItem}
-            />
-          )}
-        />
-      </section>
+          <TreeView
+            data={hierarchy}
+            onDragDrop={handleReorder}
+            renderItem={(item) => (
+              <CourseItemRow
+                item={item}
+                onEdit={handleEditItem}
+                onDelete={handleDeleteItem}
+              />
+            )}
+          />
+        </section>
 
-      {/* 학습 순서 설정 */}
-      <section className="learning-order">
-        <h2>학습 순서</h2>
-        <LearningOrderEditor
-          courseId={Number(id)}
-          items={hierarchy}
-        />
-      </section>
-    </div>
+        {/* 학습 순서 설정 */}
+        <section className="learning-order">
+          <h2>학습 순서</h2>
+          <LearningOrderEditor
+            courseId={Number(id)}
+            items={hierarchy}
+          />
+        </section>
+      </div>
+    </TenantUserLayout>
   );
 };
 ```
@@ -154,13 +309,14 @@ export const CourseDetailPage = () => {
 - 폴더/차시 추가/수정/삭제
 - 학습 순서 설정 (CR)
 
-### 2.3 CourseCreatePage
+#### CourseCreatePage
 
 새 강의를 생성합니다.
 
 ```tsx
-// src/pages/courses/CourseCreatePage.tsx
-import { useCreateCourse } from '@/hooks/useCourses';
+// src/pages/tu/teaching/courses/CourseCreatePage.tsx
+import { useCreateCourse } from '@/hooks/tu/useCourses';
+import { TenantUserLayout } from '@/components/layout/tu';
 
 export const CourseCreatePage = () => {
   const navigate = useNavigate();
@@ -169,51 +325,52 @@ export const CourseCreatePage = () => {
   const handleSubmit = (data: CreateCourseRequest) => {
     createMutation.mutate(data, {
       onSuccess: (response) => {
-        navigate(`/courses/${response.data.data.courseId}`);
+        navigate(`/tu/teaching/courses/${response.data.data.courseId}`);
       },
     });
   };
 
   return (
-    <div className="course-create-page">
-      <h1>새 강의 만들기</h1>
+    <TenantUserLayout>
+      <div className="course-create-page">
+        <h1>새 강의 만들기</h1>
 
-      <form onSubmit={handleSubmit}>
-        <FormField label="강의명" required>
-          <Input name="courseName" placeholder="강의 이름을 입력하세요" />
-        </FormField>
+        <form onSubmit={handleSubmit}>
+          <FormField label="강의명" required>
+            <Input name="courseName" placeholder="강의 이름을 입력하세요" />
+          </FormField>
 
-        <FormField label="강사">
-          <InstructorSelect name="instructorId" />
-        </FormField>
+          <FormField label="강사">
+            <InstructorSelect name="instructorId" />
+          </FormField>
 
-        <div className="actions">
-          <Button type="button" onClick={() => navigate(-1)}>
-            취소
-          </Button>
-          <Button type="submit" primary>
-            생성
-          </Button>
-        </div>
-      </form>
-    </div>
+          <div className="actions">
+            <Button type="button" onClick={() => navigate(-1)}>
+              취소
+            </Button>
+            <Button type="submit" primary>
+              생성
+            </Button>
+          </div>
+        </form>
+      </div>
+    </TenantUserLayout>
   );
 };
 ```
 
----
+### 5.2 콘텐츠 관리 페이지 (CMS)
 
-## 3. 콘텐츠 관리 페이지 (CMS)
-
-### 3.1 ContentPoolPage
+#### ContentPoolPage
 
 콘텐츠 파일을 관리하는 메인 페이지입니다.
 
 ```tsx
-// src/pages/content/ContentPoolPage.tsx
-import { useContents, useFolderTree } from '@/hooks/useContents';
-import { FolderTree } from '@/components/FolderTree';
-import { ContentGrid } from '@/components/ContentGrid';
+// src/pages/tu/teaching/content/ContentPoolPage.tsx
+import { useContents, useFolderTree } from '@/hooks/tu/useContents';
+import { FolderTree } from '@/components/common/FolderTree';
+import { ContentGrid } from '@/components/common/ContentGrid';
+import { TenantUserLayout } from '@/components/layout/tu';
 
 export const ContentPoolPage = () => {
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
@@ -221,44 +378,46 @@ export const ContentPoolPage = () => {
   const { data: contents } = useContents({ folderId: selectedFolderId });
 
   return (
-    <div className="content-pool-page">
-      {/* 좌측: 폴더 트리 */}
-      <aside className="folder-sidebar">
-        <header>
-          <h2>폴더</h2>
-          <Button onClick={handleCreateFolder}>+ 새 폴더</Button>
-        </header>
-        <FolderTree
-          data={folders}
-          selectedId={selectedFolderId}
-          onSelect={setSelectedFolderId}
+    <TenantUserLayout>
+      <div className="content-pool-page">
+        {/* 좌측: 폴더 트리 */}
+        <aside className="folder-sidebar">
+          <header>
+            <h2>폴더</h2>
+            <Button onClick={handleCreateFolder}>+ 새 폴더</Button>
+          </header>
+          <FolderTree
+            data={folders}
+            selectedId={selectedFolderId}
+            onSelect={setSelectedFolderId}
+          />
+        </aside>
+
+        {/* 우측: 콘텐츠 목록 */}
+        <main className="content-main">
+          <header>
+            <h1>콘텐츠 풀</h1>
+            <div className="actions">
+              <Button onClick={handleUpload}>파일 업로드</Button>
+              <Button onClick={handleAddExternalLink}>외부 링크</Button>
+            </div>
+          </header>
+
+          <ContentGrid
+            contents={contents?.content}
+            onSelect={handleSelectContent}
+            onDelete={handleDeleteContent}
+          />
+        </main>
+
+        {/* 업로드 모달 */}
+        <UploadModal
+          isOpen={uploadModalOpen}
+          folderId={selectedFolderId}
+          onClose={() => setUploadModalOpen(false)}
         />
-      </aside>
-
-      {/* 우측: 콘텐츠 목록 */}
-      <main className="content-main">
-        <header>
-          <h1>콘텐츠 풀</h1>
-          <div className="actions">
-            <Button onClick={handleUpload}>파일 업로드</Button>
-            <Button onClick={handleAddExternalLink}>외부 링크</Button>
-          </div>
-        </header>
-
-        <ContentGrid
-          contents={contents?.content}
-          onSelect={handleSelectContent}
-          onDelete={handleDeleteContent}
-        />
-      </main>
-
-      {/* 업로드 모달 */}
-      <UploadModal
-        isOpen={uploadModalOpen}
-        folderId={selectedFolderId}
-        onClose={() => setUploadModalOpen(false)}
-      />
-    </div>
+      </div>
+    </TenantUserLayout>
   );
 };
 ```
@@ -271,14 +430,15 @@ export const ContentPoolPage = () => {
 - 콘텐츠 삭제
 - 폴더 CRUD
 
-### 3.2 ContentUploadPage
+#### ContentUploadPage
 
 파일 업로드 전용 페이지입니다.
 
 ```tsx
-// src/pages/content/ContentUploadPage.tsx
-import { useUploadContent } from '@/hooks/useContents';
-import { FileDropzone } from '@/components/FileDropzone';
+// src/pages/tu/teaching/content/ContentUploadPage.tsx
+import { useUploadContent } from '@/hooks/tu/useContents';
+import { FileDropzone } from '@/components/common/FileDropzone';
+import { TenantUserLayout } from '@/components/layout/tu';
 
 export const ContentUploadPage = () => {
   const uploadMutation = useUploadContent();
@@ -295,139 +455,73 @@ export const ContentUploadPage = () => {
   };
 
   return (
-    <div className="content-upload-page">
-      <h1>콘텐츠 업로드</h1>
+    <TenantUserLayout>
+      <div className="content-upload-page">
+        <h1>콘텐츠 업로드</h1>
 
-      <FileDropzone
-        onDrop={handleDrop}
-        accept={{
-          'video/*': ['.mp4', '.avi', '.mov', '.mkv'],
-          'application/pdf': ['.pdf'],
-          'image/*': ['.jpg', '.png', '.gif'],
-          'audio/*': ['.mp3', '.wav'],
-        }}
-        maxSize={2 * 1024 * 1024 * 1024} // 2GB
-      />
+        <FileDropzone
+          onDrop={handleDrop}
+          accept={{
+            'video/*': ['.mp4', '.avi', '.mov', '.mkv'],
+            'application/pdf': ['.pdf'],
+            'image/*': ['.jpg', '.png', '.gif'],
+            'audio/*': ['.mp3', '.wav'],
+          }}
+          maxSize={2 * 1024 * 1024 * 1024} // 2GB
+        />
 
-      {uploadProgress > 0 && (
-        <ProgressBar value={uploadProgress} />
-      )}
+        {uploadProgress > 0 && (
+          <ProgressBar value={uploadProgress} />
+        )}
 
-      <div className="supported-formats">
-        <h3>지원 형식</h3>
-        <ul>
-          <li>영상: mp4, avi, mov, mkv (최대 2GB)</li>
-          <li>문서: pdf, doc, docx, ppt, pptx (최대 100MB)</li>
-          <li>이미지: jpg, png, gif, svg (최대 50MB)</li>
-          <li>오디오: mp3, wav, m4a (최대 500MB)</li>
-        </ul>
+        <div className="supported-formats">
+          <h3>지원 형식</h3>
+          <ul>
+            <li>영상: mp4, avi, mov, mkv (최대 2GB)</li>
+            <li>문서: pdf, doc, docx, ppt, pptx (최대 100MB)</li>
+            <li>이미지: jpg, png, gif, svg (최대 50MB)</li>
+            <li>오디오: mp3, wav, m4a (최대 500MB)</li>
+          </ul>
+        </div>
       </div>
-    </div>
+    </TenantUserLayout>
   );
 };
 ```
 
----
-
-## 4. 학습객체 관리 페이지 (LO)
-
-### 4.1 LearningObjectsPage
-
-학습객체 목록을 관리합니다.
+### 5.3 내 학습 페이지
 
 ```tsx
-// src/pages/learning/LearningObjectsPage.tsx
-import { useLearningObjects, useFolderTree } from '@/hooks/useLearningObjects';
+// src/pages/tu/learning/MyLearningPage.tsx
+import { useMyLearning } from '@/hooks/tu/useMyLearning';
+import { TenantUserLayout } from '@/components/layout/tu';
 
-export const LearningObjectsPage = () => {
-  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const { data: folders } = useFolderTree();
-  const { data: learningObjects } = useLearningObjects({
-    folderId: selectedFolderId,
-    keyword: searchKeyword,
-  });
+export const MyLearningPage = () => {
+  const { data: learningProgress, isLoading } = useMyLearning();
 
   return (
-    <div className="learning-objects-page">
-      {/* 좌측: 폴더 트리 */}
-      <aside className="folder-sidebar">
-        <FolderTree
-          data={folders}
-          selectedId={selectedFolderId}
-          onSelect={setSelectedFolderId}
-        />
-      </aside>
-
-      {/* 우측: 학습객체 목록 */}
-      <main className="lo-main">
-        <header>
-          <h1>학습객체</h1>
-          <SearchInput
-            value={searchKeyword}
-            onChange={setSearchKeyword}
-            placeholder="학습객체 검색..."
-          />
-        </header>
-
-        <table>
-          <thead>
-            <tr>
-              <th>이름</th>
-              <th>타입</th>
-              <th>재생시간/페이지</th>
-              <th>폴더</th>
-              <th>액션</th>
-            </tr>
-          </thead>
-          <tbody>
-            {learningObjects?.content.map((lo) => (
-              <tr key={lo.learningObjectId}>
-                <td>{lo.name}</td>
-                <td>
-                  <ContentTypeIcon type={lo.content?.contentType} />
-                </td>
-                <td>{formatDuration(lo.content?.duration)}</td>
-                <td>{lo.folder?.folderName || '최상위'}</td>
-                <td>
-                  <Button onClick={() => handleEdit(lo)}>수정</Button>
-                  <Button onClick={() => handleMove(lo)}>이동</Button>
-                  <Button onClick={() => handleDelete(lo)}>삭제</Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </main>
-
-      {/* 이동 모달 */}
-      <MoveModal
-        isOpen={moveModalOpen}
-        folders={folders}
-        onMove={handleMoveConfirm}
-        onClose={() => setMoveModalOpen(false)}
-      />
-    </div>
+    <TenantUserLayout>
+      <div className="my-learning-page">
+        <h1>내 학습</h1>
+        <div className="course-progress-list">
+          {learningProgress?.map((progress) => (
+            <CourseProgressCard key={progress.courseId} {...progress} />
+          ))}
+        </div>
+      </div>
+    </TenantUserLayout>
   );
 };
 ```
 
-**주요 기능**:
-- 학습객체 목록 조회
-- 폴더별 필터링
-- 이름 검색
-- 학습객체 수정 (이름)
-- 폴더 간 이동
-- 학습객체 삭제
-
 ---
 
-## 5. 공통 컴포넌트
+## 6. 공통 컴포넌트
 
-### 5.1 TreeView (계층 구조)
+### 6.1 TreeView (계층 구조)
 
 ```tsx
-// src/components/TreeView.tsx
+// src/components/common/TreeView.tsx
 interface TreeViewProps<T> {
   data: T[];
   renderItem: (item: T) => React.ReactNode;
@@ -455,10 +549,12 @@ export const TreeView = <T extends { id: number; children?: T[] }>({
 };
 ```
 
-### 5.2 FolderTree (폴더 네비게이션)
+### 6.2 FolderTree (폴더 네비게이션)
 
 ```tsx
-// src/components/FolderTree.tsx
+// src/components/common/FolderTree.tsx
+import type { ContentFolder } from '@/types/tu/learning';
+
 interface FolderTreeProps {
   data: ContentFolder[];
   selectedId: number | null;
@@ -472,7 +568,7 @@ export const FolderTree = ({ data, selectedId, onSelect }: FolderTreeProps) => {
         className={`folder-item ${selectedId === null ? 'selected' : ''}`}
         onClick={() => onSelect(null)}
       >
-        📁 전체
+        전체
       </div>
       {data.map((folder) => (
         <FolderNode
@@ -488,10 +584,10 @@ export const FolderTree = ({ data, selectedId, onSelect }: FolderTreeProps) => {
 };
 ```
 
-### 5.3 FileDropzone (파일 업로드)
+### 6.3 FileDropzone (파일 업로드)
 
 ```tsx
-// src/components/FileDropzone.tsx
+// src/components/common/FileDropzone.tsx
 import { useDropzone } from 'react-dropzone';
 
 interface FileDropzoneProps {
@@ -525,7 +621,7 @@ export const FileDropzone = ({ onDrop, accept, maxSize }: FileDropzoneProps) => 
 
 ---
 
-## 6. 라우팅 설정
+## 7. 라우팅 설정
 
 ```tsx
 // src/App.tsx
@@ -535,17 +631,31 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 강의 관리 */}
-        <Route path="/courses" element={<CourseListPage />} />
-        <Route path="/courses/create" element={<CourseCreatePage />} />
-        <Route path="/courses/:id" element={<CourseDetailPage />} />
+        {/* Super Admin (SA) */}
+        <Route path="/sa/dashboard" element={<SADashboardPage />} />
+        <Route path="/sa/tenants" element={<TenantListPage />} />
+        <Route path="/sa/tenants/:id" element={<TenantDetailPage />} />
+        <Route path="/sa/settings" element={<SystemSettingsPage />} />
 
-        {/* 콘텐츠 관리 */}
-        <Route path="/content" element={<ContentPoolPage />} />
-        <Route path="/content/upload" element={<ContentUploadPage />} />
+        {/* Tenant Admin (TA) */}
+        <Route path="/ta/dashboard" element={<TADashboardPage />} />
+        <Route path="/ta/users" element={<UserManagementPage />} />
+        <Route path="/ta/settings" element={<TenantSettingsPage />} />
 
-        {/* 학습객체 관리 */}
-        <Route path="/learning-objects" element={<LearningObjectsPage />} />
+        {/* Tenant Operator (TO) */}
+        <Route path="/to/dashboard" element={<TODashboardPage />} />
+        <Route path="/to/contents" element={<TOContentListPage />} />
+        <Route path="/to/contents/:id" element={<TOContentDetailPage />} />
+        <Route path="/to/learning" element={<LearningManagementPage />} />
+
+        {/* Tenant User (TU) */}
+        <Route path="/tu/dashboard" element={<TUDashboardPage />} />
+        <Route path="/tu/learning" element={<MyLearningPage />} />
+        <Route path="/tu/teaching/courses" element={<CourseListPage />} />
+        <Route path="/tu/teaching/courses/create" element={<CourseCreatePage />} />
+        <Route path="/tu/teaching/courses/:id" element={<CourseDetailPage />} />
+        <Route path="/tu/teaching/content" element={<ContentPoolPage />} />
+        <Route path="/tu/teaching/content/upload" element={<ContentUploadPage />} />
       </Routes>
     </BrowserRouter>
   );
@@ -554,25 +664,62 @@ function App() {
 
 ---
 
-## 7. 소스 위치
+## 8. 소스 위치
 
 ```
 frontend/src/
 ├── pages/
-│   ├── courses/
-│   │   ├── CourseListPage.tsx
-│   │   ├── CourseDetailPage.tsx
-│   │   └── CourseCreatePage.tsx
-│   ├── content/
-│   │   ├── ContentPoolPage.tsx
-│   │   └── ContentUploadPage.tsx
-│   └── learning/
-│       └── LearningObjectsPage.tsx
+│   ├── sa/                           # Super Admin
+│   │   ├── dashboard/
+│   │   │   └── DashboardPage.tsx
+│   │   ├── tenants/
+│   │   │   ├── TenantListPage.tsx
+│   │   │   └── TenantDetailPage.tsx
+│   │   └── settings/
+│   │       └── SystemSettingsPage.tsx
+│   ├── ta/                           # Tenant Admin
+│   │   ├── dashboard/
+│   │   │   └── DashboardPage.tsx
+│   │   ├── users/
+│   │   │   └── UserManagementPage.tsx
+│   │   └── settings/
+│   │       └── TenantSettingsPage.tsx
+│   ├── to/                           # Tenant Operator
+│   │   ├── dashboard/
+│   │   │   └── DashboardPage.tsx
+│   │   ├── contents/
+│   │   │   ├── ContentListPage.tsx
+│   │   │   └── ContentDetailPage.tsx
+│   │   └── learning/
+│   │       └── LearningManagementPage.tsx
+│   └── tu/                           # Tenant User
+│       ├── dashboard/
+│       │   └── DashboardPage.tsx
+│       ├── learning/
+│       │   └── MyLearningPage.tsx
+│       └── teaching/
+│           ├── courses/
+│           │   ├── CourseListPage.tsx
+│           │   ├── CourseDetailPage.tsx
+│           │   └── CourseCreatePage.tsx
+│           └── content/
+│               ├── ContentPoolPage.tsx
+│               └── ContentUploadPage.tsx
 ├── components/
-│   ├── TreeView.tsx
-│   ├── FolderTree.tsx
-│   ├── FileDropzone.tsx
-│   ├── ContentGrid.tsx
-│   └── LearningOrderEditor.tsx
+│   ├── common/                       # 공통 컴포넌트
+│   │   ├── TreeView.tsx
+│   │   ├── FolderTree.tsx
+│   │   ├── FileDropzone.tsx
+│   │   ├── ContentGrid.tsx
+│   │   └── LearningOrderEditor.tsx
+│   └── layout/
+│       ├── sa/                       # SA 레이아웃
+│       │   └── SuperAdminLayout.tsx
+│       ├── ta/                       # TA 레이아웃
+│       │   └── TenantAdminLayout.tsx
+│       ├── to/                       # TO 레이아웃
+│       │   └── TenantOperatorLayout.tsx
+│       └── tu/                       # TU 레이아웃
+│           └── TenantUserLayout.tsx
 └── App.tsx
 ```
