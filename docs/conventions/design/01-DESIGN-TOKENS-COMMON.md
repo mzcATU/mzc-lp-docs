@@ -52,6 +52,24 @@
   --color-status-disabled: #666666;
   --color-status-disabled-bg: #E0E0E0;
 
+  /* === Badge Colors (태그/카테고리용 - 뮤트 톤) === */
+  --color-badge-red: #9E3A3A;
+  --color-badge-red-bg: #FAECEC;
+  --color-badge-orange: #B5663A;
+  --color-badge-orange-bg: #FDF3EC;
+  --color-badge-yellow: #8C7A35;
+  --color-badge-yellow-bg: #FBF8E8;
+  --color-badge-green: #3D7A4A;
+  --color-badge-green-bg: #EDF5EF;
+  --color-badge-blue: #3A6B9E;
+  --color-badge-blue-bg: #ECF3FA;
+  --color-badge-indigo: #4C2D9A;
+  --color-badge-indigo-bg: #EDE7F6;
+  --color-badge-purple: #7A4A8C;
+  --color-badge-purple-bg: #F5EDF8;
+  --color-badge-gray: #616161;
+  --color-badge-gray-bg: #F5F5F5;
+
   /* === Sidebar - Dark Mode === */
   --sidebar-dark-bg: #2A2A2A;
   --sidebar-dark-border: #3F3F3F;
@@ -117,6 +135,16 @@ export const designTokens = {
     error_background: '#FFEBEE',
     disabled_text: '#666666',
     disabled_background: '#E0E0E0',
+  },
+  badge: {
+    red: { text: '#9E3A3A', bg: '#FAECEC' },
+    orange: { text: '#B5663A', bg: '#FDF3EC' },
+    yellow: { text: '#8C7A35', bg: '#FBF8E8' },
+    green: { text: '#3D7A4A', bg: '#EDF5EF' },
+    blue: { text: '#3A6B9E', bg: '#ECF3FA' },
+    indigo: { text: '#4C2D9A', bg: '#EDE7F6' },
+    purple: { text: '#7A4A8C', bg: '#F5EDF8' },
+    gray: { text: '#616161', bg: '#F5F5F5' },
   },
   sidebar: {
     dark: {
@@ -188,6 +216,24 @@ export default {
         'status-disabled': 'var(--color-status-disabled)',
         'status-disabled-bg': 'var(--color-status-disabled-bg)',
 
+        // Badge (태그/카테고리용)
+        'badge-red': 'var(--color-badge-red)',
+        'badge-red-bg': 'var(--color-badge-red-bg)',
+        'badge-orange': 'var(--color-badge-orange)',
+        'badge-orange-bg': 'var(--color-badge-orange-bg)',
+        'badge-yellow': 'var(--color-badge-yellow)',
+        'badge-yellow-bg': 'var(--color-badge-yellow-bg)',
+        'badge-green': 'var(--color-badge-green)',
+        'badge-green-bg': 'var(--color-badge-green-bg)',
+        'badge-blue': 'var(--color-badge-blue)',
+        'badge-blue-bg': 'var(--color-badge-blue-bg)',
+        'badge-indigo': 'var(--color-badge-indigo)',
+        'badge-indigo-bg': 'var(--color-badge-indigo-bg)',
+        'badge-purple': 'var(--color-badge-purple)',
+        'badge-purple-bg': 'var(--color-badge-purple-bg)',
+        'badge-gray': 'var(--color-badge-gray)',
+        'badge-gray-bg': 'var(--color-badge-gray-bg)',
+
         // Sidebar (Nested)
         'sidebar-dark': {
           bg: 'var(--sidebar-dark-bg)',
@@ -232,7 +278,7 @@ export default {
 | Neutral Primary | Dark Gray | `#2A2A2A` | 주요 액션 버튼 |
 | Neutral Hover | Gray | `#3D3D3D` | 주요 버튼 호버 |
 
-### 시맨틱 컬러
+### 시맨틱 컬러 (Status)
 
 | 상태 | 텍스트 | 배경 | 용도 |
 |------|--------|------|------|
@@ -240,6 +286,21 @@ export default {
 | Warning | `#FFA000` | `#FFF3CD` | 경고, 주의 |
 | Error | `#D32F2F` | `#FFEBEE` | 에러, 삭제 |
 | Disabled | `#666666` | `#E0E0E0` | 비활성 |
+
+### Badge 컬러 (태그/카테고리용)
+
+> 노션 스타일의 다중 선택 컬러 팔레트. 카테고리, 태그, 라벨 등에 사용.
+
+| 이름 | 텍스트 | 배경 | 용도 예시 |
+|------|--------|------|----------|
+| Red | `#9E3A3A` | `#FAECEC` | 긴급, 중요 |
+| Orange | `#B5663A` | `#FDF3EC` | 안내, 공지 |
+| Yellow | `#8C7A35` | `#FBF8E8` | 주의, 대기 |
+| Green | `#3D7A4A` | `#EDF5EF` | 참고자료, 완료 |
+| Blue | `#3A6B9E` | `#ECF3FA` | 과제, 프로그래밍 |
+| Indigo | `#4C2D9A` | `#EDE7F6` | 브랜드 관련 |
+| Purple | `#7A4A8C` | `#F5EDF8` | 프론트엔드 |
+| Gray | `#616161` | `#F5F5F5` | 기본, 기타 |
 
 ### 배경 컬러
 
