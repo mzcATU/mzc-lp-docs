@@ -1,6 +1,6 @@
 # 17. Design Implementation Conventions
 
-> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
+> 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](../00-CONVENTIONS-CORE.md)
 
 > Frontend 디자인 구현 - TailwindCSS + CVA + Radix UI
 
@@ -338,5 +338,5 @@ src/
 ---
 
 > 디자인 토큰 → [18-DESIGN-TOKENS](./18-DESIGN-TOKENS.md)
-> 컴포넌트 컨벤션 → [12-REACT-COMPONENT-CONVENTIONS](./12-REACT-COMPONENT-CONVENTIONS.md)
-> 프로젝트 구조 → [11-REACT-PROJECT-STRUCTURE](./11-REACT-PROJECT-STRUCTURE.md)
+> 컴포넌트 컨벤션 → [12-REACT-COMPONENT-CONVENTIONS](../12-REACT-COMPONENT-CONVENTIONS.md)
+> 프로젝트 구조 → [11-REACT-PROJECT-STRUCTURE](../11-REACT-PROJECT-STRUCTURE.md)

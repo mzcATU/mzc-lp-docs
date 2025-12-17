@@ -64,7 +64,7 @@
 
 | # | 문서 | 설명 |
 |---|------|------|
-| 17 | [DESIGN](./17-DESIGN-CONVENTIONS.md) | TailwindCSS, 디자인 시스템 |
+| 17-18 | [DESIGN](./design/) | TailwindCSS, 디자인 시스템, 디자인 토큰 |
 | 18 | [DOCKER](./18-DOCKER-CONVENTIONS.md) | Docker, docker-compose |
 | 19 | [DATABASE](./19-DATABASE-CONVENTIONS.md) | MySQL, 스키마 설계 |
 | 20 | [AWS](./20-AWS-CONVENTIONS.md) | ECS, RDS, S3, CI/CD |
