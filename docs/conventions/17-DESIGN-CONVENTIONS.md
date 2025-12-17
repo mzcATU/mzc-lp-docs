@@ -2,7 +2,7 @@
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 
-> Frontend 디자인 구현 - TailwindCSS + Design Tokens + Radix UI
+> Frontend 디자인 구현 - TailwindCSS + CVA + Radix UI
 
 ---
 
@@ -24,7 +24,6 @@
 
 ```
 ✅ 디자인 토큰 사용 → 하드코딩 금지
-✅ CSS 변수 + TypeScript 토큰 동기화 → 일관성 유지
 ✅ CVA로 컴포넌트 Variant 관리 → 타입 안전한 스타일링
 ✅ Radix UI 기반 컴포넌트 → 접근성 보장
 ✅ WCAG AA 준수 → 4.5:1 대비율 필수
@@ -32,191 +31,7 @@
 
 ---
 
-## 디자인 토큰 시스템
-
-### 1. CSS 변수 (index.css)
-
-```css
-:root {
-  /* === Background and Neutral Tones === */
-  --color-bg-default: #FFFFFF;       /* 주요 콘텐츠/카드 배경 */
-  --color-bg-app: #FAFAFA;           /* 전체 앱 배경 */
-  --color-bg-secondary: #F4F4F4;     /* Admin 페이지/테이블 헤더 */
-  --color-border: #E0E0E0;           /* 경계선, 인풋 테두리 */
-
-  /* === Text Colors === */
-  --color-text-primary: #333333;     /* 핵심 텍스트 */
-  --color-text-secondary: #666666;   /* 보조 텍스트/아이콘 */
-  --color-text-placeholder: #999999; /* 플레이스홀더 */
-
-  /* === Button - Neutral === */
-  --color-btn-neutral: #2A2A2A;
-  --color-btn-neutral-hover: #3D3D3D;
-  --color-btn-neutral-text: #FFFFFF;
-
-  /* === Button - Brand === */
-  --color-btn-brand: #4C2D9A;        /* 브랜드 컬러 (Indigo) */
-  --color-btn-brand-hover: #3D2478;
-  --color-btn-brand-text: #FFFFFF;
-
-  /* === Status Colors === */
-  --color-status-success: #388E3C;
-  --color-status-success-bg: #D4EDDA;
-  --color-status-warning: #FFA000;
-  --color-status-warning-bg: #FFF3CD;
-  --color-status-error: #D32F2F;
-  --color-status-error-bg: #FFEBEE;
-  --color-status-disabled: #666666;
-  --color-status-disabled-bg: #E0E0E0;
-
-  /* === Sidebar - Dark Mode === */
-  --sidebar-dark-bg: #2A2A2A;
-  --sidebar-dark-border: #3F3F3F;
-  --sidebar-dark-text-primary: #D4D4D4;
-  --sidebar-dark-text-secondary: #9E9E9E;
-  --sidebar-dark-hover: #353535;
-  --sidebar-dark-active-bg: #4A4A4A;
-  --sidebar-dark-active-text: #E8E8E8;
-
-  /* === Sidebar - Light Mode === */
-  --sidebar-light-bg: #EFEFEF;
-  --sidebar-light-border: #D0D0D0;
-  --sidebar-light-text-primary: #333333;
-  --sidebar-light-text-secondary: #666666;
-  --sidebar-light-hover: #E0E0E0;
-  --sidebar-light-active-bg: #D5D5D5;
-  --sidebar-light-active-text: #1F1F1F;
-
-  /* === Typography === */
-  --font-size-base: 16px;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-
-  /* === Spacing & Radius === */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-}
-```
-
-### 2. TypeScript 디자인 토큰 (design-tokens.ts)
-
-```typescript
-// src/styles/design-tokens.ts
-export const designTokens = {
-  bg: {
-    default: '#FFFFFF',
-    app_default: '#FAFAFA',
-    secondary: '#F4F4F4',
-    border: '#E0E0E0',
-  },
-  text: {
-    primary: '#333333',
-    secondary: '#666666',
-    placeholder: '#999999',
-  },
-  button: {
-    neutral_default: '#2A2A2A',
-    neutral_hover: '#3D3D3D',
-    brand_default: '#4C2D9A',
-    brand_hover: '#3D2478',
-  },
-  status: {
-    success_text: '#388E3C',
-    success_background: '#D4EDDA',
-    error_text: '#D32F2F',
-    error_background: '#FFEBEE',
-  },
-  darkMode: { /* 사이드바 다크모드 색상 */ },
-  lightMode: { /* 사이드바 라이트모드 색상 */ },
-};
-```
-
-### 3. Tailwind Config (tailwind.config.js)
-
-```javascript
-export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  theme: {
-    extend: {
-      colors: {
-        // Background
-        'bg-default': 'var(--color-bg-default)',
-        'bg-app': 'var(--color-bg-app)',
-        'bg-secondary': 'var(--color-bg-secondary)',
-        border: 'var(--color-border)',
-
-        // Text
-        'text-primary': 'var(--color-text-primary)',
-        'text-secondary': 'var(--color-text-secondary)',
-        'text-placeholder': 'var(--color-text-placeholder)',
-
-        // Button - Neutral
-        'btn-neutral': 'var(--color-btn-neutral)',
-        'btn-neutral-hover': 'var(--color-btn-neutral-hover)',
-
-        // Button - Brand
-        'btn-brand': 'var(--color-btn-brand)',
-        'btn-brand-hover': 'var(--color-btn-brand-hover)',
-
-        // Status
-        'status-success': 'var(--color-status-success)',
-        'status-success-bg': 'var(--color-status-success-bg)',
-        'status-warning': 'var(--color-status-warning)',
-        'status-warning-bg': 'var(--color-status-warning-bg)',
-        'status-error': 'var(--color-status-error)',
-        'status-error-bg': 'var(--color-status-error-bg)',
-        'status-disabled': 'var(--color-status-disabled)',
-        'status-disabled-bg': 'var(--color-status-disabled-bg)',
-
-        // Sidebar (Nested)
-        'sidebar-dark': {
-          bg: 'var(--sidebar-dark-bg)',
-          hover: 'var(--sidebar-dark-hover)',
-        },
-        'sidebar-light': {
-          bg: 'var(--sidebar-light-bg)',
-          hover: 'var(--sidebar-light-hover)',
-        },
-      },
-      borderRadius: {
-        sm: 'var(--radius-sm)',
-        md: 'var(--radius-md)',
-        lg: 'var(--radius-lg)',
-        xl: 'var(--radius-xl)',
-      },
-    },
-  },
-};
-```
-
----
-
-## 컬러 팔레트
-
-### 브랜드 컬러
-
-| 용도 | 색상 | HEX | 사용처 |
-|------|------|-----|--------|
-| Brand Primary | Indigo | `#4C2D9A` | 브랜드 버튼, 강조 |
-| Brand Hover | Dark Indigo | `#3D2478` | 브랜드 버튼 호버 |
-| Neutral Primary | Dark Gray | `#2A2A2A` | 주요 액션 버튼 |
-| Neutral Hover | Gray | `#3D3D3D` | 주요 버튼 호버 |
-
-### 시맨틱 컬러
-
-| 상태 | 텍스트 | 배경 | 용도 |
-|------|--------|------|------|
-| Success | `#388E3C` | `#D4EDDA` | 완료, 성공 |
-| Warning | `#FFA000` | `#FFF3CD` | 경고, 주의 |
-| Error | `#D32F2F` | `#FFEBEE` | 에러, 삭제 |
-| Disabled | `#666666` | `#E0E0E0` | 비활성 |
-
----
-
-## 컴포넌트 패턴 (CVA)
+## 1. 컴포넌트 패턴 (CVA)
 
 ### Button 컴포넌트
 
@@ -281,7 +96,7 @@ export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
 ---
 
-## UI 컴포넌트 라이브러리
+## 2. UI 컴포넌트 라이브러리
 
 ### Radix UI 컴포넌트 목록
 
@@ -311,7 +126,7 @@ export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
 ---
 
-## 레이아웃 시스템
+## 3. 레이아웃 시스템
 
 ### 역할별 레이아웃
 
@@ -356,55 +171,9 @@ function Layout({ children }: LayoutProps) {
 }
 ```
 
-### 사이드바 테마
-
-```css
-/* 다크 모드 스크롤바 */
-.sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #606060;
-}
-.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #707070;
-}
-
-/* 라이트 모드 스크롤바 */
-.sidebar-scrollbar-light::-webkit-scrollbar-thumb {
-  background-color: #C8C8C8;
-}
-.sidebar-scrollbar-light::-webkit-scrollbar-thumb:hover {
-  background-color: #B0B0B0;
-}
-```
-
 ---
 
-## 타이포그래피
-
-### 기본 설정
-
-```css
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 16px;
-}
-
-h1 { @apply text-2xl; }  /* 24px */
-h2 { @apply text-xl; }   /* 20px */
-h3 { @apply text-lg; }   /* 18px */
-h4 { @apply text-base; } /* 16px */
-```
-
-### Font Weight
-
-| 이름 | 값 | 용도 |
-|------|-----|------|
-| normal | 400 | 본문 |
-| medium | 500 | 헤딩, 레이블 |
-| semibold | 600 | 강조 |
-
----
-
-## 상태 스타일링
+## 4. 상태 스타일링
 
 ### 인터랙티브 요소
 
@@ -427,7 +196,7 @@ h4 { @apply text-base; } /* 16px */
 
 ---
 
-## 반응형 디자인
+## 5. 반응형 디자인
 
 ### 브레이크포인트
 
@@ -513,7 +282,7 @@ h4 { @apply text-base; } /* 16px */
 
 ---
 
-## 접근성 (A11y)
+## 6. 접근성 (A11y)
 
 ### WCAG AA 준수
 
@@ -523,22 +292,9 @@ h4 { @apply text-base; } /* 16px */
 | 포커스 표시 | 명확한 표시 | ✅ `focus:ring-2` |
 | 키보드 접근 | 전체 탐색 가능 | ✅ Radix UI 기본 지원 |
 
-### 다크 모드 대비율
-
-| 요소 | 대비율 | 상태 |
-|------|--------|------|
-| Primary Text | `#D4D4D4` on `#2A2A2A` | ✅ 9.7:1 |
-| Secondary Text | `#9E9E9E` on `#2A2A2A` | ✅ 5.2:1 |
-| Active Text | `#E8E8E8` on `#4A4A4A` | ✅ 6.8:1 |
-
 ---
 
-## 체크리스트
-
-### 디자인 토큰
-- [ ] CSS 변수와 TS 토큰 동기화 확인
-- [ ] 하드코딩 색상 사용 금지
-- [ ] Tailwind 클래스로 토큰 참조
+## 7. 체크리스트
 
 ### 컴포넌트
 - [ ] CVA로 variant 정의
@@ -557,7 +313,7 @@ h4 { @apply text-base; } /* 16px */
 
 ---
 
-## 파일 구조
+## 8. 파일 구조
 
 ```
 src/
@@ -570,9 +326,10 @@ src/
 │   │   ├── Input/
 │   │   └── ...
 │   └── layout/              # 레이아웃 컴포넌트
-│       ├── SuperAdminLayout.tsx
-│       ├── TenantAdminLayout.tsx
-│       └── AdminSidebar/
+│       ├── sa/
+│       ├── ta/
+│       ├── to/
+│       └── tu/
 ├── utils/
 │   └── cn.ts                # 클래스 병합 유틸리티
 └── tailwind.config.js       # Tailwind 설정
@@ -580,5 +337,6 @@ src/
 
 ---
 
+> 디자인 토큰 → [18-DESIGN-TOKENS](./18-DESIGN-TOKENS.md)
 > 컴포넌트 컨벤션 → [12-REACT-COMPONENT-CONVENTIONS](./12-REACT-COMPONENT-CONVENTIONS.md)
 > 프로젝트 구조 → [11-REACT-PROJECT-STRUCTURE](./11-REACT-PROJECT-STRUCTURE.md)
