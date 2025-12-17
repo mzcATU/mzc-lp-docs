@@ -15,11 +15,13 @@ src/
 │   ├── icons/
 │   └── fonts/
 │
-├── components/                    # 재사용 컴포넌트
-│   ├── common/                    # 공통 UI (Button, Input, Modal, Badge)
-│   ├── ui/                        # Radix 기반 Headless UI
-│   ├── layout/                    # 레이아웃 컴포넌트
-│   └── domain/                    # 도메인별 (content/, course/, user/)
+├── components/                    # 재사용 컴포넌트 (역할별 + 공통)
+│   ├── common/                    # 공통 UI (Button, Input, Modal, Dialog)
+│   └── layout/                    # 레이아웃 컴포넌트
+│       ├── sa/                    # Super Admin 레이아웃
+│       ├── ta/                    # Tenant Admin 레이아웃
+│       ├── to/                    # Tenant Operator 레이아웃
+│       └── tu/                    # Tenant User 레이아웃
 │
 ├── pages/                         # 역할별 페이지 (라우팅)
 │   ├── sa/                        # Super Admin
@@ -27,37 +29,40 @@ src/
 │   ├── to/                        # Tenant Operator
 │   └── tu/                        # Tenant User
 │
-├── hooks/                         # 커스텀 훅 (역할별 분리)
+├── hooks/                         # 커스텀 훅 (역할별 + 공통)
 │   ├── common/                    # 공통 훅
-│   │   ├── useAuth.ts
-│   │   └── useLocalStorage.ts
 │   ├── sa/                        # Super Admin 전용
 │   ├── ta/                        # Tenant Admin 전용
 │   ├── to/                        # Tenant Operator 전용
 │   └── tu/                        # Tenant User 전용
 │
-├── store/                         # 전역 상태 Zustand (역할별 분리)
+├── store/                         # 전역 상태 Zustand (역할별 + 공통)
 │   ├── common/                    # 공통 스토어
-│   │   ├── authStore.ts
-│   │   └── uiStore.ts
 │   ├── sa/                        # Super Admin 전용
 │   ├── ta/                        # Tenant Admin 전용
 │   ├── to/                        # Tenant Operator 전용
 │   └── tu/                        # Tenant User 전용
 │
-├── services/                      # API 통신
-│   ├── api/
-│   │   ├── axiosInstance.ts
-│   │   └── endpoints.ts
-│   ├── authService.ts
-│   ├── userService.ts
-│   └── courseService.ts
+├── services/                      # API 통신 (역할별 + 공통)
+│   ├── common/                    # 공통 서비스
+│   │   ├── api/
+│   │   │   ├── axiosInstance.ts
+│   │   │   └── endpoints.ts
+│   │   └── authService.ts
+│   ├── sa/                        # Super Admin 전용
+│   ├── ta/                        # Tenant Admin 전용
+│   ├── to/                        # Tenant Operator 전용
+│   └── tu/                        # Tenant User 전용
 │
-├── types/                         # 타입 정의
-│   ├── auth.types.ts
-│   ├── user.types.ts
-│   ├── course.types.ts
-│   └── api.types.ts
+├── types/                         # 타입 정의 (역할별 + 공통)
+│   ├── common/                    # 공통 타입
+│   │   ├── auth.types.ts
+│   │   ├── user.types.ts
+│   │   └── api.types.ts
+│   ├── sa/                        # Super Admin 전용
+│   ├── ta/                        # Tenant Admin 전용
+│   ├── to/                        # Tenant Operator 전용
+│   └── tu/                        # Tenant User 전용
 │
 ├── styles/                        # 스타일
 │   └── design-tokens.ts
@@ -70,7 +75,7 @@ src/
 ├── config/                        # 설정
 │   └── constants.ts
 │
-├── routes/                        # 라우팅 (선택)
+├── routes/                        # 라우팅
 │   └── index.tsx
 │
 ├── index.css
@@ -80,42 +85,75 @@ src/
 
 ---
 
-## 2. 컴포넌트 폴더 구조
+## 2. 역할별 폴더 구조 규칙
 
-### 기본 구조
+### 역할 구분
+
+| 역할 | 폴더명 | 설명 |
+|------|--------|------|
+| 공통 | `common/` | 모든 역할에서 사용 |
+| Super Admin | `sa/` | 슈퍼 관리자 전용 |
+| Tenant Admin | `ta/` | 테넌트 관리자 전용 |
+| Tenant Operator | `to/` | 테넌트 운영자 전용 |
+| Tenant User | `tu/` | 테넌트 사용자 전용 |
+
+### 적용 대상
 
 ```
-components/
-├── common/                        # 공통 UI 컴포넌트
-│   ├── Button/
-│   │   ├── Button.tsx             # 메인 컴포넌트
-│   │   ├── Button.types.ts        # Props 타입 정의
-│   │   ├── Button.test.tsx        # 테스트 (선택)
-│   │   └── index.ts               # re-export
-│   ├── Input/
-│   ├── Badge/
-│   └── Modal/
-│
-├── ui/                            # Radix 기반 Headless UI
-│   ├── Dialog/
-│   ├── Select/
-│   └── Dropdown/
-│
-├── layout/                        # 레이아웃 컴포넌트
+역할별로 분리하는 폴더:
+├── components/layout/     # 레이아웃
+├── pages/                 # 페이지
+├── hooks/                 # 커스텀 훅
+├── store/                 # 전역 상태
+├── services/              # API 서비스
+└── types/                 # 타입 정의
+
+공통으로 유지하는 폴더:
+├── assets/                # 정적 리소스
+├── components/common/     # 공통 UI 컴포넌트
+├── styles/                # 스타일
+├── utils/                 # 유틸리티
+├── config/                # 설정
+└── routes/                # 라우팅
+```
+
+---
+
+## 3. 컴포넌트 폴더 구조
+
+### 공통 컴포넌트 (common)
+
+```
+components/common/
+├── Button/
+│   ├── Button.tsx             # 메인 컴포넌트
+│   ├── Button.types.ts        # Props 타입 정의
+│   ├── Button.test.tsx        # 테스트 (선택)
+│   └── index.ts               # re-export
+├── Input/
+├── Badge/
+├── Modal/
+├── Dialog/                    # Radix 기반
+├── Select/                    # Radix 기반
+└── Dropdown/                  # Radix 기반
+```
+
+### 레이아웃 컴포넌트 (역할별)
+
+```
+components/layout/
+├── sa/                        # Super Admin
 │   ├── SuperAdminLayout.tsx
+│   └── SuperAdminSidebar/
+├── ta/                        # Tenant Admin
 │   ├── TenantAdminLayout.tsx
+│   └── TenantAdminSidebar/
+├── to/                        # Tenant Operator
 │   ├── TenantOperatorLayout.tsx
-│   ├── TenantUserLayout.tsx
-│   └── Sidebar/
-│       ├── SuperAdminSidebar/
-│       ├── TenantAdminSidebar/
-│       ├── TenantOperatorSidebar/
-│       └── TenantUserSidebar/
-│
-└── domain/                        # 도메인별 컴포넌트
-    ├── content/
-    ├── course/
-    └── user/
+│   └── TenantOperatorSidebar/
+└── tu/                        # Tenant User
+    ├── TenantUserLayout.tsx
+    └── TenantUserSidebar/
 ```
 
 ### index.ts 패턴
@@ -137,10 +175,32 @@ export type { ButtonProps } from './Button.types';
 
 ---
 
-## 3. Services (API)
+## 4. Services (API)
+
+### 폴더 구조
+
+```
+services/
+├── common/                    # 공통 서비스
+│   ├── api/
+│   │   ├── axiosInstance.ts   # Axios 인스턴스
+│   │   └── endpoints.ts       # API 엔드포인트 상수
+│   ├── authService.ts         # 인증 API
+│   └── userService.ts         # 사용자 API
+├── sa/                        # Super Admin 전용
+│   └── tenantService.ts
+├── ta/                        # Tenant Admin 전용
+│   └── userManagementService.ts
+├── to/                        # Tenant Operator 전용
+│   └── contentService.ts
+└── tu/                        # Tenant User 전용
+    └── learningService.ts
+```
+
+### 예제
 
 ```typescript
-// services/api/axiosInstance.ts
+// services/common/api/axiosInstance.ts
 import axios from 'axios';
 
 export const axiosInstance = axios.create({
@@ -157,9 +217,9 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-// services/userService.ts
+// services/common/userService.ts
 import { axiosInstance } from './api/axiosInstance';
-import type { User } from '@/types/user.types';
+import type { User } from '@/types/common/user.types';
 
 export const userService = {
   async getUsers(): Promise<User[]> {
@@ -181,10 +241,30 @@ export const userService = {
 
 ---
 
-## 4. Types
+## 5. Types
+
+### 폴더 구조
+
+```
+types/
+├── common/                    # 공통 타입
+│   ├── auth.types.ts          # 인증 관련
+│   ├── user.types.ts          # 사용자 관련
+│   └── api.types.ts           # API 응답 공통
+├── sa/                        # Super Admin 전용
+│   └── tenant.types.ts
+├── ta/                        # Tenant Admin 전용
+│   └── userManagement.types.ts
+├── to/                        # Tenant Operator 전용
+│   └── content.types.ts
+└── tu/                        # Tenant User 전용
+    └── learning.types.ts
+```
+
+### 예제
 
 ```typescript
-// types/user.types.ts
+// types/common/user.types.ts
 export interface User {
   id: number;
   name: string;
@@ -203,7 +283,7 @@ export interface CreateUserRequest {
   password: string;
 }
 
-// types/api.types.ts
+// types/common/api.types.ts
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -220,7 +300,7 @@ export interface PaginatedResponse<T> {
 
 ---
 
-## 5. Hooks
+## 6. Hooks
 
 ### 폴더 구조
 
@@ -245,8 +325,8 @@ hooks/
 ```typescript
 // hooks/common/useUser.ts
 import { useState, useEffect } from 'react';
-import { userService } from '@/services/userService';
-import type { User } from '@/types/user.types';
+import { userService } from '@/services/common/userService';
+import type { User } from '@/types/common/user.types';
 
 export const useUser = (userId: number) => {
   const [user, setUser] = useState<User | null>(null);
@@ -275,7 +355,7 @@ export const useUser = (userId: number) => {
 
 ---
 
-## 6. Store (Zustand)
+## 7. Store (Zustand)
 
 ### 폴더 구조
 
@@ -300,7 +380,7 @@ store/
 // store/common/authStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from '@/types/user.types';
+import type { User } from '@/types/common/user.types';
 
 interface AuthState {
   user: User | null;
@@ -345,7 +425,7 @@ export const useUIStore = create<UIState>((set) => ({
 
 ---
 
-## 7. 설정 파일
+## 8. 설정 파일
 
 ### tsconfig.json
 ```json
