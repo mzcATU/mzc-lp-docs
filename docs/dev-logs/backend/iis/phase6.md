@@ -10,6 +10,7 @@
 |------|------|
 | **작업자** | Claude Code |
 | **작업 일자** | 2025-12-18 |
+| **관련 이슈** | [#125](https://github.com/mzcATU/mzc-lp-backend/issues/125) |
 | **담당 모듈** | IIS (Instructor Information System - 강사 배정 관리) |
 
 ---
