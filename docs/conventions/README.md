@@ -27,6 +27,7 @@
 | 외부 API | 22 |
 | 멀티테넌시 | 23 |
 | Ignore 설정 | 24 (+ 02, 17 참조) |
+| 다국어(i18n) | 25 (+ 14 참조) |
 
 ---
 
@@ -91,25 +92,26 @@
 
 ---
 
-## 기타 (23-24)
+## 기타 (23-25)
 
 | # | 문서 | 설명 |
 |---|------|------|
 | 23 | [MULTI-TENANCY](./23-MULTI-TENANCY.md) | 멀티테넌트 아키텍처 |
 | 24 | [IGNORE](./24-IGNORE-CONVENTIONS.md) | .gitignore, .dockerignore 설정 |
+| 25 | [I18N](./25-I18N-CONVENTIONS.md) | 다국어 지원 (MessageSource, i18next) |
 
 ---
 
 ## 문서 통계
 
 ```
-총 문서 수: 25개 (컨벤션)
+총 문서 수: 26개 (컨벤션)
 - Backend: 10개 (00-09)
 - Frontend: 7개 (10-16)
 - Design: 3개 (design/00-02)
 - Infrastructure: 3개 (17-19)
 - 품질: 3개 (20-22)
-- 기타: 2개 (23-24)
+- 기타: 3개 (23-25)
 ```
 
 ---
@@ -118,7 +120,6 @@
 
 ### 루트
 - [CLAUDE.md](../CLAUDE.md) - AI 작업 가이드 (핵심)
-- [MONOREPO.md](../MONOREPO.md) - 모노레포 설정
 - [POLY-REPO.md](../POLY-REPO.md) - 폴리레포 가이드
 
 ### 컨텍스트 (context/)

@@ -17,10 +17,7 @@
 
 ### 저장소 구조
 
-| 구조 | 가이드 |
-|------|--------|
-| Monorepo | [MONOREPO.md](./MONOREPO.md) |
-| 폴리레포 | [POLY-REPO.md](./POLY-REPO.md) |
+> 폴리레포 (3개 저장소) → [POLY-REPO.md](./POLY-REPO.md)
 
 ---
 
@@ -157,7 +154,7 @@ frontend/src/
 
 | 분류 | 문서 |
 |------|------|
-| **환경** | [MONOREPO](./MONOREPO.md), [POLY-REPO](./POLY-REPO.md) |
+| **환경** | [POLY-REPO](./POLY-REPO.md) |
 | **컨벤션** | [conventions/](./conventions/) |
 | **템플릿** | [templates/](./templates/) |
 

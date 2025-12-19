@@ -9,9 +9,7 @@
 ### 워크플로우
 | 템플릿 | 용도 | 언제 사용? |
 |--------|------|-----------|
-| [task-workflow](./task-workflow.md) | AI 작업 프로세스 | 모든 코드 생성/수정 작업 |
-| [workflow-checklist](./workflow-checklist.md) | 7단계 체크리스트 | 복잡한 기능 구현 시 |
-| [mcdonaldization](./mcdonaldization.md) | 맥도날드화 원칙 | 프로세스 표준화 필요 시 |
+| [task-workflow](./task-workflow.md) | AI 작업 프로세스 (7단계 워크플로우 포함) | 모든 코드 생성/수정 작업 |
 
 ### 기획/우선순위
 | 템플릿 | 용도 | 언제 사용? |
@@ -37,13 +35,11 @@
 ## 🎯 작업별 빠른 참조
 
 ### AI에게 작업 요청할 때
-1. **[task-workflow.md](./task-workflow.md)** - AI가 따라야 할 작업 프로세스
-2. **[moscow-priority.md](./moscow-priority.md)** - 우선순위 분류
+1. **[task-workflow.md](./task-workflow.md)** - AI가 따라야 할 작업 프로세스 (7단계 워크플로우, MoSCoW 포함)
 
 ### 새 기능 기획할 때
 1. **[prd.md](./prd.md)** - 요구사항 정리
-2. **[workflow-checklist.md](./workflow-checklist.md)** - 7단계 체크
-3. **[mcdonaldization.md](./mcdonaldization.md)** - 표준화 원칙
+2. **[moscow-priority.md](./moscow-priority.md)** - 우선순위 분류
 
 ### 코드 작성 후
 1. **[code-review-checklist.md](./code-review-checklist.md)** - 자체 점검

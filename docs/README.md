@@ -11,7 +11,6 @@
 ├── 📄 CLAUDE.md                 # AI 작업 가이드 (핵심 진입점)
 ├── 📄 PHASE-ROADMAP.md          # 개발 로드맵 (B2C→B2B→KPOP)
 ├── 📄 POLY-REPO.md              # 폴리레포 구성 가이드
-├── 📄 MONOREPO.md               # 모노레포 설정 가이드
 │
 ├── 📁 conventions/              # 코딩 컨벤션
 │   ├── 00-CONVENTIONS-CORE.md   # 공통 핵심 규칙
@@ -94,6 +93,7 @@
 | 22 | EXTERNAL-API | 외부 연동, 재시도 |
 | 23 | MULTI-TENANCY | 멀티테넌트 아키텍처 |
 | 24 | IGNORE | .gitignore, .dockerignore |
+| 25 | I18N | 다국어 지원 (MessageSource, i18next) |
 
 ---
 
