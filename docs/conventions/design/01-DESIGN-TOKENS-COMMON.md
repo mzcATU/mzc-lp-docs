@@ -42,6 +42,11 @@
   --color-btn-brand-hover: #3D2478;
   --color-btn-brand-text: #FFFFFF;
 
+  /* === Tenant Brand (동적으로 변경 가능, 기본값은 Brand와 동일) === */
+  --color-tenant-primary: var(--color-btn-brand);
+  --color-tenant-primary-hover: var(--color-btn-brand-hover);
+  --color-tenant-primary-text: #FFFFFF;
+
   /* === Status Colors === */
   --color-status-success: #388E3C;
   --color-status-success-bg: #D4EDDA;
@@ -206,6 +211,11 @@ export default {
         'btn-brand': 'var(--color-btn-brand)',
         'btn-brand-hover': 'var(--color-btn-brand-hover)',
 
+        // Tenant Brand (동적)
+        'tenant-primary': 'var(--color-tenant-primary)',
+        'tenant-primary-hover': 'var(--color-tenant-primary-hover)',
+        'tenant-primary-text': 'var(--color-tenant-primary-text)',
+
         // Status
         'status-success': 'var(--color-status-success)',
         'status-success-bg': 'var(--color-status-success-bg)',
@@ -277,6 +287,53 @@ export default {
 | Brand Hover | Dark Indigo | `#3D2478` | 브랜드 버튼 호버 |
 | Neutral Primary | Dark Gray | `#2A2A2A` | 주요 액션 버튼 |
 | Neutral Hover | Gray | `#3D3D3D` | 주요 버튼 호버 |
+
+### 테넌트 브랜드 컬러 (동적)
+
+> 테넌트별 브랜드 색상을 동적으로 적용할 수 있는 시스템입니다.
+
+| Token | 기본값 | 설명 |
+|-------|-------|------|
+| `--color-tenant-primary` | `var(--color-btn-brand)` | 테넌트 메인 컬러 |
+| `--color-tenant-primary-hover` | `var(--color-btn-brand-hover)` | 호버 상태 |
+| `--color-tenant-primary-text` | `#FFFFFF` | 텍스트 색상 |
+
+**적용 범위:**
+- ✅ 등록 페이지 Step 인디케이터 (완료된 step, 연결선)
+- ✅ CTA 버튼 (`variant="tenant"`) - 등록, 다음, 이전, 발행 등
+- ❌ Input focus ring (뉴트럴 유지)
+- ❌ 보조 버튼 (임시저장, 닫기 등)
+
+**Tailwind 사용 예시:**
+```jsx
+// Step 인디케이터
+<div className="bg-tenant-primary text-white">1</div>
+<div className="bg-tenant-primary h-0.5" /> {/* 연결선 */}
+
+// Button 컴포넌트
+<Button variant="tenant">다음</Button>
+<Button variant="tenant">강의 등록</Button>
+```
+
+**동적 색상 변경 (추후 구현):**
+```typescript
+// 테넌트 색상 적용
+const applyTenantBrandColor = (color: string) => {
+  document.documentElement.style.setProperty('--color-tenant-primary', color);
+  document.documentElement.style.setProperty('--color-tenant-primary-hover', darkenColor(color, 10));
+
+  // 명도에 따라 텍스트 색상 자동 결정
+  const textColor = calculateLightness(color) > 60 ? '#000000' : '#FFFFFF';
+  document.documentElement.style.setProperty('--color-tenant-primary-text', textColor);
+};
+
+// 사용 예시
+useEffect(() => {
+  if (tenantData?.brandColor) {
+    applyTenantBrandColor(tenantData.brandColor);
+  }
+}, [tenantData]);
+```
 
 ### 시맨틱 컬러 (Status)
 
