@@ -8,7 +8,7 @@
 
 ```
 frontend/src/pages/
-├── sa/                           # Super Admin (SA)
+├── sa/                           # System Admin (SA)
 │   ├── dashboard/
 │   │   └── DashboardPage.tsx
 │   ├── tenants/
@@ -48,7 +48,7 @@ frontend/src/pages/
 
 ---
 
-## 2. Super Admin 페이지 (SA)
+## 2. System Admin 페이지 (SA)
 
 ### 2.1 DashboardPage
 
@@ -631,7 +631,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Super Admin (SA) */}
+        {/* System Admin (SA) */}
         <Route path="/sa/dashboard" element={<SADashboardPage />} />
         <Route path="/sa/tenants" element={<TenantListPage />} />
         <Route path="/sa/tenants/:id" element={<TenantDetailPage />} />
@@ -669,7 +669,7 @@ function App() {
 ```
 frontend/src/
 ├── pages/
-│   ├── sa/                           # Super Admin
+│   ├── sa/                           # System Admin
 │   │   ├── dashboard/
 │   │   │   └── DashboardPage.tsx
 │   │   ├── tenants/

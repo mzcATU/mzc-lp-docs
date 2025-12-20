@@ -426,7 +426,7 @@ frontend/src/
 │   │   │   ├── axiosInstance.ts    # Axios 인스턴스
 │   │   │   └── endpoints.ts        # API 엔드포인트 상수
 │   │   └── authService.ts          # 인증 서비스
-│   ├── sa/                         # Super Admin 서비스
+│   ├── sa/                         # System Admin 서비스
 │   │   └── api/
 │   ├── ta/                         # Tenant Admin 서비스
 │   │   └── api/

@@ -131,7 +131,7 @@ export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 ### 역할별 레이아웃
 
 ```
-/sa/*  → SuperAdminLayout    (슈퍼 관리자)
+/sa/*  → SystemAdminLayout   (시스템 관리자)
 /ta/*  → TenantAdminLayout   (테넌트 관리자)
 /to/*  → TenantOperatorLayout (테넌트 운영자)
 /tu/*  → TenantUserLayout    (테넌트 사용자)

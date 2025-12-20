@@ -236,7 +236,7 @@ public enum CourseRole {
 ### Security 어노테이션
 
 ```java
-@PreAuthorize("hasRole('SUPER_ADMIN')")              // Super Admin 전용
+@PreAuthorize("hasRole('SYSTEM_ADMIN')")              // System Admin 전용
 @PreAuthorize("hasRole('TENANT_ADMIN')")             // Tenant Admin 전용
 @PreAuthorize("hasAnyRole('TENANT_ADMIN', 'TENANT_OPERATOR')")  // 둘 다 허용
 @PreAuthorize("@tenantSecurity.belongsTo(#tenantId)")           // 소속 확인

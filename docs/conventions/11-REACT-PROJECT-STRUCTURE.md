@@ -18,27 +18,27 @@ src/
 ├── components/                    # 재사용 컴포넌트 (역할별 + 공통)
 │   ├── common/                    # 공통 UI (Button, Input, Modal, Dialog)
 │   └── layout/                    # 레이아웃 컴포넌트
-│       ├── sa/                    # Super Admin 레이아웃
+│       ├── sa/                    # System Admin 레이아웃
 │       ├── ta/                    # Tenant Admin 레이아웃
 │       ├── to/                    # Tenant Operator 레이아웃
 │       └── tu/                    # Tenant User 레이아웃
 │
 ├── pages/                         # 역할별 페이지 (라우팅)
-│   ├── sa/                        # Super Admin
+│   ├── sa/                        # System Admin
 │   ├── ta/                        # Tenant Admin
 │   ├── to/                        # Tenant Operator
 │   └── tu/                        # Tenant User
 │
 ├── hooks/                         # 커스텀 훅 (역할별 + 공통)
 │   ├── common/                    # 공통 훅
-│   ├── sa/                        # Super Admin 전용
+│   ├── sa/                        # System Admin 전용
 │   ├── ta/                        # Tenant Admin 전용
 │   ├── to/                        # Tenant Operator 전용
 │   └── tu/                        # Tenant User 전용
 │
 ├── store/                         # 전역 상태 Zustand (역할별 + 공통)
 │   ├── common/                    # 공통 스토어
-│   ├── sa/                        # Super Admin 전용
+│   ├── sa/                        # System Admin 전용
 │   ├── ta/                        # Tenant Admin 전용
 │   ├── to/                        # Tenant Operator 전용
 │   └── tu/                        # Tenant User 전용
@@ -49,7 +49,7 @@ src/
 │   │   │   ├── axiosInstance.ts
 │   │   │   └── endpoints.ts
 │   │   └── authService.ts
-│   ├── sa/                        # Super Admin 전용
+│   ├── sa/                        # System Admin 전용
 │   ├── ta/                        # Tenant Admin 전용
 │   ├── to/                        # Tenant Operator 전용
 │   └── tu/                        # Tenant User 전용
@@ -59,7 +59,7 @@ src/
 │   │   ├── auth.types.ts
 │   │   ├── user.types.ts
 │   │   └── api.types.ts
-│   ├── sa/                        # Super Admin 전용
+│   ├── sa/                        # System Admin 전용
 │   ├── ta/                        # Tenant Admin 전용
 │   ├── to/                        # Tenant Operator 전용
 │   └── tu/                        # Tenant User 전용
@@ -92,7 +92,7 @@ src/
 | 역할 | 폴더명 | 설명 |
 |------|--------|------|
 | 공통 | `common/` | 모든 역할에서 사용 |
-| Super Admin | `sa/` | 슈퍼 관리자 전용 |
+| System Admin | `sa/` | 슈퍼 관리자 전용 |
 | Tenant Admin | `ta/` | 테넌트 관리자 전용 |
 | Tenant Operator | `to/` | 테넌트 운영자 전용 |
 | Tenant User | `tu/` | 테넌트 사용자 전용 |
@@ -142,7 +142,7 @@ components/common/
 
 ```
 components/layout/
-├── sa/                        # Super Admin
+├── sa/                        # System Admin
 │   ├── SuperAdminLayout.tsx
 │   └── SuperAdminSidebar/
 ├── ta/                        # Tenant Admin
@@ -167,7 +167,7 @@ export type { ButtonProps } from './Button.types';
 ### 역할별 레이아웃 라우팅
 
 ```
-/sa/*  → SuperAdminLayout      (슈퍼 관리자)
+/sa/*  → SystemAdminLayout     (시스템 관리자)
 /ta/*  → TenantAdminLayout     (테넌트 관리자)
 /to/*  → TenantOperatorLayout  (테넌트 운영자)
 /tu/*  → TenantUserLayout      (테넌트 사용자)
@@ -187,7 +187,7 @@ services/
 │   │   └── endpoints.ts       # API 엔드포인트 상수
 │   ├── authService.ts         # 인증 API
 │   └── userService.ts         # 사용자 API
-├── sa/                        # Super Admin 전용
+├── sa/                        # System Admin 전용
 │   └── tenantService.ts
 ├── ta/                        # Tenant Admin 전용
 │   └── userManagementService.ts
@@ -251,7 +251,7 @@ types/
 │   ├── auth.types.ts          # 인증 관련
 │   ├── user.types.ts          # 사용자 관련
 │   └── api.types.ts           # API 응답 공통
-├── sa/                        # Super Admin 전용
+├── sa/                        # System Admin 전용
 │   └── tenant.types.ts
 ├── ta/                        # Tenant Admin 전용
 │   └── userManagement.types.ts
@@ -310,7 +310,7 @@ hooks/
 │   ├── useAuth.ts
 │   ├── useLocalStorage.ts
 │   └── useDebounce.ts
-├── sa/                        # Super Admin 전용 훅
+├── sa/                        # System Admin 전용 훅
 │   └── useTenantManagement.ts
 ├── ta/                        # Tenant Admin 전용 훅
 │   └── useUserManagement.ts
@@ -364,7 +364,7 @@ store/
 ├── common/                    # 공통 스토어 (모든 역할에서 사용)
 │   ├── authStore.ts           # 인증 상태
 │   └── uiStore.ts             # UI 상태 (사이드바, 다크모드)
-├── sa/                        # Super Admin 전용 스토어
+├── sa/                        # System Admin 전용 스토어
 │   └── tenantStore.ts
 ├── ta/                        # Tenant Admin 전용 스토어
 │   └── userManagementStore.ts

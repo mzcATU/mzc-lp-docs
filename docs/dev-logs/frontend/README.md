@@ -11,7 +11,7 @@ frontend/
 ├── README.md              # 이 파일
 ├── common/                # 공통 (디자인 시스템, 레이아웃, 인증)
 │   └── phase1.md
-├── sa/                    # Super Admin 페이지
+├── sa/                    # System Admin 페이지
 │   └── phase1.md
 ├── ta/                    # Tenant Admin 페이지
 │   └── phase1.md
@@ -28,7 +28,7 @@ frontend/
 ### Common (공통)
 - **Phase 1**: 디자인 시스템, 레이아웃, 인증
 
-### SA (Super Admin)
+### SA (System Admin)
 - **Phase 1**: 테넌트 관리, 시스템 설정 페이지
 
 ### TA (Tenant Admin)

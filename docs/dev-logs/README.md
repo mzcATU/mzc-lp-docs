@@ -21,7 +21,7 @@ dev-logs/
 └── frontend/                # 프론트엔드 역할별 개발 로그
     ├── README.md            # 프론트엔드 인덱스
     ├── common/              # 공통 (디자인 시스템, 레이아웃, 인증)
-    ├── sa/                  # Super Admin 페이지
+    ├── sa/                  # System Admin 페이지
     ├── ta/                  # Tenant Admin 페이지
     ├── to/                  # Tenant Operator 페이지
     └── tu/                  # Tenant User 페이지
@@ -42,22 +42,55 @@ dev-logs/
 
 #### TS (Time Schedule) - 강의 시간표
 - **Phase 1**: CourseTime Entity 및 CRUD API 구현
+- **Phase 2**: CourseTime 상세 조회, 필터링 API
+- **Phase 3**: CourseTime 상태 관리 (ACTIVE/INACTIVE)
+- **Phase 4**: 차수별 정원 관리 및 검증
+- **Phase 5**: CourseTime 일괄 생성 API
+- **Phase 6**: 차수 기간 중복 검증
+- **Phase 7**: CourseTime @Version 낙관적 락 추가
+
+#### CM (Course Management) - 코스 관리
+- **Phase 1**: Course Entity 및 기본 CRUD API
+- **Phase 2**: Course-CourseTime 연관관계 설정
+- **Phase 3**: Course 상태 관리 (DRAFT → PENDING → APPROVED)
+- **Phase 4**: Course 카테고리 연동
+- **Phase 5**: Course 검색 및 필터링
+- **Phase 6**: Course 권한 검증 (CourseRole)
+- **Phase 7**: Course @Version 낙관적 락 추가
+
+#### CMS (Content Management System) - 콘텐츠 관리
+- **Phase 1**: Content Entity 및 기본 CRUD
+- **Phase 2**: Content 파일 업로드 연동
+- **Phase 3**: Content 순서 관리
+- **Phase 4**: Content @Version 낙관적 락 추가
+
+#### LO (Learning Object) - 학습 객체
+- **Phase 1**: LO Entity 및 타입별 구현
 
 #### Tenant (Multi-Tenancy)
-- _계획 중_
+- **Phase 1**: 인프라 구조 설계
+- **Phase 2**: Tenant Entity 구현
+- **Phase 3**: Tenant CRUD API 구현
 
-#### SIS (Student Information System)
-- _계획 중_
+#### SIS (Student Information System) - 수강 관리
+- **Phase 1**: Enrollment Entity 및 기본 수강 신청
+- **Phase 2**: 수강 취소, 상태 관리 구현
+- **Phase 3**: Race Condition 방지 (비관적 락), @Version 추가
 
-#### IIS (Instructor Information System)
-- _계획 중_
+#### IIS (Instructor Information System) - 강사 배정
+- **Phase 1**: InstructorAssignment Entity 및 기본 구조
+- **Phase 2**: 강사 배정 CRUD API 구현
+- **Phase 3**: 배정 해제 및 이력 관리
+- **Phase 4**: InstructorRole (MAIN/SUB/ASSISTANT) 구현
+- **Phase 5**: 주강사 중복 배정 방지 로직
+- **Phase 6**: Race Condition 방지 (비관적 락), @Version 추가
 
 ### Frontend
 
 #### Common (공통)
 - **Phase 1**: 디자인 시스템, 레이아웃, 인증
 
-#### SA (Super Admin)
+#### SA (System Admin)
 - **Phase 1**: 테넌트 관리, 시스템 설정 페이지
 
 #### TA (Tenant Admin)
@@ -120,7 +153,13 @@ dev-logs/
 - **멀티테넌시**: `backend/um/phase3.md`
 - **회원 탈퇴**: `backend/um/phase4.md`
 - **프로필 이미지**: `backend/um/phase5.md`
-- **강의 시간표**: `backend/ts/phase1.md`
+- **강의 시간표**: `backend/ts/`
+- **코스 관리**: `backend/cm/`
+- **콘텐츠 관리**: `backend/cms/`
+- **학습 객체**: `backend/lo/phase1.md`
+- **테넌트 관리**: `backend/tenant/`
+- **수강 관리**: `backend/sis/`
+- **강사 배정**: `backend/iis/`
 
 ### 전체 개요 보기
 - **백엔드 요약**: `backend-summary.md`
@@ -132,15 +171,14 @@ dev-logs/
 
 | 모듈 | Phase | 상태 | 완료일 |
 |-----|-------|------|--------|
-| UM | Phase 1 | ✅ 완료 | 2025-12-11 |
-| UM | Phase 2 | ✅ 완료 | 2025-12-11 |
-| UM | Phase 3 | ✅ 완료 | 2025-12-12 |
-| UM | Phase 4 | ✅ 완료 | 2025-12-12 |
-| UM | Phase 5 | ✅ 완료 | 2025-12-12 |
-| TS | Phase 1 | ✅ 완료 | 2025-12-12 |
-| Tenant | Phase 1 | 🔄 진행 중 | - |
-| SIS | Phase 1 | 📋 계획 중 | - |
-| IIS | Phase 1 | 📋 계획 중 | - |
+| UM | Phase 1-5 | ✅ 완료 | 2025-12-12 |
+| TS | Phase 1-7 | ✅ 완료 | 2025-12-19 |
+| CM | Phase 1-7 | ✅ 완료 | 2025-12-18 |
+| CMS | Phase 1-4 | ✅ 완료 | 2025-12-19 |
+| LO | Phase 1 | ✅ 완료 | 2025-12-17 |
+| Tenant | Phase 1-3 | ✅ 완료 | 2025-12-16 |
+| SIS | Phase 1-3 | ✅ 완료 | 2025-12-19 |
+| IIS | Phase 1-6 | ✅ 완료 | 2025-12-19 |
 
 ### Frontend
 
@@ -163,4 +201,4 @@ dev-logs/
 ---
 
 **작성자**: Development Team
-**최종 수정**: 2025-12-16
+**최종 수정**: 2025-12-20

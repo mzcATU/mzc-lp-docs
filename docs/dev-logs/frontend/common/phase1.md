@@ -37,7 +37,7 @@
 
 | 컴포넌트 | 라우트 | 설명 |
 |----------|--------|------|
-| SuperAdminLayout | `/sa/*` | 슈퍼 관리자 |
+| SystemAdminLayout | `/sa/*` | 시스템 관리자 |
 | TenantAdminLayout | `/ta/*` | 테넌트 관리자 |
 | TenantOperatorLayout | `/to/*` | 테넌트 운영자 |
 | TenantUserLayout | `/tu/*` | 테넌트 사용자 |
