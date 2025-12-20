@@ -12,6 +12,8 @@
 | **enrolled_at timestamp** | 수강신청 시점 기록, 선착순 정원 관리에 활용 |
 | **type (VOLUNTARY/MANDATORY)** | B2B 필수교육 vs 자발적 수강 구분 |
 | **progress_percent 별도 저장** | 매번 계산하지 않고 캐시, 조회 성능 향상 |
+| **@Version (낙관적 락)** | 동시 수정 감지, 데이터 무결성 보장 |
+| **CourseTime 비관적 락** | Race Condition 방지, 정원 초과/중복 신청 방지 |
 
 ---
 
@@ -32,6 +34,7 @@ CREATE TABLE sis_enrollments (
     score               INT,
     completed_at        DATETIME(6),
     enrolled_by         BIGINT,
+    version             BIGINT NOT NULL DEFAULT 0,
     created_at          DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at          DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
 
@@ -58,6 +61,7 @@ CREATE TABLE sis_enrollments (
 | score | INT | YES | 최종 점수 (0-100) |
 | completed_at | DATETIME(6) | YES | 수료 시점 |
 | enrolled_by | BIGINT | YES | 신청자 ID (본인 또는 OPERATOR) |
+| version | BIGINT | NO | @Version 낙관적 락 (동시 수정 감지) |
 | created_at | DATETIME(6) | NO | 생성일시 |
 | updated_at | DATETIME(6) | NO | 수정일시 |
 
@@ -361,27 +365,67 @@ GROUP BY e.user_key;
 
 ## 6. 제약 조건
 
-### 6.1 수강 정원 체크 (애플리케이션)
+### 6.1 Race Condition 방지 패턴
+
+수강 신청 시 "조회 → 판단 → INSERT" 패턴의 Race Condition을 방지:
 
 ```java
+/**
+ * 수강 신청 - Race Condition 방지
+ *
+ * 문제 시나리오 (비관적 락 없을 때):
+ * 1. 사용자 A: 정원 확인 (49/50) → OK
+ * 2. 사용자 B: 정원 확인 (49/50) → OK (동시)
+ * 3. 사용자 A: INSERT → 50/50
+ * 4. 사용자 B: INSERT → 51/50 (정원 초과!)
+ *
+ * 해결: CourseTime에 비관적 락을 걸어 직렬화
+ */
 @Transactional
-public Enrollment enroll(Long timeKey, Long userId) {
-    CourseTime time = courseTimeRepository.findById(timeKey).orElseThrow();
+public EnrollmentResponse enroll(Long courseTimeId, EnrollRequest request, Long userId) {
+    Long tenantId = TenantContext.getCurrentTenantId();
 
-    // 정원 체크 (비관적 락)
-    long currentCount = enrollmentRepository.countByTimeKey(timeKey);
-    if (time.getCapacity() != null && currentCount >= time.getCapacity()) {
-        throw new BusinessException("CAPACITY_EXCEEDED", "정원이 초과되었습니다");
+    // [핵심] 비관적 락으로 차수 조회 - 모든 검증을 락 상태에서 수행
+    CourseTime courseTime = courseTimeRepository.findByIdWithLock(courseTimeId)
+            .orElseThrow(() -> new CourseTimeNotFoundException(courseTimeId));
+
+    // 정원 체크 (락 상태에서)
+    long currentCount = enrollmentRepository.countByTimeKeyAndTenantIdAndStatusNot(
+            courseTimeId, tenantId, EnrollmentStatus.DROPPED);
+    if (courseTime.getCapacity() != null && currentCount >= courseTime.getCapacity()) {
+        throw new CapacityExceededException(courseTimeId, courseTime.getCapacity());
     }
 
-    // 중복 수강 체크
-    if (enrollmentRepository.existsByUserKeyAndTimeKey(userId, timeKey)) {
-        throw new BusinessException("ALREADY_ENROLLED", "이미 수강 중입니다");
+    // 중복 수강 체크 (락 상태에서)
+    if (enrollmentRepository.existsByTimeKeyAndUserKeyAndTenantIdAndStatusNot(
+            courseTimeId, userId, tenantId, EnrollmentStatus.DROPPED)) {
+        throw new AlreadyEnrolledException(userId, courseTimeId);
     }
 
-    return enrollmentRepository.save(Enrollment.create(userId, timeKey));
+    Enrollment enrollment = Enrollment.create(
+            tenantId, userId, courseTimeId, EnrollmentType.VOLUNTARY, userId);
+    return EnrollmentResponse.from(enrollmentRepository.save(enrollment));
 }
 ```
+
+**Repository 메서드:**
+
+```java
+public interface CourseTimeRepository extends JpaRepository<CourseTime, Long> {
+    /**
+     * 비관적 락으로 CourseTime 조회
+     * 수강 신청 시 정원/중복 체크 직렬화에 사용
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT ct FROM CourseTime ct WHERE ct.id = :id")
+    Optional<CourseTime> findByIdWithLock(@Param("id") Long id);
+}
+```
+
+**주의사항:**
+- 비관적 락은 성능 영향이 있으므로 동시성이 높은 경우에만 사용
+- 락 타임아웃 설정 권장: `@QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))`
+- 데드락 방지를 위해 락 순서 일관성 유지
 
 ### 6.2 진도율 범위 검증
 

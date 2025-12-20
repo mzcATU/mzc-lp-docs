@@ -10,8 +10,11 @@
 |----------|------|
 | **user_key/time_key 사용** | 다른 모듈(UM, TS)의 ID 참조, 외래키 없이 느슨한 결합 |
 | **assigned_at timestamp** | 배정 시점 기록, 이력 관리에 활용 |
-| **role (MAIN/SUB)** | 주강사/보조강사 구분, 차수당 여러 강사 배정 가능 |
+| **role (MAIN/SUB/ASSISTANT)** | 주강사/보조강사/조교 구분, 차수당 여러 강사 배정 가능 |
 | **status 관리** | 교체/취소 시 기존 기록 보존, 감사 추적 가능 |
+| **@Version (낙관적 락)** | 동시 수정 감지, 데이터 무결성 보장 |
+| **CourseTime 비관적 락** | Race Condition 방지, 동시 배정 직렬화 |
+| **Partial Unique Index** | DB 레벨 중복 배정 방지 (ACTIVE 상태만 적용) |
 
 ---
 
@@ -22,6 +25,7 @@
 ```sql
 CREATE TABLE iis_instructor_assignments (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    version         BIGINT NOT NULL DEFAULT 0,  -- 낙관적 락
     tenant_id       BIGINT NOT NULL,
     user_key        BIGINT NOT NULL,
     time_key        BIGINT NOT NULL,
@@ -40,16 +44,27 @@ CREATE TABLE iis_instructor_assignments (
     INDEX idx_role (role),
     INDEX idx_assigned_at (assigned_at)
 );
+
+-- Partial Unique Index (PostgreSQL) - ACTIVE 상태에서만 중복 방지
+CREATE UNIQUE INDEX uk_iis_active_assignment
+ON iis_instructor_assignments (time_key, user_key, tenant_id)
+WHERE status = 'ACTIVE';
+
+-- 주강사 중복 방지
+CREATE UNIQUE INDEX uk_iis_active_main
+ON iis_instructor_assignments (time_key, tenant_id)
+WHERE role = 'MAIN' AND status = 'ACTIVE';
 ```
 
 | 컬럼 | 타입 | NULL | 설명 |
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
+| version | BIGINT | NO | 낙관적 락 버전 (@Version) |
 | tenant_id | BIGINT | NO | 테넌트 ID |
 | user_key | BIGINT | NO | 강사 ID (um_users.id 참조) |
 | time_key | BIGINT | NO | 차수 ID (ts_course_times.id 참조) |
 | assigned_at | DATETIME(6) | NO | 배정 시점 |
-| role | VARCHAR(20) | NO | 역할 (MAIN, SUB) |
+| role | VARCHAR(20) | NO | 역할 (MAIN, SUB, ASSISTANT) |
 | status | VARCHAR(20) | NO | 상태 (ACTIVE, REPLACED, CANCELLED) |
 | replaced_at | DATETIME(6) | YES | 교체된 시점 |
 | assigned_by | BIGINT | YES | 배정한 OPERATOR ID (um_users.id 참조) |
@@ -59,6 +74,7 @@ CREATE TABLE iis_instructor_assignments (
 **InstructorRole Enum:**
 - `MAIN`: 주강사 (차수당 1명)
 - `SUB`: 보조강사 (차수당 N명 가능)
+- `ASSISTANT`: 조교 (차수당 N명 가능)
 
 **AssignmentStatus Enum:**
 - `ACTIVE`: 활성 (현재 배정됨)
@@ -306,34 +322,69 @@ ORDER BY ct.start_date;
 
 ## 6. 제약 조건
 
-### 6.1 주강사 1명 제한 (애플리케이션)
+### 6.1 Race Condition 방지 (비관적 락)
+
+> **문제**: "조회 → 판단 → INSERT" 패턴에서 동시 요청 시 중복 배정 발생 가능
 
 ```java
 @Transactional
-public InstructorAssignment assignInstructor(Long timeKey, Long userId, InstructorRole role) {
-    // 주강사 중복 체크
-    if (role == InstructorRole.MAIN) {
-        boolean hasMain = assignmentRepository.existsByTimeKeyAndRoleAndStatus(
-            timeKey, InstructorRole.MAIN, AssignmentStatus.ACTIVE
-        );
-        if (hasMain) {
-            throw new BusinessException("MAIN_INSTRUCTOR_EXISTS", "이미 주강사가 배정되어 있습니다");
-        }
+public InstructorAssignmentResponse assignInstructor(
+        Long timeId, AssignInstructorRequest request, Long operatorId) {
+    Long tenantId = TenantContext.getCurrentTenantId();
+
+    // [핵심] CourseTime을 락 대상으로 사용하여 동시 배정 직렬화
+    courseTimeRepository.findByIdWithLock(timeId)
+            .orElseThrow(() -> new IllegalArgumentException("CourseTime not found: " + timeId));
+
+    // 중복 배정 체크 (락 상태에서)
+    if (assignmentRepository.existsByTimeKeyAndUserKeyAndTenantIdAndStatus(
+            timeId, request.userId(), tenantId, AssignmentStatus.ACTIVE)) {
+        throw new InstructorAlreadyAssignedException(request.userId(), timeId);
     }
 
-    // 동일 강사 중복 배정 체크
-    boolean alreadyAssigned = assignmentRepository.existsByTimeKeyAndUserKeyAndStatus(
-        timeKey, userId, AssignmentStatus.ACTIVE
-    );
-    if (alreadyAssigned) {
-        throw new BusinessException("ALREADY_ASSIGNED", "이미 배정된 강사입니다");
+    // MAIN 역할인 경우 기존 MAIN 강사 체크 (락 상태에서)
+    if (request.role() == InstructorRole.MAIN) {
+        assignmentRepository.findActiveByTimeKeyAndRole(timeId, tenantId, InstructorRole.MAIN)
+                .ifPresent(existing -> {
+                    throw new MainInstructorAlreadyExistsException(timeId);
+                });
     }
 
-    return assignmentRepository.save(InstructorAssignment.create(timeKey, userId, role));
+    InstructorAssignment assignment = InstructorAssignment.create(
+            request.userId(), timeId, request.role(), operatorId);
+    return InstructorAssignmentResponse.from(assignmentRepository.save(assignment));
 }
 ```
 
-### 6.2 강사 교체 로직 (애플리케이션)
+**락 메서드:**
+```java
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("SELECT ct FROM CourseTime ct WHERE ct.id = :id")
+Optional<CourseTime> findByIdWithLock(@Param("id") Long id);
+```
+
+### 6.2 주강사 1명 제한 + 중복 배정 방지
+
+애플리케이션 검증 + DB 레벨 Partial Unique Index 이중 보호:
+
+```java
+// 애플리케이션 레벨 검증 (6.1의 락 상태에서 수행)
+if (role == InstructorRole.MAIN) {
+    assignmentRepository.findActiveByTimeKeyAndRole(timeKey, tenantId, InstructorRole.MAIN)
+        .ifPresent(existing -> {
+            throw new MainInstructorAlreadyExistsException(timeKey);
+        });
+}
+```
+
+```sql
+-- DB 레벨 보호 (Partial Unique Index)
+CREATE UNIQUE INDEX uk_iis_active_main
+ON iis_instructor_assignments (time_key, tenant_id)
+WHERE role = 'MAIN' AND status = 'ACTIVE';
+```
+
+### 6.3 강사 교체 로직 (애플리케이션)
 
 ```java
 @Transactional
@@ -366,7 +417,7 @@ public ReplaceResult replaceInstructor(Long assignmentId, Long newUserId, String
 }
 ```
 
-### 6.3 배정 취소 조건 (애플리케이션)
+### 6.4 배정 취소 조건 (애플리케이션)
 
 ```java
 @Transactional
