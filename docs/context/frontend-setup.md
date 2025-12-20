@@ -4,6 +4,21 @@
 
 ---
 
+## 언제 이 문서를 보는가?
+
+| 궁금한 것 | 참조 섹션/문서 |
+|----------|---------------|
+| 프론트엔드 프로젝트 구조? | 섹션 디렉토리 구조 |
+| .gitignore 설정? | 섹션 핵심 설정 파일 > .gitignore |
+| 환경 변수 설정? | 섹션 핵심 설정 파일 > .env.example |
+| Vite 설정? | 섹션 핵심 설정 파일 > vite.config.ts |
+| Docker/Nginx 설정? | 섹션 Docker 설정 |
+| CI/CD 파이프라인? | 섹션 CI/CD |
+| 백엔드 설정? | [backend-setup.md](./backend-setup.md) |
+| Repository 분리 전략? | [repository-strategy.md](./repository-strategy.md) |
+
+---
+
 ## 디렉토리 구조
 
 ```

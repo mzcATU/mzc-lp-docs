@@ -1,6 +1,19 @@
 # 멀티테넌시 설계
 
 > 테넌트 분리 전략 및 상세 설계
+> **역할/권한은 → [user-roles.md](./user-roles.md), [authorization-model.md](./authorization-model.md)**
+
+---
+
+## 언제 이 문서를 보는가?
+
+| 상황 | 이 문서 | 다른 문서 |
+|------|---------|----------|
+| 테넌트 구조/타입 이해 | ✅ 섹션 1-3 | - |
+| 데이터 격리 방법 | ✅ 섹션 5 | - |
+| 기능별 테넌트 분기 | ✅ 섹션 6 | - |
+| 역할 정의/플로우 | - | [user-roles.md](./user-roles.md) |
+| 권한 검증 코드 | - | [authorization-model.md](./authorization-model.md) |
 
 ---
 
@@ -307,18 +320,9 @@ BaseTimeEntity 상속 (tenant_id 없음)
 | 수료증 | O | O | O |
 | SSO | X | O | X |
 
-### 6.2 역할 부여 방식 비교
+> 역할 부여 방식 상세: [user-roles.md](./user-roles.md) 섹션 3, 4 참조
 
-| | B2C | B2B |
-|---|---|---|
-| **모델** | 셀프 서비스 | 관리자 통제 |
-| **DESIGNER 부여** | "강의 개설하기" 버튼 클릭 | OPERATOR가 유저 목록에서 부여 |
-| **OWNER 부여** | 개설 신청 승인 후 | 개설 신청 승인 후 |
-| **INSTRUCTOR** | ❌ 없음 (OWNER = 강사) | ✅ OPERATOR가 부여 |
-| **역할 회수** | ❌ (본인 판단) | ✅ OPERATOR가 회수 가능 |
-| **일반 유저 UI** | "강의 개설하기" 버튼 보임 | 역할 부여 전 버튼 안 보임 |
-
-### 6.3 기능 체크 서비스
+### 6.2 기능 체크 서비스
 
 ```java
 @Service
@@ -472,4 +476,5 @@ public class TenantCacheService {
 |------|------|
 | [architecture.md](./architecture.md) | 전체 시스템 구조 |
 | [user-roles.md](./user-roles.md) | 사용자 역할 및 권한 |
-| [24-MULTI-TENANCY.md](../conventions/24-MULTI-TENANCY.md) | 구현 컨벤션 |
+| [23-MULTI-TENANCY.md](../conventions/23-MULTI-TENANCY.md) | 구현 컨벤션 |
+| [authorization-model.md](./authorization-model.md) | 권한 모델 (RBAC 3계층) |
