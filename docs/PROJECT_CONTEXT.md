@@ -1,7 +1,7 @@
 # PROJECT_CONTEXT.md - 프로젝트 컨텍스트
 
 > CLAUDE.md의 부록 - 기술 스택, 코드 패턴, 현재 구현 상태 참조용
-> **구조 상세는 → [architecture.md](./docs/context/architecture.md)**
+> **구조 상세는 → [architecture.md](./context/architecture.md)**
 
 ---
 
@@ -60,14 +60,23 @@ apiClient.interceptors.request.use((config) => {
 ### Tech Stack
 | Layer | Stack | Version |
 |-------|-------|---------|
-| Backend | Java / Spring Boot | 21 / 3.4.12 |
-| Frontend | React / TypeScript / Vite | 19.2.0 / 5.9.3 / 7.2.4 |
+| Backend | Java / Spring Boot | 21 / 3.4.1 |
+| Frontend | React / TypeScript / Vite | 19.x / 5.x / 7.x |
 
-### 구현 완료
-```
-Backend: 회원가입/로그인 API, JWT 인증, GlobalExceptionHandler
-Frontend: React+TS+Vite, 로그인/회원가입 페이지, AuthContext
-```
+### 구현 완료 모듈
+
+| 모듈 | 설명 | 상태 |
+|------|------|------|
+| UM | User Master - 회원가입, 로그인, JWT 인증 | ✅ 완료 |
+| TS | Time Schedule - 차수 관리 | ✅ 완료 |
+| CM | Course Management - 강의 관리 | ✅ 완료 |
+| CMS | Content Management - 콘텐츠 관리 | ✅ 완료 |
+| LO | Learning Object - 학습 객체 | ✅ 완료 |
+| Tenant | Multi-Tenancy 인프라 | ✅ 완료 |
+| SIS | Student Info System - 수강 관리 | ✅ 완료 |
+| IIS | Instructor Info System - 강사 배정 | ✅ 완료 |
+
+> 상세 진행 상황: [dev-logs/README.md](./dev-logs/README.md)
 
 ---
 
@@ -79,4 +88,6 @@ Frontend: React+TS+Vite, 로그인/회원가입 페이지, AuthContext
 | 시스템 아키텍처 | [context/architecture.md](./context/architecture.md) |
 | 모듈 구조 | [context/module-structure.md](./context/module-structure.md) |
 | API/DB 스펙 | [structure/backend/](./structure/backend/) |
-| 보안 | [conventions/21-SECURITY-CONVENTIONS.md](./conventions/21-SECURITY-CONVENTIONS.md) |
+| 보안 | [conventions/20-SECURITY-CONVENTIONS.md](./conventions/20-SECURITY-CONVENTIONS.md) |
+| 권한 모델 | [context/authorization-model.md](./context/authorization-model.md) |
+| 트랜잭션 경계 | [context/transaction-boundaries.md](./context/transaction-boundaries.md) |
