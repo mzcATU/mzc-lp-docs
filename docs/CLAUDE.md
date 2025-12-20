@@ -150,11 +150,26 @@ frontend/src/
 
 ---
 
+## 시스템 컨텍스트 (아키텍처 이해)
+
+| 궁금한 것 | 참조 문서 |
+|----------|----------|
+| 전체 구조, 사이트별 차이 | [context/architecture.md](./context/architecture.md) |
+| 모듈 관계, 단방향 통신 | [context/module-structure.md](./context/module-structure.md) |
+| 테넌트 분리, Row-Level Security | [context/multi-tenancy.md](./context/multi-tenancy.md) |
+| 역할 정의, 부여 플로우 | [context/user-roles.md](./context/user-roles.md) |
+| 권한 검증, RBAC 매트릭스 | [context/authorization-model.md](./context/authorization-model.md) |
+| 진도/성적/수료 (LMS) | [context/lms-architecture.md](./context/lms-architecture.md) |
+| Race Condition, 트랜잭션 | [context/transaction-boundaries.md](./context/transaction-boundaries.md) |
+
+---
+
 ## 참조 문서
 
 | 분류 | 문서 |
 |------|------|
 | **환경** | [POLY-REPO](./POLY-REPO.md) |
+| **컨텍스트** | [context/](./context/) |
 | **컨벤션** | [conventions/](./conventions/) |
 | **템플릿** | [templates/](./templates/) |
 

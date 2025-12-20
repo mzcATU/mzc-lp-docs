@@ -4,6 +4,20 @@
 
 ---
 
+## 언제 이 문서를 보는가?
+
+| 궁금한 것 | 참조 섹션/문서 |
+|----------|---------------|
+| B2C/B2B/K-Pop 사이트별 차이점? | 섹션 2. 사이트별 특징 |
+| 테넌트 데이터 분리 방식? | 섹션 3. 데이터 분리 전략 또는 [multi-tenancy.md](./multi-tenancy.md) |
+| 모듈 간 통신 규칙? | 섹션 8.1 단방향 데이터 흐름 |
+| LMS/SIS 차이점? | 섹션 8.2 LMS 개념 또는 [lms-architecture.md](./lms-architecture.md) |
+| 각 모듈별 역할 상세? | [module-structure.md](./module-structure.md) |
+| 프론트엔드 구조? | 섹션 5. Frontend 구조 |
+| AWS 배포 구조? | 섹션 7. 배포 구조 |
+
+---
+
 ## 1. 사이트 구조 개요
 
 ```
@@ -323,127 +337,131 @@ export const useTenantTheme = () => {
 
 ---
 
-## 8. 강의/컨텐츠 모듈 연동 (CM/CR/LO/CMS)
+## 8. 모듈 간 통신 원칙
 
-> test-lms-v2-integration 프로젝트에서 구현된 모듈 연동 구조
-
-### 8.1 모듈 개요
-
-| 모듈 | 역할 | 소스 위치 |
-|------|------|----------|
-| **CMS** | 컨텐츠 파일 업로드/저장/인코딩 | `domain/content/` |
-| **LO** | 학습 객체 메타데이터 관리 | `domain/learning/` |
-| **CM** | 강의 메타데이터, 커리큘럼 구성 | `domain/course/` |
-| **CR** | 차시 간 학습 순서 연결 | `domain/course/` |
-
-### 8.2 데이터 흐름
+### 8.1 단방향 데이터 흐름 (핵심 원칙)
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Content → LearningObject → Course 흐름        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. Content 업로드 (CMS)                                         │
-│     POST /api/contents/upload                                    │
-│                  │                                               │
-│                  ▼                                               │
-│  2. ContentCreatedEvent 발행                                     │
-│                  │                                               │
-│                  ▼                                               │
-│  3. LearningObject 자동 생성 (LO)                                │
-│     - name = content.originalFileName                           │
-│     - content 연결                                               │
-│     - ContentFolder에 배치                                       │
-│                  │                                               │
-│                  ▼                                               │
-│  4. CourseItem에서 LearningObject 참조 (CM)                      │
-│     POST /api/courses/{id}/items                                │
-│     - learningObjectId 지정                                      │
-│                  │                                               │
-│                  ▼                                               │
-│  5. CourseRelation으로 학습 순서 설정 (CR)                       │
-│     POST /api/courses/{id}/relations                            │
-│     - from_item_id → to_item_id 연결                            │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+❌ 양방향 통신 문제:
+├─ Race Condition 발생 가능
+├─ Deadlock 위험
+└─ 순환 의존성 → 유지보수 어려움
+
+✅ 단방향 통신 원칙:
+├─ 마스터 → 서브 방향으로만 호출
+├─ 서브 → 마스터 역방향 호출 금지
+└─ 디테일 변경 시 "마스터가 디테일을 함께 변경" 방식
 ```
 
-### 8.3 Entity 관계도
+**모듈 계층 및 통신 방향:**
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Entity 관계도                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   ┌─────────────┐                                               │
-│   │   Content   │  ←──── 파일 저장, 메타데이터 (CMS)             │
-│   │   (CMS)     │                                               │
-│   └──────┬──────┘                                               │
-│          │ 1:1                                                   │
-│          ▼                                                       │
-│   ┌─────────────────┐     ┌─────────────────┐                   │
-│   │ LearningObject  │────►│  ContentFolder  │                   │
-│   │     (LO)        │     │     (LO)        │                   │
-│   └──────┬──────────┘     └─────────────────┘                   │
-│          │ N:1                   │                               │
-│          ▼                       │ self-reference                │
-│   ┌─────────────┐               └──► parent (3단계 계층)         │
-│   │ CourseItem  │                                               │
-│   │    (CM)     │────► parent (self-reference, 10단계)          │
-│   └──────┬──────┘                                               │
-│          │ N:1                                                   │
-│          ▼                                                       │
-│   ┌─────────────┐                                               │
-│   │   Course    │  ←──── 강의 정보 (CM)                         │
-│   │    (CM)     │                                               │
-│   └─────────────┘                                               │
-│                                                                  │
-│   ┌─────────────────────────────────────────┐                   │
-│   │        CourseRelation (CR)              │                   │
-│   │  from_item_id ──► to_item_id           │                   │
-│   │  (Linked List로 학습 순서 표현)          │                   │
-│   └─────────────────────────────────────────┘                   │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                 mzc-lp Platform                                   │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                   │
+│  [콘텐츠 계층 - 마스터]                                                            │
+│      CMS (파일) ────────► LO (학습객체)                                            │
+│                              단방향                                                │
+│                                │                                                  │
+│                                ▼                                                  │
+│  [강의 계층 - 마스터]                                                              │
+│      CM (커리큘럼) ────────► CR (관계)                                             │
+│                              단방향                                                │
+│                                │                                                  │
+│                                ▼                                                  │
+│  [운영 계층 - 마스터]                                                              │
+│      TS (차수) ─────┬────────────────────┐                                        │
+│                     │                    │                                        │
+│                     ▼                    ▼                                        │
+│  [기록 계층 - 서브]                                                                │
+│      SIS (수강)              IIS (강사)                                            │
+│      LMS (진도/성적)                                                               │
+│                                                                                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+[통신 규칙]
+✅ CMS → LO: 콘텐츠 업로드 시 LO 자동 생성
+✅ CM → CR: 커리큘럼 기반 학습 순서 설정
+✅ TS → SIS/IIS: 차수 기반 수강/강사 기록 생성
+❌ SIS → TS: 역방향 호출 금지
+❌ LO → CMS: 역방향 호출 금지
 ```
 
-### 8.4 주요 기능
+**역방향이 필요한 경우 처리:**
 
-#### 콘텐츠 관리 (CMS)
-- 파일 업로드: VIDEO, DOCUMENT, IMAGE, AUDIO
-- 외부 링크: YouTube, Vimeo, Google Form
-- 메타데이터 자동 추출: duration, resolution, pageCount
-- 스트리밍 지원 (Range Request)
+```java
+// ❌ Bad: SIS에서 TS를 직접 수정
+public class EnrollmentService {
+    public void complete(Long enrollmentId) {
+        enrollment.complete();
+        courseTime.decrementEnrollment();  // 역방향 호출!
+    }
+}
 
-#### 학습객체 관리 (LO)
-- Content 업로드 시 자동 생성 (Event 기반)
-- ContentFolder 3단계 계층 구조
-- 폴더 간 이동 지원
+// ✅ Good: TS가 SIS 변경을 감지하고 자신을 수정
+public class CourseTimeService {
+    @EventListener
+    public void onEnrollmentCompleted(EnrollmentCompletedEvent event) {
+        CourseTime courseTime = findById(event.getCourseTimeId());
+        courseTime.decrementEnrollment();  // 마스터가 자신을 수정
+    }
+}
+```
 
-#### 강의 구성 (CM)
-- Course → CourseItem 계층 (최대 10단계)
-- 폴더 vs 차시 구분 (learningObjectId 유무)
-- 드래그앤드롭 순서 변경
+---
 
-#### 학습 순서 (CR)
-- Linked List 패턴 (from_item_id → to_item_id)
-- 시작점: from_item_id = NULL
-- 자동 순서 생성 기능
+## 8.2 LMS 개념 (누락 보완)
 
-### 8.5 관련 상세 문서
+> **상세 설계:** [lms-architecture.md](./lms-architecture.md) - 진도/성적/퀴즈/수료증 상세
 
-| 문서 | 내용 |
-|------|------|
-| [module-structure.md](./module-structure.md) | CM/CR/LO/CMS 상세 설계 |
-| [docs/structure/](../structure/) | API/DB 상세 명세 |
+### 학습 관리 시스템 연계
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            LMS (Learning Management System)                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                   │
+│  [핵심 기능]                                                                      │
+│  ├── 진도 관리: 학습 진행률 추적 (0-100%)                                         │
+│  ├── 성적 관리: 퀴즈/과제 점수, 최종 점수                                         │
+│  ├── 수료 판정: 진도율 + 점수 기준 충족 여부                                      │
+│  └── 학습 추천: 진도/성적 기반 추가 강좌 추천                                     │
+│                                                                                   │
+│  [SIS와의 관계]                                                                   │
+│  ┌─────────────────┐              ┌─────────────────┐                            │
+│  │       SIS       │              │       LMS       │                            │
+│  │   (수강 기록)    │──────────────│   (학습 기록)    │                            │
+│  ├─────────────────┤              ├─────────────────┤                            │
+│  │ - 수강 신청     │              │ - 진도 추적     │                            │
+│  │ - 수강 상태     │              │ - 퀴즈 응시     │                            │
+│  │ - 수료 여부     │◄─────────────│ - 점수 계산     │                            │
+│  │                 │  수료 판정   │ - 수료 기준 체크│                            │
+│  └─────────────────┘              └─────────────────┘                            │
+│                                                                                   │
+│  SIS: "누가 언제 수강 신청했는가" (수강 이력)                                      │
+│  LMS: "어디까지 학습했고 점수가 얼마인가" (학습 이력)                               │
+│                                                                                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### LMS 데이터 모델 (예시)
+
+| 테이블 | 역할 | 주요 필드 |
+|--------|------|----------|
+| `lms_progress` | 차시별 진도 | enrollment_id, item_id, progress, watched_seconds |
+| `lms_quiz_attempts` | 퀴즈 응시 | enrollment_id, quiz_id, score, attempt_count |
+| `lms_certificates` | 수료증 | enrollment_id, issued_at, certificate_number |
 
 ---
 
 ## 9. 관련 문서
 
+> **모듈 상세 (CM/CR/LO/CMS):** [module-structure.md](./module-structure.md)
+
 | 문서 | 내용 |
 |------|------|
 | [multi-tenancy.md](./multi-tenancy.md) | 테넌트 상세 설계 |
 | [user-roles.md](./user-roles.md) | 사용자 역할 및 권한 |
-| [24-MULTI-TENANCY.md](../conventions/24-MULTI-TENANCY.md) | 구현 컨벤션 |
+| [23-MULTI-TENANCY.md](../conventions/23-MULTI-TENANCY.md) | 구현 컨벤션 |
 | [module-structure.md](./module-structure.md) | 모듈 구조 상세 |
