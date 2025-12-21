@@ -1,4 +1,4 @@
-# 20. AWS Infrastructure Conventions
+# 19. AWS Infrastructure Conventions
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 

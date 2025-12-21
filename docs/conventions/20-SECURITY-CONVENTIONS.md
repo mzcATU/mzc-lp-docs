@@ -1,4 +1,4 @@
-# 21. Security Conventions
+# 20. Security Conventions
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 

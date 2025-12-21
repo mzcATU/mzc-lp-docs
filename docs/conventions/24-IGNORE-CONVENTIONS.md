@@ -1,4 +1,4 @@
-# 25. Ignore 파일 컨벤션
+# 24. Ignore 파일 컨벤션
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 

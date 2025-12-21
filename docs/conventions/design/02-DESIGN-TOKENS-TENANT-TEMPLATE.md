@@ -1,4 +1,4 @@
-# 19. Design Tokens - Tenant Template
+# 02. Design Tokens - Tenant Template
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](../00-CONVENTIONS-CORE.md)
 

@@ -1,4 +1,4 @@
-# 17. Design Implementation Conventions
+# 00. Design Implementation Conventions
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](../00-CONVENTIONS-CORE.md)
 

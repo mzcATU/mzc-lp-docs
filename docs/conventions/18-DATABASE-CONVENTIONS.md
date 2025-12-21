@@ -1,4 +1,4 @@
-# 19. Database Conventions (MySQL)
+# 18. Database Conventions (MySQL)
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 

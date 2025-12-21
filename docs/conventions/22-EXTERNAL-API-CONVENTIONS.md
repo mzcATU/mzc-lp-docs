@@ -1,4 +1,4 @@
-# 23. External API Integration Conventions
+# 22. External API Integration Conventions
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 

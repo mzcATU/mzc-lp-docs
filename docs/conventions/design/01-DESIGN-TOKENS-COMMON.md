@@ -1,4 +1,4 @@
-# 18. Design Tokens - Common (Admin)
+# 01. Design Tokens - Common (Admin)
 
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](../00-CONVENTIONS-CORE.md)
 
