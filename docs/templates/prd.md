@@ -131,18 +131,28 @@ Response: { id, ... }
 
 ## 7. 테스트 계획 (Test Plan)
 
-### 단위 테스트
-- [ ] Service 테스트: `XxxServiceTest`
-- [ ] Repository 테스트: `XxxRepositoryTest`
+> 테스트 시나리오는 **요구사항 분석 단계에서 미리 도출**해야 함
 
-### 통합 테스트
-- [ ] Controller 테스트: `XxxControllerTest`
+### 테스트 시나리오
 
-### E2E 테스트
-- [ ] 시나리오: 사용자가 [X]를 할 수 있다
+| ID | 유형 | 시나리오 | 기대결과 |
+|----|------|---------|---------|
+| T1 | Happy | 정상 흐름 설명 | 성공 |
+| T2 | Edge | 경계값 (예: 100번째) | 성공/실패 |
+| T3 | Error | 예외 상황 | 에러 메시지 |
+| T4 | Concurrent | 동시 요청 | Race Condition 없음 |
+| T5 | Security | 권한 없는 접근 | 403 |
 
-### 테스트 데이터
-- `DataInitializer`에 더미 데이터 추가 필요 여부: Yes/No
+### 트랜잭션 바운더리 확인
+- [ ] 실패 시 롤백 범위 확인됨
+- [ ] 동시성 처리 방식 결정됨 (낙관적/비관적 락)
+
+### 테스트 코드
+| 유형 | 파일 | 체크 |
+|------|------|:----:|
+| Unit | `XxxServiceTest` | [ ] |
+| Integration | `XxxControllerTest` | [ ] |
+| Repository | `XxxRepositoryTest` | [ ] |
 
 ---
 
