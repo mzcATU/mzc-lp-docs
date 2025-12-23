@@ -24,6 +24,7 @@
 CREATE TABLE learning_object (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id           BIGINT NOT NULL DEFAULT 1,
+    version             BIGINT NOT NULL DEFAULT 0,
     name                VARCHAR(500) NOT NULL,
     content_id          BIGINT,
     folder_id           BIGINT,
@@ -46,6 +47,7 @@ CREATE TABLE learning_object (
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | 테넌트 ID (기본값: 1 = B2C) |
+| version | BIGINT | NO | 낙관적 락 버전 (기본값: 0) |
 | name | VARCHAR(500) | NO | 학습객체 이름 |
 | content_id | BIGINT | YES | FK → content |
 | folder_id | BIGINT | YES | FK → content_folder |
@@ -58,6 +60,7 @@ CREATE TABLE learning_object (
 CREATE TABLE content_folder (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id       BIGINT NOT NULL DEFAULT 1,
+    version         BIGINT NOT NULL DEFAULT 0,
     folder_name     VARCHAR(255) NOT NULL,
     parent_id       BIGINT,
     depth           INT NOT NULL DEFAULT 0,
@@ -77,6 +80,7 @@ CREATE TABLE content_folder (
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | 테넌트 ID (기본값: 1 = B2C) |
+| version | BIGINT | NO | 낙관적 락 버전 (기본값: 0) |
 | folder_name | VARCHAR(255) | NO | 폴더 이름 |
 | parent_id | BIGINT | YES | FK → content_folder (self-reference) |
 | depth | INT | NO | 깊이 (0, 1, 2 - 최대 3단계) |

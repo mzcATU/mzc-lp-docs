@@ -157,7 +157,11 @@ test-lms-v2-integration/
 | 2025-12-11 | 신동구 | `docs/dev-logs/backend-um-phase2.md` 개발 로그 생성 |
 | 2025-12-11 | 신동구 | UM Phase 3 구현 - CourseRole API (DESIGNER 역할 요청/조회) |
 | 2025-12-11 | 신동구 | `docs/dev-logs/backend-um-phase3.md` 개발 로그 생성 |
+| 2025-12-23 | 김희수 | LO 모듈 N+1 쿼리 최적화 (JOIN FETCH) |
+| 2025-12-23 | 김희수 | LO 모듈 낙관적 락 추가 (@Version) - ContentFolder, LearningObject |
+| 2025-12-23 | 김희수 | `docs/structure/backend/learning/db.md` version 컬럼 추가 |
+| 2025-12-23 | 김희수 | `docs/dev-logs/backend/lo/phase2-performance.md` 개발 로그 생성 |
 
 ---
 
-*최종 업데이트: 2025-12-11*
+*최종 업데이트: 2025-12-23*
