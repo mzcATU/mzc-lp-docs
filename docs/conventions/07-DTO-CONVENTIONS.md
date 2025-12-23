@@ -6,6 +6,17 @@
 
 ---
 
+## 언제 이 문서를 보는가?
+
+| 상황 | 참조 섹션 |
+|------|----------|
+| Request DTO 작성? | 섹션 1 |
+| Response DTO 작성? | 섹션 2 |
+| Validation 적용? | 섹션 3 |
+| DTO ↔ Entity 변환? | 섹션 4 |
+
+---
+
 ## 1. Request DTO 템플릿
 
 ```java

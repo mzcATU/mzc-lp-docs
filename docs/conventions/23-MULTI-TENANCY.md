@@ -3,17 +3,18 @@
 > 📌 **먼저 읽기**: [00-CONVENTIONS-CORE.md](./00-CONVENTIONS-CORE.md)
 
 > 멀티테넌시 구현 시 코드 패턴 가이드
-> **개요/설계 → [multi-tenancy.md](../docs/context/multi-tenancy.md)**
+> **개요/설계 → [multi-tenancy.md](../context/multi-tenancy.md)**
 
 ---
 
-## 언제 참조?
+## 언제 이 문서를 보는가?
 
-```
-✅ 테넌트 관련 Entity/Service/Controller 작성 시
-✅ Frontend 테넌트 Provider 구현 시
-✅ 데이터 격리 로직 작성 시
-```
+| 상황 | 참조 섹션 |
+|------|----------|
+| 테넌트 Entity 작성? | 섹션 1 Backend |
+| TenantContext 사용? | 섹션 1 Backend |
+| Frontend 테넌트 Provider? | 섹션 2 Frontend |
+| 데이터 격리 로직? | 섹션 1, 2 |
 
 ---
 

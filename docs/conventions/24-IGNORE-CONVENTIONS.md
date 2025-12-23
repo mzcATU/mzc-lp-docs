@@ -6,6 +6,16 @@
 
 ---
 
+## 언제 이 문서를 보는가?
+
+| 상황 | 참조 섹션 |
+|------|----------|
+| .gitignore 설정? | Git Ignore |
+| .dockerignore 설정? | Docker Ignore |
+| .eslintignore 설정? | ESLint Ignore |
+
+---
+
 ## 핵심 원칙
 
 ```

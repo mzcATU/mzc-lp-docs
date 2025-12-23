@@ -6,6 +6,16 @@
 
 ---
 
+## 언제 이 문서를 보는가?
+
+| 상황 | 참조 섹션 |
+|------|----------|
+| Dockerfile 작성? | Dockerfile |
+| docker-compose 작성? | docker-compose |
+| 로컬 DB 실행? | 로컬 개발 환경 |
+
+---
+
 ## 핵심 규칙
 
 ```
