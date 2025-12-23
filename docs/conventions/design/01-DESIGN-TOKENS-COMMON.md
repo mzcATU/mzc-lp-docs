@@ -25,6 +25,7 @@
   --color-bg-default: #FFFFFF;       /* 주요 콘텐츠/카드 배경 */
   --color-bg-app: #FAFAFA;           /* 전체 앱 배경 */
   --color-bg-secondary: #F4F4F4;     /* Admin 페이지/테이블 헤더 */
+  --color-bg-card-static: #F0F0F0;   /* 정적 카드 배경 (통계, 설정 등 클릭 불가) */
   --color-border: #E0E0E0;           /* 경계선, 인풋 테두리 */
 
   /* === Text Colors === */
@@ -118,6 +119,7 @@ export const designTokens = {
     default: '#FFFFFF',
     app_default: '#FAFAFA',
     secondary: '#F4F4F4',
+    card_static: '#F0F0F0',  // 정적 카드 배경 (통계, 설정 등 클릭 불가)
     border: '#E0E0E0',
   },
   text: {
@@ -196,6 +198,7 @@ export default {
         'bg-default': 'var(--color-bg-default)',
         'bg-app': 'var(--color-bg-app)',
         'bg-secondary': 'var(--color-bg-secondary)',
+        'bg-card-static': 'var(--color-bg-card-static)',
         border: 'var(--color-border)',
 
         // Text
@@ -366,6 +369,7 @@ useEffect(() => {
 | Default | `#FFFFFF` | 카드, 콘텐츠 배경 |
 | App | `#FAFAFA` | 전체 앱 배경 |
 | Secondary | `#F4F4F4` | 테이블 헤더, 섹션 구분 |
+| Card Static | `#F0F0F0` | 정적 카드 배경 (통계, 설정 등 클릭 불가) |
 | Border | `#E0E0E0` | 경계선, 인풋 테두리 |
 
 ### 텍스트 컬러
