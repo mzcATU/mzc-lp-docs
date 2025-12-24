@@ -362,6 +362,33 @@ useEffect(() => {
 | Purple | `#7A4A8C` | `#F5EDF8` | 프론트엔드 |
 | Gray | `#616161` | `#F5F5F5` | 기본, 기타 |
 
+### 설정 카드 색상 규칙
+
+> 설정 페이지의 카드 아이콘/테두리 색상은 `badge` 토큰을 사용합니다.
+
+| 설정 카드 | 토큰 | 용도 |
+|----------|------|------|
+| 계정 및 보안 | `badge.indigo` | 보안, 인증 관련 |
+| 알림 | `badge.orange` | 알림, 공지 관련 |
+| 외관 | `badge.purple` | UI, 테마 관련 |
+| 언어 및 지역 | `badge.green` | 지역화, 국제화 |
+| 데이터/저장소 | `badge.blue` | 데이터, 백업 관련 |
+| 위험/삭제 | `badge.red` | 계정 삭제, 위험 작업 |
+
+**사용 예시:**
+```typescript
+// SettingsPage.tsx
+const settingCards = [
+  {
+    id: 'security',
+    icon: Shield,
+    title: '계정 및 보안',
+    color: designTokens.badge.indigo.text,  // 아이콘 색상
+  },
+  // 배경은 `${color}15` 형태로 투명도 적용
+];
+```
+
 ### 배경 컬러
 
 | 용도 | HEX | 설명 |
