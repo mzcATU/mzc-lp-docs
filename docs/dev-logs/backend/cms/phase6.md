@@ -355,6 +355,77 @@ export interface ContentVersionResponse {
 
 ---
 
+## 9. 콘텐츠 삭제 버그 수정
+
+### 문제
+
+콘텐츠 삭제 시 C002 (Internal Server Error) 발생
+
+### 원인
+
+Content 삭제 시 FK 제약조건 위반:
+- `content_version` 테이블이 `content_id`를 FK로 참조
+- `learning_object` 테이블이 `content_id`를 FK로 참조
+
+### 해결
+
+삭제 순서 수정 및 Repository 메서드 추가:
+
+**ContentVersionRepository.java:**
+```java
+@Modifying
+@Query("DELETE FROM ContentVersion v WHERE v.content.id = :contentId")
+void deleteByContentId(@Param("contentId") Long contentId);
+```
+
+**LearningObjectRepository.java:**
+```java
+@Modifying
+@Query("DELETE FROM LearningObject lo WHERE lo.content.id = :contentId")
+void deleteByContentId(@Param("contentId") Long contentId);
+```
+
+**ContentServiceImpl.deleteContent():**
+```java
+@Override
+@Transactional
+public void deleteContent(Long contentId, Long tenantId) {
+    Content content = findContentOrThrow(contentId, tenantId);
+
+    // 1. 강의에서 사용 중인 콘텐츠는 삭제 불가
+    validateContentNotInUse(contentId);
+
+    // 2. LearningObject 먼저 삭제 (FK 제약조건)
+    learningObjectRepository.deleteByContentId(contentId);
+
+    // 3. 버전 히스토리 삭제 (FK 제약조건)
+    contentVersionRepository.deleteByContentId(contentId);
+
+    // 4. 파일/썸네일 삭제
+    if (content.getFilePath() != null) {
+        fileStorageService.deleteFile(content.getFilePath());
+    }
+    if (content.getThumbnailPath() != null) {
+        thumbnailService.deleteThumbnail(content.getThumbnailPath());
+    }
+
+    // 5. Content 삭제
+    contentRepository.delete(content);
+}
+```
+
+### 삭제 순서
+
+```
+1. validateContentNotInUse() - Course에서 사용 중이면 CT010 에러
+2. LearningObject 삭제 - FK: learning_object.content_id
+3. ContentVersion 삭제 - FK: content_version.content_id
+4. 물리 파일 삭제 - filePath, thumbnailPath
+5. Content 삭제
+```
+
+---
+
 ## 변경 이력
 
 | 날짜 | 작업자 | 내용 |
@@ -362,6 +433,7 @@ export interface ContentVersionResponse {
 | 2025-12-24 | Claude Code | uploadedFileName 필드 추가 |
 | 2025-12-24 | Claude Code | replaceFile() 메서드 수정 - 콘텐츠 이름 보존 |
 | 2025-12-24 | Claude Code | ContentVersionServiceImpl.restoreVersion() 수정 |
+| 2025-12-24 | Claude Code | 콘텐츠 삭제 FK 제약조건 버그 수정 |
 
 ---
 
