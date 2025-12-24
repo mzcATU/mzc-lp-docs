@@ -188,6 +188,7 @@ Authorization: Bearer {accessToken}
   "data": {
     "contentId": 1,
     "originalFileName": "react-tutorial.mp4",
+    "uploadedFileName": "react-tutorial.mp4",
     "storedFileName": "550e8400-e29b-41d4-a716-446655440000.mp4",
     "contentType": "VIDEO",
     "fileSize": 104857600,
@@ -197,6 +198,8 @@ Authorization: Bearer {accessToken}
     "externalUrl": null,
     "filePath": "/uploads/2025/01/550e8400-e29b-41d4-a716-446655440000.mp4",
     "thumbnailPath": "/uploads/thumbnails/2025/01/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+    "inCourse": false,
+    "currentVersion": 1,
     "createdAt": "2025-01-15T10:00:00",
     "updatedAt": "2025-01-15T10:00:00"
   }
@@ -370,7 +373,7 @@ Authorization: Bearer {accessToken}
 ### 4.1 메타데이터 수정
 
 ```http
-PATCH /api/contents/{contentId}
+PUT /api/contents/{contentId}
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
@@ -597,7 +600,9 @@ Authorization: Bearer {accessToken}
       "contentId": 23,
       "versionNumber": 2,
       "changeType": "METADATA_UPDATE",
-      "originalFileName": "react-tutorial.mp4",
+      "originalFileName": "React 강의",
+      "uploadedFileName": "react-tutorial.mp4",
+      "storedFileName": "550e8400-...-41d4.mp4",
       "contentType": "VIDEO",
       "fileSize": 104857600,
       "duration": 1800,
@@ -612,6 +617,8 @@ Authorization: Bearer {accessToken}
       "versionNumber": 1,
       "changeType": "FILE_UPLOAD",
       "originalFileName": "react-tutorial.mp4",
+      "uploadedFileName": "react-tutorial.mp4",
+      "storedFileName": "550e8400-...-41d4.mp4",
       "contentType": "VIDEO",
       "fileSize": 104857600,
       "duration": 1800,
@@ -651,6 +658,8 @@ Authorization: Bearer {accessToken}
     "versionNumber": 1,
     "changeType": "FILE_UPLOAD",
     "originalFileName": "react-tutorial.mp4",
+    "uploadedFileName": "react-tutorial.mp4",
+    "storedFileName": "550e8400-...-41d4.mp4",
     "contentType": "VIDEO",
     "fileSize": 104857600,
     "duration": 1800,

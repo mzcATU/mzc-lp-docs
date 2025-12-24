@@ -25,6 +25,7 @@ CREATE TABLE content (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id           BIGINT NOT NULL DEFAULT 1,
     original_file_name  VARCHAR(500),
+    uploaded_file_name  VARCHAR(500),
     stored_file_name    VARCHAR(255),
     content_type        VARCHAR(50) NOT NULL,
     file_size           BIGINT,
@@ -52,7 +53,8 @@ CREATE TABLE content (
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | 테넌트 ID (기본값: 1 = B2C) |
-| original_file_name | VARCHAR(500) | YES | 원본 파일명 |
+| original_file_name | VARCHAR(500) | YES | 콘텐츠 이름 (수정 가능) |
+| uploaded_file_name | VARCHAR(500) | YES | 업로드한 파일명 (원본) |
 | stored_file_name | VARCHAR(255) | YES | 저장된 파일명 (UUID) |
 | content_type | VARCHAR(50) | NO | 콘텐츠 타입 (ENUM) |
 | file_size | BIGINT | YES | 파일 크기 (bytes) |
@@ -78,6 +80,7 @@ CREATE TABLE content_version (
     version_number      INT NOT NULL,
     change_type         VARCHAR(50) NOT NULL,
     original_file_name  VARCHAR(500),
+    uploaded_file_name  VARCHAR(500),
     stored_file_name    VARCHAR(255),
     content_type        VARCHAR(50),
     file_size           BIGINT,
@@ -104,7 +107,8 @@ CREATE TABLE content_version (
 | content_id | BIGINT | NO | 콘텐츠 ID (FK) |
 | version_number | INT | NO | 버전 번호 (1, 2, 3...) |
 | change_type | VARCHAR(50) | NO | 변경 타입 (ENUM) |
-| original_file_name | VARCHAR(500) | YES | 해당 버전의 원본 파일명 |
+| original_file_name | VARCHAR(500) | YES | 해당 버전의 콘텐츠 이름 |
+| uploaded_file_name | VARCHAR(500) | YES | 해당 버전의 업로드 파일명 |
 | stored_file_name | VARCHAR(255) | YES | 해당 버전의 저장 파일명 |
 | content_type | VARCHAR(50) | YES | 해당 버전의 콘텐츠 타입 |
 | file_size | BIGINT | YES | 해당 버전의 파일 크기 |
@@ -148,8 +152,9 @@ CREATE TABLE content_version (
 ├─────────────────────────────────┤
 │ id (PK)                         │
 │ tenant_id (FK)                  │ ──► 멀티테넌시 (B2C/B2B/KPOP)
-│ original_file_name              │
-│ stored_file_name                │
+│ original_file_name              │ ──► 콘텐츠 이름 (수정 가능)
+│ uploaded_file_name              │ ──► 업로드한 파일명 (원본)
+│ stored_file_name                │ ──► 저장된 파일명 (UUID)
 │ content_type                    │ ──► ENUM (VIDEO, DOCUMENT, ...)
 │ file_size                       │
 │ duration                        │ ──► VIDEO, AUDIO, EXTERNAL_LINK
@@ -174,8 +179,9 @@ CREATE TABLE content_version (
 │ content_id (FK)                 │ ──► content.id
 │ version_number                  │
 │ change_type                     │ ──► FILE_UPLOAD, FILE_REPLACE, METADATA_UPDATE
-│ original_file_name              │
-│ stored_file_name                │
+│ original_file_name              │ ──► 해당 버전의 콘텐츠 이름
+│ uploaded_file_name              │ ──► 해당 버전의 업로드 파일명
+│ stored_file_name                │ ──► 해당 버전의 저장 파일명
 │ content_type                    │
 │ file_size                       │
 │ duration                        │

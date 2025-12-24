@@ -26,6 +26,7 @@
 | CourseList | `/tu/teaching/courses` | 강의 목록 | 미구현 |
 | MyContentPage | `/tu/teaching/content` | 내 콘텐츠 목록 | ✅ 완료 |
 | ContentCreatePage | `/tu/teaching/content/new` | 콘텐츠 등록 | ✅ 완료 |
+| ContentDetailPage | `/tu/teaching/content/:id` | 콘텐츠 상세 | ✅ 완료 |
 
 ---
 
@@ -38,6 +39,7 @@ src/
 │       └── content/
 │           ├── MyContentPage.tsx          # 내 콘텐츠 목록 페이지
 │           ├── ContentCreatePage.tsx      # 콘텐츠 등록 페이지
+│           ├── ContentDetailPage.tsx      # 콘텐츠 상세 페이지
 │           └── index.ts
 │
 ├── components/domain/tu/content/
@@ -170,7 +172,8 @@ return response.data; // PageResponse 전체 반환
 - [x] 콘텐츠 등록 페이지 (ContentCreatePage)
 - [x] 콘텐츠 미리보기 모달 (ContentPreviewModal)
 - [x] 콘텐츠 API 연동 (CRUD)
-- [ ] 콘텐츠 상세 페이지 (ContentDetailPage)
+- [x] 콘텐츠 상세 페이지 (ContentDetailPage)
+- [x] 버전 히스토리 UI 구현
 
 ---
 
@@ -192,7 +195,7 @@ feat: TU 콘텐츠 API 연동 및 미리보기 모달 구현
 
 ## 7. 다음 단계
 
-1. 콘텐츠 상세 페이지 (ContentDetailPage) 구현
-2. 콘텐츠 수정 페이지 구현
-3. 버전 히스토리 UI 구현
-4. 대시보드, 내 학습, 강의 목록 페이지 구현
+1. ~~콘텐츠 상세 페이지 (ContentDetailPage) 구현~~ ✅ 완료
+2. ~~버전 히스토리 UI 구현~~ ✅ 완료
+3. 대시보드, 내 학습, 강의 목록 페이지 구현
+4. 콘텐츠 수정 기능 추가 (inline edit)
