@@ -8,6 +8,12 @@
 
 ```
 frontend/src/pages/
+├── common/                       # 공통 페이지
+│   └── settings/
+│       ├── SettingsPage.tsx
+│       ├── SettingsSecurityPage.tsx
+│       ├── SettingsNotificationsPage.tsx
+│       └── SettingsAppearancePage.tsx
 ├── sa/                           # System Admin (SA)
 │   ├── dashboard/
 │   │   └── DashboardPage.tsx
@@ -36,6 +42,8 @@ frontend/src/pages/
     │   └── DashboardPage.tsx
     ├── learning/
     │   └── MyLearningPage.tsx
+    ├── settings/
+    │   └── SettingsLanguagePage.tsx
     └── teaching/
         ├── courses/
         │   ├── CourseListPage.tsx
@@ -516,9 +524,221 @@ export const MyLearningPage = () => {
 
 ---
 
-## 6. 공통 컴포넌트
+## 6. 공통 설정 페이지 (Settings)
 
-### 6.1 TreeView (계층 구조)
+모든 역할이 사용하는 공통 설정 페이지입니다. `src/pages/common/settings/`에 위치합니다.
+
+### 6.1 SettingsPage (설정 메인)
+
+설정 메뉴 진입점으로, 보안/알림/외관 설정으로 네비게이션합니다.
+
+```tsx
+// src/pages/common/settings/SettingsPage.tsx
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Shield, Bell, Palette, ChevronRight } from 'lucide-react';
+
+export function SettingsPage() {
+  const navigate = useNavigate();
+  const { basePath } = useSettingsPath(); // 역할별 basePath 반환
+
+  const settingsMenus = [
+    { id: 'security', title: '보안', icon: Shield, path: `${basePath}/security` },
+    { id: 'notifications', title: '알림', icon: Bell, path: `${basePath}/notifications` },
+    { id: 'appearance', title: '외관', icon: Palette, path: `${basePath}/appearance` },
+  ];
+
+  return (
+    <div className="settings-page">
+      <h1>설정</h1>
+      <div className="settings-menu-grid">
+        {settingsMenus.map((menu) => (
+          <Card key={menu.id} onClick={() => navigate(menu.path)}>
+            <CardHeader>
+              <menu.icon />
+              <CardTitle>{menu.title}</CardTitle>
+              <ChevronRight />
+            </CardHeader>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### 6.2 SettingsSecurityPage (보안 설정)
+
+비밀번호 변경, 2FA 설정 등 보안 관련 설정을 관리합니다.
+
+```tsx
+// src/pages/common/settings/SettingsSecurityPage.tsx
+export function SettingsSecurityPage() {
+  return (
+    <div className="security-settings">
+      <h1>보안 설정</h1>
+
+      {/* 비밀번호 변경 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>비밀번호 변경</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button>비밀번호 변경</Button>
+        </CardContent>
+      </Card>
+
+      {/* 2단계 인증 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>2단계 인증</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Switch /> 2단계 인증 활성화
+        </CardContent>
+      </Card>
+
+      {/* 로그인 기록 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>로그인 기록</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* 최근 로그인 목록 */}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+### 6.3 SettingsNotificationsPage (알림 설정)
+
+이메일, 푸시 알림 등 알림 관련 설정을 관리합니다.
+
+```tsx
+// src/pages/common/settings/SettingsNotificationsPage.tsx
+import { EmptyState } from '@/components/common/EmptyState';
+
+export function SettingsNotificationsPage() {
+  return (
+    <div className="notifications-settings">
+      <h1>알림 설정</h1>
+      <EmptyState
+        icon={Bell}
+        title="알림 설정"
+        description="알림 설정 기능은 준비 중입니다."
+      />
+    </div>
+  );
+}
+```
+
+### 6.4 SettingsAppearancePage (외관 설정)
+
+테마 모드, 날짜 형식 등 UI 관련 설정을 관리합니다. `useUIStore`와 연동되어 설정이 localStorage에 저장됩니다.
+
+```tsx
+// src/pages/common/settings/SettingsAppearancePage.tsx
+import { useUIStore } from '@/store/common/uiStore';
+import { RadioOptionCard } from '@/components/common/RadioOptionCard';
+
+export function SettingsAppearancePage() {
+  const { isDarkMode, setDarkMode } = useUIStore();
+
+  const themeOptions = [
+    { value: 'light', label: '라이트 모드', icon: Sun },
+    { value: 'dark', label: '다크 모드', icon: Moon },
+  ];
+
+  return (
+    <div className="appearance-settings">
+      <h1>외관 설정</h1>
+
+      {/* 테마 모드 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>테마 모드</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup value={isDarkMode ? 'dark' : 'light'}>
+            {themeOptions.map((option) => (
+              <RadioOptionCard
+                key={option.value}
+                value={option.value}
+                label={option.label}
+                icon={option.icon}
+                selected={isDarkMode === (option.value === 'dark')}
+                onClick={() => setDarkMode(option.value === 'dark')}
+              />
+            ))}
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
+      {/* 날짜 형식 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>날짜 형식</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* 날짜 형식 선택 */}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+### 6.5 SettingsLanguagePage (언어 설정 - TU 전용)
+
+TU 역할 전용 언어 설정 페이지입니다. `src/pages/tu/settings/`에 위치합니다.
+
+```tsx
+// src/pages/tu/settings/SettingsLanguagePage.tsx
+import { useUIStore } from '@/store/common/uiStore';
+import { RadioOptionCard } from '@/components/common/RadioOptionCard';
+
+export function SettingsLanguagePage() {
+  const { language, setLanguage } = useUIStore();
+
+  const languageOptions = [
+    { value: 'ko', label: '한국어', flag: '🇰🇷' },
+    { value: 'en', label: 'English', flag: '🇺🇸' },
+  ];
+
+  return (
+    <div className="language-settings">
+      <h1>언어 설정</h1>
+      <Card>
+        <CardContent>
+          <RadioGroup value={language}>
+            {languageOptions.map((option) => (
+              <RadioOptionCard
+                key={option.value}
+                value={option.value}
+                label={`${option.flag} ${option.label}`}
+                selected={language === option.value}
+                onClick={() => setLanguage(option.value as 'ko' | 'en')}
+              />
+            ))}
+          </RadioGroup>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+**주요 특징**:
+- `useUIStore`와 연동되어 설정이 localStorage에 자동 저장됨
+- `RadioOptionCard` 공통 컴포넌트 사용
+- 설정 변경 시 즉시 반영
+
+---
+
+## 7. 공통 컴포넌트
+
+### 7.1 TreeView (계층 구조)
 
 ```tsx
 // src/components/common/TreeView.tsx
@@ -549,7 +769,7 @@ export const TreeView = <T extends { id: number; children?: T[] }>({
 };
 ```
 
-### 6.2 FolderTree (폴더 네비게이션)
+### 7.2 FolderTree (폴더 네비게이션)
 
 ```tsx
 // src/components/common/FolderTree.tsx
@@ -584,7 +804,7 @@ export const FolderTree = ({ data, selectedId, onSelect }: FolderTreeProps) => {
 };
 ```
 
-### 6.3 FileDropzone (파일 업로드)
+### 7.3 FileDropzone (파일 업로드)
 
 ```tsx
 // src/components/common/FileDropzone.tsx
@@ -621,7 +841,7 @@ export const FileDropzone = ({ onDrop, accept, maxSize }: FileDropzoneProps) => 
 
 ---
 
-## 7. 라우팅 설정
+## 8. 라우팅 설정
 
 ```tsx
 // src/App.tsx
@@ -635,18 +855,28 @@ function App() {
         <Route path="/sa/dashboard" element={<SADashboardPage />} />
         <Route path="/sa/tenants" element={<TenantListPage />} />
         <Route path="/sa/tenants/:id" element={<TenantDetailPage />} />
-        <Route path="/sa/settings" element={<SystemSettingsPage />} />
+        <Route path="/sa/settings" element={<SettingsPage />} />
+        <Route path="/sa/settings/security" element={<SettingsSecurityPage />} />
+        <Route path="/sa/settings/notifications" element={<SettingsNotificationsPage />} />
+        <Route path="/sa/settings/appearance" element={<SettingsAppearancePage />} />
 
         {/* Tenant Admin (TA) */}
         <Route path="/ta/dashboard" element={<TADashboardPage />} />
         <Route path="/ta/users" element={<UserManagementPage />} />
-        <Route path="/ta/settings" element={<TenantSettingsPage />} />
+        <Route path="/ta/settings" element={<SettingsPage />} />
+        <Route path="/ta/settings/security" element={<SettingsSecurityPage />} />
+        <Route path="/ta/settings/notifications" element={<SettingsNotificationsPage />} />
+        <Route path="/ta/settings/appearance" element={<SettingsAppearancePage />} />
 
         {/* Tenant Operator (TO) */}
         <Route path="/to/dashboard" element={<TODashboardPage />} />
         <Route path="/to/contents" element={<TOContentListPage />} />
         <Route path="/to/contents/:id" element={<TOContentDetailPage />} />
         <Route path="/to/learning" element={<LearningManagementPage />} />
+        <Route path="/to/settings" element={<SettingsPage />} />
+        <Route path="/to/settings/security" element={<SettingsSecurityPage />} />
+        <Route path="/to/settings/notifications" element={<SettingsNotificationsPage />} />
+        <Route path="/to/settings/appearance" element={<SettingsAppearancePage />} />
 
         {/* Tenant User (TU) */}
         <Route path="/tu/dashboard" element={<TUDashboardPage />} />
@@ -656,6 +886,11 @@ function App() {
         <Route path="/tu/teaching/courses/:id" element={<CourseDetailPage />} />
         <Route path="/tu/teaching/content" element={<ContentPoolPage />} />
         <Route path="/tu/teaching/content/upload" element={<ContentUploadPage />} />
+        <Route path="/tu/settings" element={<SettingsPage />} />
+        <Route path="/tu/settings/security" element={<SettingsSecurityPage />} />
+        <Route path="/tu/settings/notifications" element={<SettingsNotificationsPage />} />
+        <Route path="/tu/settings/appearance" element={<SettingsAppearancePage />} />
+        <Route path="/tu/settings/language" element={<SettingsLanguagePage />} />
       </Routes>
     </BrowserRouter>
   );
@@ -664,11 +899,17 @@ function App() {
 
 ---
 
-## 8. 소스 위치
+## 9. 소스 위치
 
 ```
 frontend/src/
 ├── pages/
+│   ├── common/                       # 공통 페이지
+│   │   └── settings/
+│   │       ├── SettingsPage.tsx
+│   │       ├── SettingsSecurityPage.tsx
+│   │       ├── SettingsNotificationsPage.tsx
+│   │       └── SettingsAppearancePage.tsx
 │   ├── sa/                           # System Admin
 │   │   ├── dashboard/
 │   │   │   └── DashboardPage.tsx
@@ -697,6 +938,8 @@ frontend/src/
 │       │   └── DashboardPage.tsx
 │       ├── learning/
 │       │   └── MyLearningPage.tsx
+│       ├── settings/
+│       │   └── SettingsLanguagePage.tsx
 │       └── teaching/
 │           ├── courses/
 │           │   ├── CourseListPage.tsx
@@ -711,6 +954,8 @@ frontend/src/
 │   │   ├── FolderTree.tsx
 │   │   ├── FileDropzone.tsx
 │   │   ├── ContentGrid.tsx
+│   │   ├── RadioOptionCard.tsx
+│   │   ├── EmptyState.tsx
 │   │   └── LearningOrderEditor.tsx
 │   └── layout/
 │       ├── sa/                       # SA 레이아웃
@@ -721,5 +966,8 @@ frontend/src/
 │       │   └── TenantOperatorLayout.tsx
 │       └── tu/                       # TU 레이아웃
 │           └── TenantUserLayout.tsx
+├── store/
+│   └── common/
+│       └── uiStore.ts                # UI 설정 상태 (테마, 언어, 사이드바)
 └── App.tsx
 ```
