@@ -417,6 +417,8 @@ CREATE INDEX idx_content_created_by ON content(tenant_id, created_by);
 
 | 날짜 | 작업자 | 내용 |
 |------|--------|------|
+| 2025-12-26 | Claude Code | 콘텐츠 목록 조회 시 ARCHIVED 상태 제외 (#191, #192) |
+| 2025-12-26 | Claude Code | 내 콘텐츠 목록 API에 contentType 필터 파라미터 추가 |
 | 2025-12-16 | Claude Code | 콘텐츠 상태 관리 구현 (Feature 1) |
 | 2025-12-17 | Claude Code | [Bug Fix] createdBy null 버그 수정 (#88, #90) |
 
