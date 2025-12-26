@@ -4,6 +4,23 @@
 
 ---
 
+## 공통 컴포넌트 카탈로그
+
+> **데모**: `/showcase` | **소스**: `src/components/common/index.ts`
+
+| 필요한 기능 | 컴포넌트 |
+|------------|----------|
+| 테이블 | **DataTable** (정렬/필터/onRowClick) |
+| 드롭다운 | **NativeSelect** (단순) / **Combobox** (검색) |
+| 카드형 라디오 | **RadioOptionCard** |
+| 모달 | **Dialog** / **AlertDialog** (확인) / **Sheet** (사이드) |
+| 빈 상태 | **EmptyState** / **NoDataEmpty** |
+| 알림 | **Toaster** (토스트) / **Alert** (인라인) |
+| 통계 카드 | **IconStatCard** / **StatsCard** / **SettingsCard** |
+| 네비게이션 | **Pagination** / **Stepper** / **ViewToggle** / **Breadcrumb** |
+
+---
+
 ## 핵심 규칙
 
 ```
