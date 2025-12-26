@@ -23,7 +23,8 @@ main (배포)
   └── dev (개발)
         ├── feat/기능명
         ├── fix/버그명
-        └── refactor/개선명
+        ├── refactor/개선명
+        └── design/디자인명
 ```
 
 | 브랜치 | 역할 | 규칙 |
@@ -32,6 +33,7 @@ main (배포)
 | `dev` | 개발 통합 | 직접 Push 금지, PR만 |
 | `feat/*` | 기능 | `dev`에서 분기 → PR |
 | `fix/*` | 버그 | `dev`에서 분기 → PR |
+| `design/*` | UI/UX | `dev`에서 분기 → PR |
 | `hotfix/*` | 긴급 | `main`에서 분기 → 양쪽 병합 |
 
 ---
@@ -50,6 +52,7 @@ fix/456-auth-validation
 | `feat` | 새 기능 |
 | `fix` | 버그 수정 |
 | `refactor` | 리팩토링 |
+| `design` | UI/UX 디자인 변경 |
 | `docs` | 문서 |
 | `test` | 테스트 |
 | `chore` | 설정/빌드 |
@@ -70,6 +73,7 @@ fix/456-auth-validation
 | `Feat` | `[Feat] 로그인 API 구현 (#123)` |
 | `Fix` | `[Fix] 토큰 검증 오류 (#456)` |
 | `Refactor` | `[Refactor] 서비스 분리 (#789)` |
+| `Design` | `[Design] 카드 컴포넌트 UI 개선 (#101)` |
 | `Docs` | `[Docs] API 명세 작성` |
 | `Test` | `[Test] 로그인 테스트 추가` |
 
