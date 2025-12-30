@@ -1,6 +1,6 @@
 # Frontend TO (Tenant Operator) 개발 로그 - Phase 4
 
-> TO 강사 배정(InstructorAssignment) React Query 훅 구현
+> TO 강사 배정(InstructorAssignment) 타입 및 API 서비스 구현
 
 ---
 
@@ -10,30 +10,34 @@
 |------|------|
 | **작업자** | Claude Code |
 | **작업 일자** | 2025-12-28 |
-| **관련 이슈** | [#74](https://github.com/mzcATU/mzc-lp-frontend/issues/74) |
+| **관련 이슈** | [#73](https://github.com/mzcATU/mzc-lp-frontend/issues/73) |
 | **관련 브랜치** | `feat/to-instructor-assignment-service` |
-| **담당 모듈** | TO (Tenant Operator) - 강사 배정 React Query |
-| **의존성** | Phase 3 (#73) 완료 필요 |
+| **담당 모듈** | TO (Tenant Operator) - 강사 배정 관리 |
 
 ---
 
 ## 1. 구현 개요
 
-Phase 3에서 구현한 `instructorAssignmentService`를 기반으로 React Query 훅을 구현했습니다.
+TO(Tenant Operator) 역할에서 차수별 강사 배정을 관리하기 위한 타입 정의와 API 서비스를 구현했습니다.
 
 ### 배경
 
-강사 배정은 **차수(CourseTime) 데이터와 연관**되어 있어 캐시 무효화가 복잡합니다:
-- `CourseTimeDetailResponse`에 `instructors` 필드가 포함됨
-- 강사 변경 시 차수 상세 정보도 함께 갱신해야 함
+기존 프론트엔드에는 **TU(강사 본인)이 자신의 배정 현황을 조회**하는 기능만 존재했습니다:
+- `myAssignmentService.ts`: 내 배정 목록 조회, 내 통계 조회
+- `instructorAssignment.types.ts`: TU 전용 응답 타입
+
+하지만 **TO(운영자)가 강사를 배정/교체/취소**하는 관리 기능이 없어 다음 문제가 있었습니다:
+1. 강사 배정 불가: 차수를 개설해도 강사를 배정할 수 없음
+2. 역할 변경 불가: 보조강사를 주강사로 승격하는 등의 조정이 불가능
+3. 강사 교체 불가: 강사 사정으로 인한 교체 시 이력 단절
 
 ### 구현 범위
 
-| 구분 | 내용 | 개수 |
-|------|------|------|
-| Query Keys | instructorAssignmentKeys 객체 | 3개 키 |
-| Query Hooks | useTimeInstructors | 1개 |
-| Mutation Hooks | useAssignInstructor, useUpdateInstructorRole, useReplaceInstructor, useCancelAssignment | 4개 |
+| 구분 | 내용 |
+|------|------|
+| 타입 재사용 | TU의 `InstructorRole`, `AssignmentStatus`, `InstructorAssignmentResponse` |
+| TO 전용 타입 | `AssignInstructorRequest`, `UpdateInstructorRoleRequest`, `ReplaceInstructorRequest`, `CancelAssignmentRequest` |
+| 서비스 메서드 | 5개 (배정, 목록조회, 역할변경, 교체, 취소) |
 
 ---
 
@@ -42,112 +46,129 @@ Phase 3에서 구현한 `instructorAssignmentService`를 기반으로 React Quer
 ### 신규 생성
 
 ```
-src/hooks/to/
-└── useInstructorAssignmentQueries.ts    # 강사 배정 React Query 훅 (신규)
+src/
+├── types/to/
+│   └── instructorAssignment.types.ts    # 강사 배정 타입 (신규)
+└── services/to/
+    └── instructorAssignmentService.ts   # 강사 배정 서비스 (신규)
 ```
 
 ### 수정
 
 ```
-src/hooks/to/
-└── index.ts    # useInstructorAssignmentQueries export 추가
+src/
+├── types/to/
+│   └── index.ts    # instructorAssignment.types export 추가
+└── services/to/
+    └── index.ts    # instructorAssignmentService export 추가
 ```
 
 ---
 
 ## 3. 상세 구현
 
-### 3.1 Query Keys
+### 3.1 타입 정의 (`instructorAssignment.types.ts`)
+
+#### TU 타입 재사용
 
 ```typescript
-export const instructorAssignmentKeys = {
-  all: ['instructorAssignments'] as const,
-  byTime: (timeId: number) => [...instructorAssignmentKeys.all, 'time', timeId] as const,
-  list: (timeId: number, params?: InstructorAssignmentFilterParams) =>
-    [...instructorAssignmentKeys.byTime(timeId), params] as const,
-};
+// 공통 타입은 TU에서 재사용 (중복 방지)
+export type {
+  InstructorRole,
+  AssignmentStatus,
+  InstructorAssignmentResponse,
+} from '@/types/tu/instructorAssignment.types';
+
+export {
+  INSTRUCTOR_ROLE_LABELS,
+  ASSIGNMENT_STATUS_LABELS,
+} from '@/types/tu/instructorAssignment.types';
 ```
 
-**키 구조:**
-```
-['instructorAssignments']
-  └── ['instructorAssignments', 'time', 1]
-        └── ['instructorAssignments', 'time', 1, { status?: 'ACTIVE' }]
+#### TO 전용 Request 타입
+
+```typescript
+/** 강사 배정 요청 */
+export interface AssignInstructorRequest {
+  userId: number;
+  role: InstructorRole;
+  forceAssign?: boolean; // 일정 충돌 무시
+}
+
+/** 역할 변경 요청 */
+export interface UpdateInstructorRoleRequest {
+  role: InstructorRole;
+}
+
+/** 강사 교체 요청 */
+export interface ReplaceInstructorRequest {
+  newUserId: number;
+}
+
+/** 배정 취소 요청 */
+export interface CancelAssignmentRequest {
+  reason?: string;
+}
 ```
 
 ---
 
-### 3.2 Query Hooks
+### 3.2 서비스 구현 (`instructorAssignmentService.ts`)
 
-| 훅 | 용도 | enabled 조건 |
-|----|------|-------------|
-| `useTimeInstructors(timeId, params?)` | 차수별 강사 목록 조회 | `!!timeId` |
+| 메서드 | HTTP | 엔드포인트 | 설명 |
+|--------|------|------------|------|
+| `assignInstructor` | POST | `/times/{timeId}/instructors` | 강사 배정 |
+| `getInstructors` | GET | `/times/{timeId}/instructors` | 강사 목록 조회 |
+| `updateRole` | PUT | `/times/{timeId}/instructors/{id}` | 역할 변경 |
+| `replaceInstructor` | POST | `/times/{timeId}/instructors/{id}/replace` | 강사 교체 |
+| `cancelAssignment` | DELETE | `/times/{timeId}/instructors/{id}` | 배정 취소 |
 
 **사용 예시:**
 ```typescript
-// 차수별 강사 목록 (ACTIVE만)
-const { data, isLoading } = useTimeInstructors(timeId, { status: 'ACTIVE' });
+// 강사 배정
+await instructorAssignmentService.assignInstructor(timeId, {
+  userId: 123,
+  role: 'MAIN',
+  forceAssign: false,
+});
+
+// 강사 교체
+await instructorAssignmentService.replaceInstructor(timeId, assignmentId, {
+  newUserId: 456,
+});
 ```
 
 ---
 
-### 3.3 Mutation Hooks
+## 4. 설계 결정
 
-| 훅 | 용도 | 캐시 무효화 |
-|----|------|------------|
-| `useAssignInstructor` | 강사 배정 | `byTime(timeId)` + `timeKeys.detail(timeId)` |
-| `useUpdateInstructorRole` | 역할 변경 | `byTime(timeId)` |
-| `useReplaceInstructor` | 강사 교체 | `byTime(timeId)` + `timeKeys.detail(timeId)` |
-| `useCancelAssignment` | 배정 취소 | `byTime(timeId)` + `timeKeys.detail(timeId)` |
+### TU 타입 재사용
 
-**사용 예시:**
-```typescript
-const assignInstructor = useAssignInstructor();
-
-const handleAssign = async () => {
-  await assignInstructor.mutateAsync({
-    timeId: 1,
-    request: {
-      userId: 123,
-      role: 'MAIN',
-    },
-  });
-  // 자동으로 강사 목록 + 차수 상세 캐시가 갱신됨
-};
-```
-
----
-
-## 4. 교차 캐시 무효화
-
-강사 배정 변경 시 **두 가지 캐시**를 동시에 무효화합니다:
-
-| 캐시 | 이유 |
+| 결정 | 이유 |
 |------|------|
-| `instructorAssignmentKeys.byTime(timeId)` | 강사 목록 갱신 |
-| `timeKeys.detail(timeId)` | `CourseTimeDetailResponse.instructors` 필드 갱신 |
+| `InstructorRole`, `AssignmentStatus` 재사용 | 동일한 enum 값, 중복 정의 방지 |
+| `InstructorAssignmentResponse` 재사용 | TO/TU 모두 동일한 응답 구조 사용 |
+| Request 타입만 TO에서 정의 | TU는 조회만, TO만 변경 작업 수행 |
+
+### forceAssign 옵션
 
 ```typescript
-onSuccess: (_, variables) => {
-  // 1. 강사 목록 캐시 무효화
-  queryClient.invalidateQueries({
-    queryKey: instructorAssignmentKeys.byTime(variables.timeId),
-  });
-  // 2. 차수 상세 캐시 무효화 (instructors 필드)
-  queryClient.invalidateQueries({
-    queryKey: timeKeys.detail(variables.timeId),
-  });
-};
+interface AssignInstructorRequest {
+  forceAssign?: boolean; // 일정 충돌 무시
+}
 ```
+
+- 강사가 다른 차수와 일정이 겹칠 때 경고 후 강제 배정 가능
+- 기본값 `false`: 충돌 시 에러 반환
+- `true`: 충돌 무시하고 배정
 
 ---
 
 ## 5. 체크리스트
 
 - [x] 컨벤션 및 기존 패턴 확인
-- [x] Query Keys 정의 (`instructorAssignmentKeys`)
-- [x] Query Hooks 구현 (`useTimeInstructors`)
-- [x] Mutation Hooks 구현 (4개)
+- [x] 타입 정의 파일 생성 (`instructorAssignment.types.ts`)
+- [x] 서비스 구현 (`instructorAssignmentService.ts`)
 - [x] Index 파일 업데이트
 - [x] TypeScript 빌드 검증 (`npx tsc --noEmit` 통과)
 - [x] 코드 리뷰 (기존 패턴 일관성 확인)
@@ -156,11 +177,9 @@ onSuccess: (_, variables) => {
 
 ## 6. 후속 작업
 
-| 이슈 | 제목 | 설명 |
-|------|------|------|
-| #41 | TO 페이지 구현 | 차수/강사 배정 관리 페이지 |
-| #45 | TO 페이지 구현 | - |
-| #46 | TO 페이지 구현 | - |
+| 이슈 | 제목 | 의존성 |
+|------|------|--------|
+| #74 | TO 강사 배정 React Query 훅 구현 | #73 완료 필요 |
 
 ---
 
@@ -168,7 +187,7 @@ onSuccess: (_, variables) => {
 
 - [Phase 1](phase1.md) - 차수 타입 및 API 서비스
 - [Phase 2](phase2.md) - 차수 React Query 훅
-- [Phase 3](phase3.md) - 강사 배정 타입 및 API 서비스
+- [TU instructorAssignment.types.ts](../../../src/types/tu/instructorAssignment.types.ts) - TU 강사 배정 타입
 
 ---
 
@@ -176,10 +195,9 @@ onSuccess: (_, variables) => {
 
 | 날짜 | 작업자 | 내용 |
 |------|--------|------|
-| 2025-12-28 | Claude Code | Query Keys 정의 (instructorAssignmentKeys) |
-| 2025-12-28 | Claude Code | Query Hooks 구현 (useTimeInstructors) |
-| 2025-12-28 | Claude Code | Mutation Hooks 구현 (4개) |
-| 2025-12-28 | Claude Code | 교차 캐시 무효화 구현 (timeKeys.detail 연동) |
+| 2025-12-28 | Claude Code | TU 타입 재사용 (InstructorRole, AssignmentStatus, Response) |
+| 2025-12-28 | Claude Code | TO 전용 Request 타입 정의 (4개) |
+| 2025-12-28 | Claude Code | instructorAssignmentService 구현 (5개 메서드) |
 
 ---
 

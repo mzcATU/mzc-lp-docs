@@ -1,6 +1,6 @@
 # Frontend TO (Tenant Operator) 개발 로그 - Phase 3
 
-> TO 강사 배정(InstructorAssignment) 타입 및 API 서비스 구현
+> TO 차수(CourseTime) 관리 페이지 구현
 
 ---
 
@@ -9,35 +9,38 @@
 | 항목 | 내용 |
 |------|------|
 | **작업자** | Claude Code |
-| **작업 일자** | 2025-12-28 |
-| **관련 이슈** | [#73](https://github.com/mzcATU/mzc-lp-frontend/issues/73) |
-| **관련 브랜치** | `feat/to-instructor-assignment-service` |
-| **담당 모듈** | TO (Tenant Operator) - 강사 배정 관리 |
+| **작업 일자** | 2025-12-29 |
+| **관련 이슈** | [#91](https://github.com/mzcATU/mzc-lp-frontend/issues/91) |
+| **관련 브랜치** | `feat/91-to-course-time-management-page` |
+| **담당 모듈** | TO (Tenant Operator) - 차수(CourseTime) 관리 페이지 |
+| **의존성** | Phase 1 (#71), Phase 2 (#72) 완료 필요 |
 
 ---
 
 ## 1. 구현 개요
 
-TO(Tenant Operator) 역할에서 차수별 강사 배정을 관리하기 위한 타입 정의와 API 서비스를 구현했습니다.
+Phase 1(Types/Service), Phase 2(React Query Hooks)를 기반으로 차수 관리 UI 페이지를 구현했습니다.
 
 ### 배경
 
-기존 프론트엔드에는 **TU(강사 본인)이 자신의 배정 현황을 조회**하는 기능만 존재했습니다:
-- `myAssignmentService.ts`: 내 배정 목록 조회, 내 통계 조회
-- `instructorAssignment.types.ts`: TU 전용 응답 타입
+백엔드 TS(CourseTime) 모듈이 완성되어 있고, 프론트엔드에서 Types, Service, Hooks가 구현되어 있으나 실제 UI 페이지가 없었습니다.
 
-하지만 **TO(운영자)가 강사를 배정/교체/취소**하는 관리 기능이 없어 다음 문제가 있었습니다:
-1. 강사 배정 불가: 차수를 개설해도 강사를 배정할 수 없음
-2. 역할 변경 불가: 보조강사를 주강사로 승격하는 등의 조정이 불가능
-3. 강사 교체 불가: 강사 사정으로 인한 교체 시 이력 단절
+### 해결 방안
+
+기존 TU 페이지 패턴을 참고하여:
+- `MyContentPage.tsx` → `CourseTimesPage.tsx` (목록 페이지)
+- `ContentCreatePage.tsx` → `CourseTimeCreatePage.tsx` (생성 페이지)
+- `ContentDetailPage.tsx` → `CourseTimeDetailPage.tsx` (상세/수정 페이지)
 
 ### 구현 범위
 
-| 구분 | 내용 |
-|------|------|
-| 타입 재사용 | TU의 `InstructorRole`, `AssignmentStatus`, `InstructorAssignmentResponse` |
-| TO 전용 타입 | `AssignInstructorRequest`, `UpdateInstructorRoleRequest`, `ReplaceInstructorRequest`, `CancelAssignmentRequest` |
-| 서비스 메서드 | 5개 (배정, 목록조회, 역할변경, 교체, 취소) |
+| 구분 | 내용 | 파일 |
+|------|------|------|
+| 목록 페이지 | 차수 목록 조회, 검색, 필터링, 페이지네이션 | `CourseTimesPage.tsx` |
+| 생성 페이지 | 차수 생성 폼 (기본정보, 진행정보, 기간, 정원/가격) | `CourseTimeCreatePage.tsx` |
+| 상세 페이지 | 차수 상세 조회, 수정, 삭제, 상태 전이 | `CourseTimeDetailPage.tsx` |
+| 라우팅 | `/to/times`, `/to/times/create`, `/to/times/:id` | `to.routes.tsx` |
+| 사이드바 | 차수 관리 메뉴 경로 수정 | `sidebar-menus.ts` |
 
 ---
 
@@ -46,148 +49,260 @@ TO(Tenant Operator) 역할에서 차수별 강사 배정을 관리하기 위한 
 ### 신규 생성
 
 ```
-src/
-├── types/to/
-│   └── instructorAssignment.types.ts    # 강사 배정 타입 (신규)
-└── services/to/
-    └── instructorAssignmentService.ts   # 강사 배정 서비스 (신규)
+src/pages/to/time/
+├── CourseTimesPage.tsx      # 차수 목록 페이지
+├── CourseTimeCreatePage.tsx # 차수 생성 페이지
+├── CourseTimeDetailPage.tsx # 차수 상세/수정 페이지
+└── index.ts                 # export 파일
 ```
 
 ### 수정
 
 ```
-src/
-├── types/to/
-│   └── index.ts    # instructorAssignment.types export 추가
-└── services/to/
-    └── index.ts    # instructorAssignmentService export 추가
+src/routes/to.routes.tsx     # 라우팅 추가
+src/config/sidebar-menus.ts  # 메뉴 경로 수정 (/to/sessions → /to/times)
 ```
 
 ---
 
 ## 3. 상세 구현
 
-### 3.1 타입 정의 (`instructorAssignment.types.ts`)
+### 3.1 CourseTimesPage.tsx (목록 페이지)
 
-#### TU 타입 재사용
+**주요 기능:**
 
-```typescript
-// 공통 타입은 TU에서 재사용 (중복 방지)
-export type {
-  InstructorRole,
-  AssignmentStatus,
-  InstructorAssignmentResponse,
-} from '@/types/tu/instructorAssignment.types';
+| 기능 | 구현 내용 |
+|------|----------|
+| 목록 조회 | `useTimes` 훅으로 페이지네이션된 목록 조회 |
+| 검색 | 클라이언트 사이드 제목 검색 |
+| 필터링 | 상태별 필터 (DRAFT, RECRUITING, ONGOING, CLOSED, ARCHIVED) |
+| 통계 카드 | 전체/모집중/진행중/종료됨 카운트 |
+| 테이블 | DataTable 컴포넌트 (TanStack Table) |
+| 액션 | 상세 보기, 복제, 삭제 (DRAFT만) |
 
-export {
-  INSTRUCTOR_ROLE_LABELS,
-  ASSIGNMENT_STATUS_LABELS,
-} from '@/types/tu/instructorAssignment.types';
+**컴포넌트 구조:**
+
+```tsx
+<CourseTimesPage>
+  ├── Header (제목, 차수 생성 버튼)
+  ├── Search & Filter Bar
+  │   ├── 검색 인풋
+  │   └── 필터 토글 버튼
+  ├── Filter Options (상태별 버튼)
+  ├── Statistics Cards (IconStatCard x 4)
+  └── DataTable (목록)
+      └── Pagination
+</CourseTimesPage>
 ```
 
-#### TO 전용 Request 타입
+**컬럼 정의:**
 
-```typescript
-/** 강사 배정 요청 */
-export interface AssignInstructorRequest {
-  userId: number;
-  role: InstructorRole;
-  forceAssign?: boolean; // 일정 충돌 무시
-}
-
-/** 역할 변경 요청 */
-export interface UpdateInstructorRoleRequest {
-  role: InstructorRole;
-}
-
-/** 강사 교체 요청 */
-export interface ReplaceInstructorRequest {
-  newUserId: number;
-}
-
-/** 배정 취소 요청 */
-export interface CancelAssignmentRequest {
-  reason?: string;
-}
-```
-
----
-
-### 3.2 서비스 구현 (`instructorAssignmentService.ts`)
-
-| 메서드 | HTTP | 엔드포인트 | 설명 |
-|--------|------|------------|------|
-| `assignInstructor` | POST | `/times/{timeId}/instructors` | 강사 배정 |
-| `getInstructors` | GET | `/times/{timeId}/instructors` | 강사 목록 조회 |
-| `updateRole` | PUT | `/times/{timeId}/instructors/{id}` | 역할 변경 |
-| `replaceInstructor` | POST | `/times/{timeId}/instructors/{id}/replace` | 강사 교체 |
-| `cancelAssignment` | DELETE | `/times/{timeId}/instructors/{id}` | 배정 취소 |
-
-**사용 예시:**
-```typescript
-// 강사 배정
-await instructorAssignmentService.assignInstructor(timeId, {
-  userId: 123,
-  role: 'MAIN',
-  forceAssign: false,
-});
-
-// 강사 교체
-await instructorAssignmentService.replaceInstructor(timeId, assignmentId, {
-  newUserId: 456,
-});
-```
-
----
-
-## 4. 설계 결정
-
-### TU 타입 재사용
-
-| 결정 | 이유 |
+| 컬럼 | 내용 |
 |------|------|
-| `InstructorRole`, `AssignmentStatus` 재사용 | 동일한 enum 값, 중복 정의 방지 |
-| `InstructorAssignmentResponse` 재사용 | TO/TU 모두 동일한 응답 구조 사용 |
-| Request 타입만 TO에서 정의 | TU는 조회만, TO만 변경 작업 수행 |
+| 차수명 | 제목 + ID |
+| 상태 | Badge (variant별 색상) |
+| 진행 방식 | DELIVERY_TYPE_LABELS |
+| 학습 기간 | 시작일 ~ 종료일 |
+| 정원 | 현재/최대 (또는 무제한) |
+| 액션 | 상세, 복제, 삭제 버튼 |
 
-### forceAssign 옵션
+---
+
+### 3.2 CourseTimeCreatePage.tsx (생성 페이지)
+
+**폼 섹션:**
+
+| 섹션 | 필드 |
+|------|------|
+| 기본 정보 | 프로그램 ID*, 강의 ID*, 차수명*, 설명 |
+| 진행 정보 | 진행 방식, 수강 신청 방식, 장소 |
+| 기간 정보 | 모집 시작일*, 모집 종료일*, 학습 시작일*, 학습 종료일* |
+| 정원 및 가격 | 정원 (0=무제한), 가격 (0=무료) |
+
+**유효성 검사:**
 
 ```typescript
-interface AssignInstructorRequest {
-  forceAssign?: boolean; // 일정 충돌 무시
-}
+const validateForm = (): boolean => {
+  // 필수 필드 검증
+  if (!formData.programId) newErrors.programId = getText('required');
+  if (!formData.cmCourseId) newErrors.cmCourseId = getText('required');
+  if (!formData.title.trim()) newErrors.title = getText('required');
+  if (!formData.enrollmentStartDate) newErrors.enrollmentStartDate = getText('required');
+  if (!formData.enrollmentEndDate) newErrors.enrollmentEndDate = getText('required');
+  if (!formData.startDate) newErrors.startDate = getText('required');
+  if (!formData.endDate) newErrors.endDate = getText('required');
+  // ...
+};
 ```
 
-- 강사가 다른 차수와 일정이 겹칠 때 경고 후 강제 배정 가능
-- 기본값 `false`: 충돌 시 에러 반환
-- `true`: 충돌 무시하고 배정
+---
+
+### 3.3 CourseTimeDetailPage.tsx (상세/수정 페이지)
+
+**주요 기능:**
+
+| 기능 | 구현 내용 |
+|------|----------|
+| 상세 조회 | `useTime` 훅으로 상세 정보 조회 |
+| 수정 모드 | isEditing 상태로 토글 (DRAFT 상태만) |
+| 상태 전이 | 워크플로우 버튼 (DRAFT→RECRUITING→ONGOING→CLOSED→ARCHIVED) |
+| 삭제 | DRAFT 상태만 삭제 가능 |
+| 복제 | `/to/times/:id/clone` 으로 이동 |
+
+**카드 레이아웃:**
+
+```
+┌─────────────────┬─────────────────┐
+│   기본 정보      │   프로그램 정보   │
+├─────────────────┼─────────────────┤
+│   진행 정보      │   기간 정보      │
+├─────────────────┼─────────────────┤
+│  정원 및 수강    │   강사 정보      │
+└─────────────────┴─────────────────┘
+```
+
+**상태 전이 버튼:**
+
+| 현재 상태 | 버튼 | 다음 상태 |
+|----------|------|----------|
+| DRAFT | 모집 시작 | RECRUITING |
+| RECRUITING | 학습 시작 | ONGOING |
+| ONGOING | 종료 | CLOSED |
+| CLOSED | 보관 | ARCHIVED |
+| ARCHIVED | (없음) | - |
 
 ---
 
-## 5. 체크리스트
+### 3.4 라우팅 설정
 
-- [x] 컨벤션 및 기존 패턴 확인
-- [x] 타입 정의 파일 생성 (`instructorAssignment.types.ts`)
-- [x] 서비스 구현 (`instructorAssignmentService.ts`)
-- [x] Index 파일 업데이트
-- [x] TypeScript 빌드 검증 (`npx tsc --noEmit` 통과)
-- [x] 코드 리뷰 (기존 패턴 일관성 확인)
+**to.routes.tsx 변경:**
+
+```tsx
+// Before
+<Route path="sessions" element={<PlaceholderPage title="차수 관리" />} />
+
+// After
+<Route path="times" element={<CourseTimesPage />} />
+<Route path="times/create" element={<CourseTimeCreatePage />} />
+<Route path="times/:id" element={<CourseTimeDetailPage />} />
+```
+
+**sidebar-menus.ts 변경:**
+
+```typescript
+// Before
+{ id: 'session-management', label: { ko: '차수 관리', en: 'Session Management' }, icon: Calendar, path: '/to/sessions' }
+
+// After
+{ id: 'time-management', label: { ko: '차수 관리', en: 'Course Time Management' }, icon: Calendar, path: '/to/times' }
+```
 
 ---
 
-## 6. 후속 작업
+## 4. 디자인 패턴
 
-| 이슈 | 제목 | 의존성 |
-|------|------|--------|
-| #74 | TO 강사 배정 React Query 훅 구현 | #73 완료 필요 |
+### 4.1 다국어 지원
+
+```typescript
+const t = {
+  title: { ko: '차수 관리', en: 'Course Time Management' },
+  // ...
+};
+
+const getText = (key: keyof typeof t) => (language === 'ko' ? t[key].ko : t[key].en);
+```
+
+### 4.2 상태 Badge Variant
+
+```typescript
+const statusBadgeVariant: Record<CourseTimeStatus, BadgeVariant> = {
+  DRAFT: 'secondary',
+  RECRUITING: 'default',
+  ONGOING: 'success',
+  CLOSED: 'warning',
+  ARCHIVED: 'destructive',
+};
+```
+
+### 4.3 폼 상태 관리
+
+```typescript
+const [formData, setFormData] = useState<CreateCourseTimeRequest>({...});
+const [errors, setErrors] = useState<Partial<Record<keyof CreateCourseTimeRequest, string>>>({});
+
+const handleInputChange = (field: keyof CreateCourseTimeRequest, value: string | number | null) => {
+  setFormData((prev) => ({ ...prev, [field]: value }));
+  if (errors[field]) {
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  }
+};
+```
 
 ---
 
-## 7. 관련 문서
+## 5. 사용된 공통 컴포넌트
+
+| 컴포넌트 | 용도 |
+|----------|------|
+| `Button` | 액션 버튼 (variant: brand, ghost, neutral) |
+| `Badge` | 상태 표시 |
+| `DataTable` | 목록 테이블 |
+| `DataTableColumnHeader` | 정렬 가능한 컬럼 헤더 |
+| `IconStatCard` | 통계 카드 |
+| `Input` | 텍스트/숫자/날짜 입력 |
+| `Label` | 폼 라벨 |
+| `NativeSelect` | 셀렉트 박스 |
+| `Card` | 카드 컨테이너 |
+
+---
+
+## 6. 사용된 React Query Hooks
+
+| 훅 | 용도 |
+|----|------|
+| `useTimes` | 차수 목록 조회 |
+| `useTime` | 차수 상세 조회 |
+| `useCreateTime` | 차수 생성 |
+| `useUpdateTime` | 차수 수정 |
+| `useDeleteTime` | 차수 삭제 |
+| `useOpenTime` | 모집 시작 (DRAFT → RECRUITING) |
+| `useStartTime` | 학습 시작 (RECRUITING → ONGOING) |
+| `useCloseTime` | 종료 (ONGOING → CLOSED) |
+| `useArchiveTime` | 보관 (CLOSED → ARCHIVED) |
+
+---
+
+## 7. 체크리스트
+
+- [x] 차수 목록 페이지 구현 (`CourseTimesPage.tsx`)
+- [x] 차수 생성 페이지 구현 (`CourseTimeCreatePage.tsx`)
+- [x] 차수 상세/수정 페이지 구현 (`CourseTimeDetailPage.tsx`)
+- [x] 페이지 index.ts 생성
+- [x] 라우팅 설정 (`to.routes.tsx`)
+- [x] 사이드바 메뉴 경로 수정 (`sidebar-menus.ts`)
+- [x] 기존 TU 페이지 패턴 준수
+- [x] 디자인 토큰 사용 (하드코딩 없음)
+- [x] 다국어 지원 (ko/en)
+
+---
+
+## 8. 후속 작업
+
+| 이슈 | 제목 | 내용 |
+|------|------|------|
+| TBD | 차수 복제 페이지 | `/to/times/:id/clone` 페이지 구현 |
+| TBD | 강사 배정 기능 | 강사 검색/추가/제거 UI |
+| #90 | TO 프로그램 관리 페이지 | 프로그램 승인/반려 기능 |
+| #45 | TO 수강 관리 페이지 | 수강생 관리 기능 |
+
+---
+
+## 9. 관련 문서
 
 - [Phase 1](phase1.md) - 차수 타입 및 API 서비스
 - [Phase 2](phase2.md) - 차수 React Query 훅
-- [TU instructorAssignment.types.ts](../../../src/types/tu/instructorAssignment.types.ts) - TU 강사 배정 타입
+- [12-REACT-COMPONENT-CONVENTIONS](../../../../conventions/12-REACT-COMPONENT-CONVENTIONS.md)
+- [Design Tokens](../../../../conventions/design/01-DESIGN-TOKENS-COMMON.md)
 
 ---
 
@@ -195,10 +310,11 @@ interface AssignInstructorRequest {
 
 | 날짜 | 작업자 | 내용 |
 |------|--------|------|
-| 2025-12-28 | Claude Code | TU 타입 재사용 (InstructorRole, AssignmentStatus, Response) |
-| 2025-12-28 | Claude Code | TO 전용 Request 타입 정의 (4개) |
-| 2025-12-28 | Claude Code | instructorAssignmentService 구현 (5개 메서드) |
+| 2025-12-29 | Claude Code | CourseTimesPage.tsx 구현 (목록/검색/필터/통계) |
+| 2025-12-29 | Claude Code | CourseTimeCreatePage.tsx 구현 (생성 폼) |
+| 2025-12-29 | Claude Code | CourseTimeDetailPage.tsx 구현 (상세/수정/상태전이) |
+| 2025-12-29 | Claude Code | 라우팅 및 사이드바 메뉴 설정 |
 
 ---
 
-*최종 업데이트: 2025-12-28*
+*최종 업데이트: 2025-12-29*

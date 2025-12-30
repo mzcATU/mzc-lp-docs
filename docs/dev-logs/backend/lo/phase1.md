@@ -26,8 +26,8 @@
 | GET | `/api/learning-objects` | 목록 조회 (폴더/키워드 필터) | 200 OK |
 | GET | `/api/learning-objects/{id}` | 상세 조회 | 200 OK |
 | GET | `/api/learning-objects/content/{contentId}` | Content ID로 LO 조회 | 200 OK |
-| PATCH | `/api/learning-objects/{id}` | 메타데이터 수정 | 200 OK |
-| PATCH | `/api/learning-objects/{id}/folder` | 폴더 이동 | 200 OK |
+| PUT | `/api/learning-objects/{id}` | 메타데이터 수정 | 200 OK |
+| PUT | `/api/learning-objects/{id}/folder` | 폴더 이동 | 200 OK |
 | DELETE | `/api/learning-objects/{id}` | 삭제 | 204 No Content |
 
 ### ContentFolder API (7개)
@@ -268,8 +268,77 @@ private LearningObject learningObject;  // NULL이면 폴더, NOT NULL이면 차
 
 | 날짜 | 작업자 | 내용 |
 |------|--------|------|
+| 2025-12-29 | Claude Code | LO/폴더 기능 개선: 하위 폴더 포함 조회, 아이템 수 누적 계산, PATCH→PUT 변경 |
 | 2025-12-12 | Claude Code | LO 모듈 구현 완료 (API 14개) |
 
 ---
 
-*최종 업데이트: 2025-12-12*
+## 8. 2025-12-29 업데이트
+
+### 변경 사항
+
+#### 1. LO API HTTP 메서드 변경 (PATCH → PUT)
+
+| Before | After | 사유 |
+|--------|-------|------|
+| PATCH `/api/learning-objects/{id}` | PUT | 프론트엔드 CORS 이슈 해결, 팀 컨벤션 통일 |
+| PATCH `/api/learning-objects/{id}/folder` | PUT | 프론트엔드 CORS 이슈 해결, 팀 컨벤션 통일 |
+
+#### 2. 폴더 선택 시 하위 폴더 콘텐츠 포함 조회
+
+**문제**: 상위 폴더 선택 시 해당 폴더에 직접 속한 콘텐츠만 조회됨
+
+**해결**:
+- `LearningObjectRepository`에 `findByTenantIdAndFolderIdIn` 쿼리 추가
+- `LearningObjectServiceImpl.collectFolderIds()` 메서드로 하위 폴더 ID 재귀 수집
+- `ContentRepository.findMyContentsByFolderIds` 쿼리 추가
+- `ContentServiceImpl`에서 폴더 필터링 시 하위 폴더 포함 조회
+
+```java
+// 폴더와 모든 하위 폴더의 ID를 재귀적으로 수집
+private List<Long> collectFolderIds(ContentFolder folder) {
+    List<Long> ids = new ArrayList<>();
+    ids.add(folder.getId());
+    for (ContentFolder child : folder.getChildren()) {
+        ids.addAll(collectFolderIds(child));
+    }
+    return ids;
+}
+```
+
+#### 3. 폴더 아이템 수 누적 계산
+
+**문제**: 상위 폴더의 `itemCount`가 하위 폴더 아이템 수를 포함하지 않음
+
+**해결**: `ContentFolder.getItemCount()` 메서드를 재귀적으로 수정
+
+```java
+// Before
+public int getItemCount() {
+    return learningObjects.size();
+}
+
+// After
+public int getItemCount() {
+    int count = learningObjects.size();
+    for (ContentFolder child : children) {
+        count += child.getItemCount();
+    }
+    return count;
+}
+```
+
+### 수정 파일
+
+| 파일 | 변경 내용 |
+|------|----------|
+| `LearningObjectController.java` | PATCH → PUT 변경 |
+| `LearningObjectRepository.java` | `findByTenantIdAndFolderIdIn`, `findByTenantIdAndFolderIdInAndKeyword` 추가 |
+| `LearningObjectServiceImpl.java` | `collectFolderIds()` 메서드 추가, 폴더 선택 시 하위 폴더 포함 조회 |
+| `ContentFolder.java` | `getItemCount()` 재귀 수정 |
+| `ContentRepository.java` | `findMyContentsByFolderIds` 쿼리 추가 |
+| `ContentServiceImpl.java` | `collectFolderIds()` 메서드 추가, 폴더 필터링 시 하위 폴더 포함 |
+
+---
+
+*최종 업데이트: 2025-12-29*
