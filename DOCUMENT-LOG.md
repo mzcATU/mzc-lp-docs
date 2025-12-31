@@ -161,7 +161,11 @@ test-lms-v2-integration/
 | 2025-12-23 | 김희수 | LO 모듈 낙관적 락 추가 (@Version) - ContentFolder, LearningObject |
 | 2025-12-23 | 김희수 | `docs/structure/backend/learning/db.md` version 컬럼 추가 |
 | 2025-12-23 | 김희수 | `docs/dev-logs/backend/lo/phase2-performance.md` 개발 로그 생성 |
+| 2025-12-31 | Claude Code | CMS Phase 9 - 다운로드 허용 옵션 (Content.downloadable) 구현 |
+| 2025-12-31 | Claude Code | CMS Phase 9 - contentId 기반 CourseItem 생성 (LO 자동 생성) |
+| 2025-12-31 | Claude Code | CMS Phase 9 - JWT 토큰 만료 시 401 반환, ExistingContentModal 버그 수정 |
+| 2025-12-31 | Claude Code | `docs/dev-logs/backend/cms/phase9.md` 개발 로그 생성 |
 
 ---
 
-*최종 업데이트: 2025-12-23*
+*최종 업데이트: 2025-12-31*
