@@ -57,12 +57,26 @@ Content-Type: multipart/form-data
 ```
 file: (binary)
 folderId: 1 (optional)
+originalFileName: "React 강의" (optional)
+description: "React 기초 강의입니다" (optional)
+tags: "react,frontend" (optional)
+category: "프론트엔드" (optional)
+completionCriteria: "PERCENT_90" (optional)
+thumbnail: (binary, optional)
+downloadable: true (optional)
 ```
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
 | file | File | O | 업로드할 파일 |
 | folderId | Long | X | 저장할 폴더 ID |
+| originalFileName | String | X | 콘텐츠 이름 (미입력 시 업로드 파일명 사용) |
+| description | String | X | 콘텐츠 설명 |
+| tags | String | X | 태그 (쉼표로 구분) |
+| category | String | X | 카테고리 |
+| completionCriteria | String | X | 학습 완료 기준 (BUTTON_CLICK, PERCENT_90, PERCENT_100) |
+| thumbnail | File | X | 커스텀 썸네일 이미지 |
+| downloadable | Boolean | X | 다운로드 허용 여부 (기본값: true) |
 
 **지원 파일 형식**:
 | 타입 | 확장자 |
@@ -86,12 +100,25 @@ folderId: 1 (optional)
     "resolution": "1920x1080",
     "filePath": "/uploads/2025/01/550e8400-e29b-41d4-a716-446655440000.mp4",
     "thumbnailPath": "/uploads/thumbnails/2025/01/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+    "description": "React 기초 강의입니다",
+    "tags": "react,frontend",
+    "category": "프론트엔드",
+    "completionCriteria": "PERCENT_90",
+    "downloadable": true,
     "createdAt": "2025-01-15T10:00:00"
   }
 }
 ```
 
 > **썸네일 자동 생성**: VIDEO, IMAGE, PDF 파일 업로드 시 썸네일이 자동 생성됩니다.
+
+### CompletionCriteria Enum
+
+| 값 | 설명 |
+|----|------|
+| BUTTON_CLICK | 버튼 클릭으로 완료 처리 |
+| PERCENT_90 | 90% 이상 진행 시 완료 |
+| PERCENT_100 | 100% 진행 시 완료 |
 
 ### 1.3 외부 링크 등록
 
@@ -328,6 +355,19 @@ Content-Length: 104857600
 (binary data)
 ```
 
+> **downloadable 체크**: `downloadable=false`인 콘텐츠는 다운로드가 거부됩니다 (403 Forbidden).
+
+**Error Response** (`403 Forbidden`) - 다운로드 비허용 콘텐츠:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "CT011",
+    "message": "Content 123 is not downloadable"
+  }
+}
+```
+
 ### 3.3 파일 미리보기
 
 ```http
@@ -343,7 +383,15 @@ Content-Disposition: inline
 (binary data)
 ```
 
-> 브라우저에서 직접 미리보기 가능한 형태로 제공
+> **downloadable 체크 없음**: 미리보기는 `downloadable` 설정과 무관하게 항상 제공됩니다.
+> 브라우저에서 직접 미리보기 가능한 형태로 제공됩니다.
+
+### 다운로드 vs 미리보기 API 비교
+
+| API | downloadable 체크 | 용도 |
+|-----|-------------------|------|
+| `/download` | O (false면 거부) | 파일 저장 |
+| `/preview` | X (항상 허용) | 브라우저 인라인 표시 |
 
 ### 3.4 텍스트 내용 조회
 
@@ -826,12 +874,16 @@ Content-Type: application/json
 
 | 코드 | HTTP Status | 설명 |
 |------|-------------|------|
-| CONTENT_NOT_FOUND | 404 | 콘텐츠 없음 |
+| CONTENT_NOT_FOUND (CT001) | 404 | 콘텐츠 없음 |
 | UNSUPPORTED_FILE_TYPE | 400 | 지원하지 않는 파일 형식 |
 | FILE_SIZE_EXCEEDED | 400 | 파일 크기 초과 |
 | INVALID_EXTERNAL_URL | 400 | 지원하지 않는 외부 URL |
 | FILE_UPLOAD_FAILED | 500 | 파일 업로드 실패 |
 | METADATA_EXTRACTION_FAILED | 500 | 메타데이터 추출 실패 |
+| NOT_OWNER (CT008) | 403 | 본인이 생성한 콘텐츠가 아님 |
+| VERSION_NOT_FOUND (CT009) | 404 | 버전을 찾을 수 없음 |
+| CONTENT_IN_USE (CT010) | 409 | 강의에서 사용 중인 콘텐츠 |
+| NOT_DOWNLOADABLE (CT011) | 403 | 다운로드 비허용 콘텐츠 |
 
 ### 파일 크기 제한
 

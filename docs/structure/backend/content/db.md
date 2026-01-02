@@ -35,6 +35,11 @@ CREATE TABLE content (
     external_url        VARCHAR(2000),
     file_path           VARCHAR(1000),
     thumbnail_path      VARCHAR(1000),
+    description         VARCHAR(1000),
+    tags                VARCHAR(500),
+    category            VARCHAR(100),
+    completion_criteria VARCHAR(50) DEFAULT 'BUTTON_CLICK',
+    downloadable        BOOLEAN NOT NULL DEFAULT TRUE,
     status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     current_version     INT NOT NULL DEFAULT 1,
     created_by          BIGINT,
@@ -64,6 +69,11 @@ CREATE TABLE content (
 | external_url | VARCHAR(2000) | YES | 외부 링크 URL |
 | file_path | VARCHAR(1000) | YES | 파일 저장 경로 |
 | thumbnail_path | VARCHAR(1000) | YES | 썸네일 경로 |
+| description | VARCHAR(1000) | YES | 콘텐츠 설명 |
+| tags | VARCHAR(500) | YES | 태그 (쉼표로 구분) |
+| category | VARCHAR(100) | YES | 카테고리 |
+| completion_criteria | VARCHAR(50) | YES | 학습 완료 기준 (ENUM, 기본값: BUTTON_CLICK) |
+| downloadable | BOOLEAN | NO | 다운로드 허용 여부 (기본값: true) |
 | status | VARCHAR(20) | NO | 상태 (ACTIVE, ARCHIVED) |
 | current_version | INT | NO | 현재 버전 번호 |
 | created_by | BIGINT | YES | 생성자 ID |
@@ -142,6 +152,15 @@ CREATE TABLE content_version (
 'EXTERNAL_LINK' -- 외부 링크 (YouTube, Vimeo, Google Form)
 ```
 
+### 1.5 CompletionCriteria ENUM
+
+```sql
+-- completion_criteria 컬럼 값
+'BUTTON_CLICK'  -- 버튼 클릭으로 완료 처리 (기본값)
+'PERCENT_90'    -- 90% 이상 진행 시 완료
+'PERCENT_100'   -- 100% 진행 시 완료
+```
+
 ---
 
 ## 2. ER 다이어그램
@@ -162,6 +181,11 @@ CREATE TABLE content_version (
 │ page_count                      │ ──► DOCUMENT (PDF)
 │ external_url                    │ ──► EXTERNAL_LINK
 │ file_path                       │
+│ description                     │ ──► 콘텐츠 설명
+│ tags                            │ ──► 태그 (쉼표 구분)
+│ category                        │ ──► 카테고리
+│ completion_criteria             │ ──► 학습 완료 기준 (ENUM)
+│ downloadable                    │ ──► 다운로드 허용 여부
 │ status                          │ ──► ACTIVE, ARCHIVED
 │ current_version                 │
 │ created_by                      │
