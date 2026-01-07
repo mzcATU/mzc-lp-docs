@@ -166,7 +166,11 @@ test-lms-v2-integration/
 | 2025-12-31 | Claude Code | CMS Phase 9 - JWT 토큰 만료 시 401 반환, ExistingContentModal 버그 수정 |
 | 2025-12-31 | Claude Code | `docs/dev-logs/backend/cms/phase9.md` 개발 로그 생성 |
 | 2025-12-31 | 김찬민 | `docs/dev-logs/frontend/to/phase5.md` 프로그램 페이지 사용자 이름 표시 개선 |
+| 2026-01-06 | Claude Code | `docs/dev-logs/frontend/tu/phase15.md` 찜/장바구니 CourseTime 기반 변경 |
+| 2026-01-06 | Claude Code | `docs/dev-logs/frontend/tu/phase16.md` B2B 가격 표시 변경 (무료→숨김, 유료→자기부담) |
+| 2026-01-07 | Claude Code | `docs/dev-logs/frontend/tu/phase17.md` 학습 플레이어 콘텐츠 스트리밍 및 외부링크 연동 |
+| 2026-01-07 | Claude Code | Backend PR #338 - 학습자용 콘텐츠 스트리밍 API, 외부링크 스냅샷 저장 |
 
 ---
 
-*최종 업데이트: 2026-01-02*
+*최종 업데이트: 2026-01-07*
