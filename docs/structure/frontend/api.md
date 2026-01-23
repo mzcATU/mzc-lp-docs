@@ -52,109 +52,174 @@ export default apiClient;
 
 ## 2. Course API (CM + CR)
 
-### 2.1 courseApi.ts
+> 백엔드 API: [course/api.md](../backend/course/api.md)
+
+### 2.1 courseService.ts
 
 ```typescript
-// src/services/tu/api/courseApi.ts
-import apiClient from '@/services/common/api/axiosInstance';
-import type { Course, CourseItem, CourseRelation, CreateCourseRequest } from '@/types/tu/course';
+// src/services/common/courseService.ts
+import axiosInstance from '@/services/common/api/axiosInstance';
+import { API_ENDPOINTS } from '@/services/common/api/endpoints';
 
-export const courseApi = {
-  // 강의 CRUD
-  createCourse: (data: CreateCourseRequest) =>
-    apiClient.post<ApiResponse<Course>>('/courses', data),
+export const courseService = {
+  // ============================================
+  // Course CRUD
+  // ============================================
 
-  getCourses: () =>
-    apiClient.get<ApiResponse<Course[]>>('/courses'),
+  /** 강의 생성 */
+  create: (request: CreateCourseRequest) =>
+    axiosInstance.post<CourseResponse>(API_ENDPOINTS.COURSES.BASE, request),
 
+  /** 강의 목록 조회 */
+  getCourses: (params?: CourseFilterParams) =>
+    axiosInstance.get<PageResponse<CourseResponse>>(API_ENDPOINTS.COURSES.BASE, { params }),
+
+  /** 내 강의 목록 조회 */
+  getMyCourses: (params?: CourseFilterParams) =>
+    axiosInstance.get<PageResponse<CourseResponse>>(API_ENDPOINTS.COURSES.MY, { params }),
+
+  /** 강의 상세 조회 */
   getCourse: (id: number) =>
-    apiClient.get<ApiResponse<Course>>(`/courses/${id}`),
+    axiosInstance.get<CourseDetailResponse>(API_ENDPOINTS.COURSES.BY_ID(id)),
 
-  updateCourse: (id: number, data: Partial<CreateCourseRequest>) =>
-    apiClient.put<ApiResponse<Course>>(`/courses/${id}`, data),
+  /** 강의 수정 */
+  update: (id: number, request: UpdateCourseRequest) =>
+    axiosInstance.put<CourseResponse>(API_ENDPOINTS.COURSES.BY_ID(id), request),
 
-  deleteCourse: (id: number) =>
-    apiClient.delete(`/courses/${id}`),
+  /** 강의 삭제 */
+  delete: (id: number) =>
+    axiosInstance.delete(API_ENDPOINTS.COURSES.BY_ID(id)),
 
-  // 차시/폴더 관리
-  addItem: (courseId: number, data: CreateItemRequest) =>
-    apiClient.post<ApiResponse<CourseItem>>(`/courses/${courseId}/items`, data),
+  // ============================================
+  // 상태 관리 (DRAFT → READY → REGISTERED)
+  // ============================================
 
-  createFolder: (courseId: number, data: CreateFolderRequest) =>
-    apiClient.post<ApiResponse<CourseItem>>(`/courses/${courseId}/folders`, data),
+  /** 작성완료 (DRAFT → READY) */
+  ready: (id: number) =>
+    axiosInstance.post<CourseResponse>(API_ENDPOINTS.COURSES.READY(id)),
 
-  deleteItem: (itemId: number) =>
-    apiClient.delete(`/courses/items/${itemId}`),
+  /** 작성중으로 (READY → DRAFT) */
+  unready: (id: number) =>
+    axiosInstance.post<CourseResponse>(API_ENDPOINTS.COURSES.UNREADY(id)),
 
-  getHierarchy: (courseId: number) =>
-    apiClient.get<ApiResponse<CourseItem[]>>(`/courses/${courseId}/items/hierarchy`),
+  /** 등록 (READY → REGISTERED) */
+  register: (id: number, request?: RegisterCourseRequest) =>
+    axiosInstance.post<CourseRegistrationResponse>(API_ENDPOINTS.COURSES.REGISTER(id), request),
 
-  updateItemName: (courseId: number, itemId: number, name: string) =>
-    apiClient.patch(`/courses/${courseId}/items/${itemId}/name`, { itemName: name }),
+  // ============================================
+  // Course Items (차시/폴더)
+  // ============================================
 
-  // 학습 순서 (CR)
-  setRelations: (courseId: number, relations: RelationInput[]) =>
-    apiClient.post<ApiResponse<void>>(`/courses/${courseId}/relations`, { relations }),
+  /** 차시 추가 */
+  createItem: (courseId: number, request: CreateItemRequest) =>
+    axiosInstance.post<CourseItemResponse>(API_ENDPOINTS.COURSES.ITEMS(courseId), request),
 
-  getRelations: (courseId: number) =>
-    apiClient.get<ApiResponse<CourseRelation[]>>(`/courses/${courseId}/relations`),
+  /** 폴더 생성 */
+  createFolder: (courseId: number, request: CreateFolderRequest) =>
+    axiosInstance.post<CourseItemResponse>(API_ENDPOINTS.COURSES.FOLDERS(courseId), request),
 
-  updateRelations: (courseId: number, relations: RelationInput[]) =>
-    apiClient.put<ApiResponse<void>>(`/courses/${courseId}/relations`, { relations }),
+  /** 계층 구조 조회 */
+  getItemsHierarchy: (courseId: number) =>
+    axiosInstance.get<CourseItemHierarchyResponse[]>(API_ENDPOINTS.COURSES.ITEMS_HIERARCHY(courseId)),
 
-  autoGenerateRelations: (courseId: number) =>
-    apiClient.post<ApiResponse<void>>(`/courses/${courseId}/relations/auto`),
+  /** 순서대로 차시 조회 */
+  getItemsOrdered: (courseId: number) =>
+    axiosInstance.get<CourseItemResponse[]>(API_ENDPOINTS.COURSES.ITEMS_ORDERED(courseId)),
+
+  /** 항목 이동 */
+  moveItem: (courseId: number, request: MoveItemRequest) =>
+    axiosInstance.put<CourseItemResponse>(API_ENDPOINTS.COURSES.ITEMS_MOVE(courseId), request),
+
+  /** 항목 이름 변경 */
+  updateItemName: (courseId: number, itemId: number, request: UpdateItemNameRequest) =>
+    axiosInstance.patch<CourseItemResponse>(API_ENDPOINTS.COURSES.ITEM_NAME(courseId, itemId), request),
+
+  /** 표시 정보 변경 */
+  updateItemDisplayInfo: (courseId: number, itemId: number, request: UpdateDisplayInfoRequest) =>
+    axiosInstance.patch<CourseItemResponse>(API_ENDPOINTS.COURSES.ITEM_DISPLAY_INFO(courseId, itemId), request),
+
+  /** 학습 객체 변경 */
+  updateItemLearningObject: (courseId: number, itemId: number, request: UpdateLearningObjectRequest) =>
+    axiosInstance.patch<CourseItemResponse>(API_ENDPOINTS.COURSES.ITEM_LEARNING_OBJECT(courseId, itemId), request),
+
+  /** 항목 삭제 */
+  deleteItem: (courseId: number, itemId: number) =>
+    axiosInstance.delete(API_ENDPOINTS.COURSES.ITEM_BY_ID(courseId, itemId)),
 };
 ```
 
-### 2.2 타입 정의
+### 2.2 Course Relations API (미구현)
+
+> ⚠️ **TODO**: 학습 순서 관련 API는 프론트엔드에서 아직 구현되지 않음
+
+백엔드에서 제공하는 API:
+- `POST /api/courses/{id}/relations` - 학습 순서 설정
+- `GET /api/courses/{id}/relations` - 학습 순서 조회
+- `PUT /api/courses/{id}/relations` - 학습 순서 수정
+- `DELETE /api/courses/{id}/relations/{relationId}` - 순서 연결 삭제
+- `PUT /api/courses/{id}/relations/start` - 시작점 설정
+- `POST /api/courses/{id}/relations/auto` - 자동 순서 생성
+
+### 2.3 타입 정의
 
 ```typescript
-// src/types/tu/course.ts
-export interface Course {
+// src/types/common/course.types.ts
+export type CourseStatus = 'DRAFT' | 'READY' | 'REGISTERED';
+export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+export type CourseType = 'ONLINE' | 'OFFLINE' | 'BLENDED';
+
+export interface CourseResponse {
   courseId: number;
-  courseName: string;
-  instructorId: number;
-  items?: CourseItem[];
+  title: string;
+  description: string;
+  level: CourseLevel;
+  type: CourseType;
+  status: CourseStatus;
+  estimatedHours: number | null;
+  categoryId: number | null;
+  thumbnailUrl: string | null;
+  tags: string[];
+  itemCount: number;
+  createdBy: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CourseItem {
+export interface CourseItemResponse {
   itemId: number;
   itemName: string;
+  displayName: string;
+  description: string | null;
   depth: number;
   parentId: number | null;
   learningObjectId: number | null;
   isFolder: boolean;
-  children?: CourseItem[];
-}
-
-export interface CourseRelation {
-  relationId: number;
-  fromItemId: number | null;
-  toItemId: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateCourseRequest {
-  courseName: string;
-  instructorId: number;
+  title: string;
+  description?: string;
+  level?: CourseLevel;
+  type?: CourseType;
+  estimatedHours?: number;
+  categoryId?: number;
+  thumbnailUrl?: string;
+  tags?: string[];
 }
 
 export interface CreateItemRequest {
   itemName: string;
   parentId?: number;
   learningObjectId: number;
+  displayName?: string;
+  description?: string;
 }
 
 export interface CreateFolderRequest {
   folderName: string;
   parentId?: number;
-}
-
-export interface RelationInput {
-  fromItemId: number | null;
-  toItemId: number;
 }
 ```
 
@@ -162,91 +227,184 @@ export interface RelationInput {
 
 ## 3. Content API (CMS)
 
-### 3.1 contentApi.ts
+> 백엔드 API: [content/api.md](../backend/content/api.md)
+
+### 3.1 contentService.ts
 
 ```typescript
-// src/services/tu/api/contentApi.ts
-import apiClient from '@/services/common/api/axiosInstance';
-import type { Content, ExternalLinkRequest } from '@/types/tu/content';
+// src/services/tu/contentService.ts
+import axiosInstance from '@/services/common/api/axiosInstance';
+import { API_ENDPOINTS } from '@/services/common/api/endpoints';
 
-export const contentApi = {
-  // 파일 업로드
-  upload: (file: File, folderId?: number) => {
+export const contentService = {
+  // ============================================
+  // 업로드
+  // ============================================
+
+  /** 파일 업로드 */
+  uploadFile: async (file: File, options?: UploadFileOptions) => {
     const formData = new FormData();
     formData.append('file', file);
-    if (folderId) {
-      formData.append('folderId', String(folderId));
-    }
+    if (options?.folderId) formData.append('folderId', String(options.folderId));
+    if (options?.originalFileName) formData.append('originalFileName', options.originalFileName);
+    if (options?.description) formData.append('description', options.description);
+    if (options?.tags) formData.append('tags', options.tags);
+    if (options?.completionCriteria) formData.append('completionCriteria', options.completionCriteria);
+    if (options?.downloadable !== undefined) formData.append('downloadable', String(options.downloadable));
 
-    return apiClient.post<ApiResponse<Content>>('/contents/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: (progressEvent) => {
-        const percent = Math.round(
-          (progressEvent.loaded * 100) / (progressEvent.total || 1)
-        );
-        console.log(`Upload Progress: ${percent}%`);
-      },
+    return axiosInstance.post<ContentResponse>(API_ENDPOINTS.CONTENTS.UPLOAD, formData, {
+      headers: { 'Content-Type': undefined },
+      timeout: 300000,
     });
   },
 
-  // 외부 링크 등록
-  addExternalLink: (data: ExternalLinkRequest) =>
-    apiClient.post<ApiResponse<Content>>('/contents/external-link', data),
+  /** 다중 파일 일괄 업로드 (최대 10개) */
+  bulkUploadFiles: async (files: File[], options?: BulkUploadOptions) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    if (options?.folderId) formData.append('folderId', String(options.folderId));
 
-  // 콘텐츠 조회
-  getContents: (params?: ContentQueryParams) =>
-    apiClient.get<ApiResponse<PageResponse<Content>>>('/contents', { params }),
+    return axiosInstance.post<BulkUploadResponse>(API_ENDPOINTS.CONTENTS.BULK_UPLOAD, formData, {
+      headers: { 'Content-Type': undefined },
+      timeout: 600000,
+    });
+  },
 
+  /** 외부 링크 등록 */
+  createExternalLink: (request: CreateExternalLinkRequest) =>
+    axiosInstance.post<ContentResponse>(API_ENDPOINTS.CONTENTS.EXTERNAL_LINK, request),
+
+  // ============================================
+  // 조회
+  // ============================================
+
+  /** 콘텐츠 목록 조회 */
+  getContents: (params?: ContentFilterParams) =>
+    axiosInstance.get<PageResponse<ContentListResponse>>(API_ENDPOINTS.CONTENTS.BASE, { params }),
+
+  /** 내 콘텐츠 목록 조회 (DESIGNER용) */
+  getMyContents: (params?: ContentFilterParams) =>
+    axiosInstance.get<PageResponse<ContentListResponse>>(API_ENDPOINTS.CONTENTS.MY, { params }),
+
+  /** 콘텐츠 상세 조회 */
   getContent: (id: number) =>
-    apiClient.get<ApiResponse<Content>>(`/contents/${id}`),
+    axiosInstance.get<ContentResponse>(API_ENDPOINTS.CONTENTS.BY_ID(id)),
 
+  // ============================================
+  // 수정/삭제
+  // ============================================
+
+  /** 메타데이터 수정 */
+  updateContent: (id: number, request: UpdateContentRequest) =>
+    axiosInstance.put<ContentResponse>(API_ENDPOINTS.CONTENTS.BY_ID(id), request),
+
+  /** 파일 교체 */
+  replaceFile: async (id: number, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axiosInstance.put<ContentResponse>(API_ENDPOINTS.CONTENTS.FILE(id), formData, {
+      headers: { 'Content-Type': undefined },
+      timeout: 300000,
+    });
+  },
+
+  /** 콘텐츠 삭제 */
   deleteContent: (id: number) =>
-    apiClient.delete(`/contents/${id}`),
+    axiosInstance.delete(API_ENDPOINTS.CONTENTS.BY_ID(id)),
 
-  // 스트리밍/다운로드 URL
-  getStreamUrl: (id: number) =>
-    `/api/contents/${id}/stream`,
+  /** 콘텐츠 보관 (Archive) */
+  archiveContent: (id: number) =>
+    axiosInstance.post<ContentResponse>(API_ENDPOINTS.CONTENTS.ARCHIVE(id)),
 
-  getDownloadUrl: (id: number) =>
-    `/api/contents/${id}/download`,
+  /** 콘텐츠 복원 */
+  restoreContent: (id: number) =>
+    axiosInstance.post<ContentResponse>(API_ENDPOINTS.CONTENTS.RESTORE(id)),
 
-  getThumbnailUrl: (id: number) =>
-    `/api/contents/${id}/thumbnail`,
+  // ============================================
+  // 스트리밍/다운로드
+  // ============================================
+
+  /** 스트리밍 URL 반환 */
+  getStreamUrl: (id: number) => `${import.meta.env.VITE_API_BASE_URL}${API_ENDPOINTS.CONTENTS.STREAM(id)}`,
+
+  /** 다운로드 URL 반환 */
+  getDownloadUrl: (id: number) => `${import.meta.env.VITE_API_BASE_URL}${API_ENDPOINTS.CONTENTS.DOWNLOAD(id)}`,
+
+  /** 미리보기 URL 반환 */
+  getPreviewUrl: (id: number) => `${import.meta.env.VITE_API_BASE_URL}${API_ENDPOINTS.CONTENTS.PREVIEW(id)}`,
+
+  // ============================================
+  // 버전 관리
+  // ============================================
+
+  /** 버전 히스토리 조회 */
+  getVersions: (id: number) =>
+    axiosInstance.get<ContentVersionResponse[]>(API_ENDPOINTS.CONTENTS.VERSIONS(id)),
+
+  /** 특정 버전 조회 */
+  getVersion: (id: number, versionNumber: number) =>
+    axiosInstance.get<ContentVersionResponse>(API_ENDPOINTS.CONTENTS.VERSION_BY_NUMBER(id, versionNumber)),
+
+  /** 버전 복원 */
+  restoreVersion: (id: number, versionNumber: number, request?: RestoreVersionRequest) =>
+    axiosInstance.post<ContentResponse>(API_ENDPOINTS.CONTENTS.VERSION_RESTORE(id, versionNumber), request),
 };
 ```
 
-### 3.2 타입 정의
+### 3.2 미구현 API
+
+| 백엔드 API | 설명 | 상태 |
+|-----------|------|------|
+| `POST /api/contents` | 메타데이터만 생성 | 미구현 |
+| `GET /api/contents/type/{type}` | 타입별 조회 | 미구현 |
+| `GET /api/contents/uploader/{id}` | 업로더별 조회 | 미구현 |
+| `GET /api/contents/{id}/text` | 텍스트 추출 | 미구현 |
+
+### 3.3 타입 정의
 
 ```typescript
-// src/types/tu/content.ts
+// src/types/tu/content.types.ts
 export type ContentType = 'VIDEO' | 'DOCUMENT' | 'IMAGE' | 'AUDIO' | 'EXTERNAL_LINK';
+export type ContentStatus = 'ACTIVE' | 'ARCHIVED';
+export type CompletionCriteria = 'BUTTON_CLICK' | 'PERCENT_90' | 'PERCENT_100';
 
-export interface Content {
+export interface ContentResponse {
   contentId: number;
   originalFileName: string;
   storedFileName?: string;
   contentType: ContentType;
+  status: ContentStatus;
   fileSize?: number;
   duration?: number;
   resolution?: string;
   pageCount?: number;
   externalUrl?: string;
   filePath?: string;
+  thumbnailPath?: string;
+  description?: string;
+  tags?: string;
+  completionCriteria?: CompletionCriteria;
+  downloadable: boolean;
+  currentVersion: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface ExternalLinkRequest {
+export interface UploadFileOptions {
+  folderId?: number;
+  originalFileName?: string;
+  description?: string;
+  tags?: string;
+  category?: string;
+  completionCriteria?: CompletionCriteria;
+  thumbnail?: File;
+  downloadable?: boolean;
+}
+
+export interface CreateExternalLinkRequest {
   url: string;
   name: string;
   folderId?: number;
-}
-
-export interface ContentQueryParams {
-  folderId?: number;
-  type?: ContentType;
-  page?: number;
-  size?: number;
 }
 ```
 
@@ -254,83 +412,127 @@ export interface ContentQueryParams {
 
 ## 4. Learning Object API (LO)
 
-### 4.1 learningApi.ts
+> 백엔드 API: [learning/api.md](../backend/learning/api.md)
+
+### 4.1 learningObjectService.ts
 
 ```typescript
-// src/services/tu/api/learningApi.ts
-import apiClient from '@/services/common/api/axiosInstance';
-import type { LearningObject, ContentFolder } from '@/types/tu/learning';
+// src/services/tu/learningObjectService.ts
+import axiosInstance from '@/services/common/api/axiosInstance';
+import { API_ENDPOINTS } from '@/services/common/api/endpoints';
 
-export const learningApi = {
-  // 학습객체 CRUD
-  getLearningObjects: (params?: LearningObjectQueryParams) =>
-    apiClient.get<ApiResponse<PageResponse<LearningObject>>>('/learning-objects', { params }),
+export const learningObjectService = {
+  /** 학습객체 생성 */
+  create: (request: CreateLearningObjectRequest) =>
+    axiosInstance.post<LearningObjectResponse>(API_ENDPOINTS.LEARNING_OBJECTS.BASE, request),
 
+  /** 학습객체 목록 조회 */
+  getLearningObjects: (params?: LearningObjectFilterParams) =>
+    axiosInstance.get<PageResponse<LearningObjectResponse>>(API_ENDPOINTS.LEARNING_OBJECTS.BASE, { params }),
+
+  /** 학습객체 상세 조회 */
   getLearningObject: (id: number) =>
-    apiClient.get<ApiResponse<LearningObject>>(`/learning-objects/${id}`),
+    axiosInstance.get<LearningObjectResponse>(API_ENDPOINTS.LEARNING_OBJECTS.BY_ID(id)),
 
-  updateLearningObject: (id: number, name: string) =>
-    apiClient.put<ApiResponse<LearningObject>>(`/learning-objects/${id}`, { name }),
+  /** Content ID로 학습객체 조회 */
+  getLearningObjectByContentId: (contentId: number) =>
+    axiosInstance.get<LearningObjectResponse>(API_ENDPOINTS.LEARNING_OBJECTS.BY_CONTENT_ID(contentId)),
 
-  deleteLearningObject: (id: number) =>
-    apiClient.delete(`/learning-objects/${id}`),
+  /** 학습객체 수정 */
+  update: (id: number, request: UpdateLearningObjectRequest) =>
+    axiosInstance.put<LearningObjectResponse>(API_ENDPOINTS.LEARNING_OBJECTS.BY_ID(id), request),
 
-  moveLearningObject: (id: number, targetFolderId: number | null) =>
-    apiClient.post(`/learning-objects/${id}/move`, { targetFolderId }),
+  /** 학습객체 폴더 이동 */
+  moveToFolder: (id: number, request: MoveFolderRequest) =>
+    axiosInstance.put<LearningObjectResponse>(API_ENDPOINTS.LEARNING_OBJECTS.FOLDER(id), request),
 
-  // 폴더 CRUD
-  createFolder: (data: CreateFolderRequest) =>
-    apiClient.post<ApiResponse<ContentFolder>>('/content-folders', data),
-
-  getFolders: (parentId?: number) =>
-    apiClient.get<ApiResponse<ContentFolder[]>>('/content-folders', {
-      params: { parentId },
-    }),
-
-  getFolderTree: () =>
-    apiClient.get<ApiResponse<ContentFolder[]>>('/content-folders/tree'),
-
-  updateFolder: (id: number, folderName: string) =>
-    apiClient.put<ApiResponse<ContentFolder>>(`/content-folders/${id}`, { folderName }),
-
-  deleteFolder: (id: number) =>
-    apiClient.delete(`/content-folders/${id}`),
+  /** 학습객체 삭제 */
+  delete: (id: number) =>
+    axiosInstance.delete(API_ENDPOINTS.LEARNING_OBJECTS.BY_ID(id)),
 };
 ```
 
-### 4.2 타입 정의
+### 4.2 contentFolderService.ts
 
 ```typescript
-// src/types/tu/learning.ts
-export interface LearningObject {
+// src/services/tu/contentFolderService.ts
+import axiosInstance from '@/services/common/api/axiosInstance';
+import { API_ENDPOINTS } from '@/services/common/api/endpoints';
+
+export const contentFolderService = {
+  /** 폴더 생성 */
+  create: (request: CreateContentFolderRequest) =>
+    axiosInstance.post<ContentFolderResponse>(API_ENDPOINTS.CONTENT_FOLDERS.BASE, request),
+
+  /** 전체 폴더 트리 조회 */
+  getFolderTree: () =>
+    axiosInstance.get<ContentFolderResponse[]>(API_ENDPOINTS.CONTENT_FOLDERS.TREE),
+
+  /** 폴더 상세 조회 */
+  getFolder: (id: number) =>
+    axiosInstance.get<ContentFolderResponse>(API_ENDPOINTS.CONTENT_FOLDERS.BY_ID(id)),
+
+  /** 하위 폴더 목록 조회 */
+  getChildren: (id: number) =>
+    axiosInstance.get<ContentFolderResponse[]>(API_ENDPOINTS.CONTENT_FOLDERS.CHILDREN(id)),
+
+  /** 폴더명 수정 */
+  update: (id: number, request: UpdateContentFolderRequest) =>
+    axiosInstance.put<ContentFolderResponse>(API_ENDPOINTS.CONTENT_FOLDERS.BY_ID(id), request),
+
+  /** 폴더 이동 */
+  move: (id: number, request: MoveContentFolderRequest) =>
+    axiosInstance.put<ContentFolderResponse>(API_ENDPOINTS.CONTENT_FOLDERS.MOVE(id), request),
+
+  /** 폴더 삭제 */
+  delete: (id: number) =>
+    axiosInstance.delete(API_ENDPOINTS.CONTENT_FOLDERS.BY_ID(id)),
+};
+```
+
+### 4.3 미구현 API
+
+| 백엔드 API | 설명 | 상태 |
+|-----------|------|------|
+| `GET /api/learning-objects/owner/{id}` | 소유자별 조회 | 미구현 |
+| `GET /api/learning-objects/{id}/usage-count` | 사용 현황 조회 | 미구현 |
+
+### 4.4 타입 정의
+
+```typescript
+// src/types/tu/learning.types.ts
+export interface LearningObjectResponse {
   learningObjectId: number;
   name: string;
   contentId?: number;
-  content?: Content;
+  contentType?: ContentType;
+  duration?: number;
+  resolution?: string;
   folderId?: number;
-  folder?: ContentFolder;
+  folderName?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface ContentFolder {
+export interface ContentFolderResponse {
   folderId: number;
   folderName: string;
   parentId: number | null;
   depth: number;
-  children?: ContentFolder[];
   childCount?: number;
   itemCount?: number;
+  children?: ContentFolderResponse[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface LearningObjectQueryParams {
+export interface CreateLearningObjectRequest {
+  name: string;
+  contentId: number;
   folderId?: number;
-  keyword?: string;
-  page?: number;
-  size?: number;
 }
 
-export interface CreateFolderRequest {
+export interface CreateContentFolderRequest {
   folderName: string;
   parentId?: number;
 }
@@ -358,8 +560,8 @@ export interface ErrorInfo {
 
 export interface PageResponse<T> {
   content: T[];
-  page: number;
-  size: number;
+  number: number;      // 현재 페이지 (0부터 시작)
+  size: number;        // 페이지 크기
   totalElements: number;
   totalPages: number;
 }
@@ -367,56 +569,7 @@ export interface PageResponse<T> {
 
 ---
 
-## 6. React Query Hooks
-
-### 6.1 useCourses
-
-```typescript
-// src/hooks/tu/useCourses.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { courseApi } from '@/services/tu/api/courseApi';
-
-export const useCourses = () => {
-  return useQuery({
-    queryKey: ['courses'],
-    queryFn: () => courseApi.getCourses().then((res) => res.data.data),
-  });
-};
-
-export const useCourse = (id: number) => {
-  return useQuery({
-    queryKey: ['course', id],
-    queryFn: () => courseApi.getCourse(id).then((res) => res.data.data),
-    enabled: !!id,
-  });
-};
-
-export const useCreateCourse = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: courseApi.createCourse,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
-    },
-  });
-};
-
-export const useDeleteCourse = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: courseApi.deleteCourse,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
-    },
-  });
-};
-```
-
----
-
-## 7. 소스 위치
+## 6. 소스 위치
 
 ```
 frontend/src/
@@ -425,35 +578,81 @@ frontend/src/
 │   │   ├── api/
 │   │   │   ├── axiosInstance.ts    # Axios 인스턴스
 │   │   │   └── endpoints.ts        # API 엔드포인트 상수
-│   │   └── authService.ts          # 인증 서비스
+│   │   ├── authService.ts          # 인증 서비스
+│   │   └── courseService.ts        # Course API (CRUD + Items)
 │   ├── sa/                         # System Admin 서비스
-│   │   └── api/
+│   │   ├── dashboardService.ts
+│   │   ├── tenantService.ts
+│   │   ├── analyticsService.ts
+│   │   ├── systemSettingsService.ts
+│   │   └── noticeService.ts
 │   ├── ta/                         # Tenant Admin 서비스
-│   │   └── api/
-│   ├── to/                         # Tenant Operator 서비스
-│   │   └── api/
+│   │   ├── dashboardService.ts
+│   │   ├── brandingService.ts
+│   │   ├── tenantSettingsService.ts
+│   │   ├── employeeService.ts
+│   │   ├── groupService.ts
+│   │   ├── departmentService.ts
+│   │   ├── tenantCategoryService.ts
+│   │   ├── tenantFeaturesService.ts
+│   │   ├── memberPoolService.ts
+│   │   ├── bannerService.ts
+│   │   └── notificationTemplateService.ts
+│   ├── co/                         # Course Operator 서비스
+│   │   ├── dashboardService.ts
+│   │   ├── enrollmentService.ts
+│   │   ├── timeService.ts
+│   │   ├── snapshotService.ts
+│   │   ├── memberPoolService.ts
+│   │   ├── instructorAssignmentService.ts
+│   │   ├── autoEnrollmentRuleService.ts
+│   │   └── userService.ts
 │   └── tu/                         # Tenant User 서비스
-│       └── api/
-│           ├── courseApi.ts        # 강의 API (CM + CR)
-│           ├── contentApi.ts       # 콘텐츠 API (CMS)
-│           └── learningApi.ts      # 학습객체 API (LO)
+│       ├── contentService.ts       # 콘텐츠 API (CMS)
+│       ├── learningObjectService.ts # 학습객체 API (LO)
+│       ├── contentFolderService.ts # 콘텐츠 폴더 API
+│       ├── courseDetailService.ts  # 강의 상세 (학습자용)
+│       ├── courseExploreService.ts # 강의 탐색
+│       ├── catalogService.ts       # 카탈로그
+│       ├── enrollmentService.ts    # 수강 신청
+│       ├── roadmapService.ts       # 로드맵
+│       ├── communityService.ts     # 커뮤니티
+│       ├── courseReviewService.ts  # 강의 리뷰
+│       ├── wishlistService.ts      # 찜하기
+│       ├── cartService.ts          # 장바구니
+│       ├── notificationService.ts  # 알림
+│       ├── certificateService.ts   # 수료증
+│       └── ...
 ├── types/
 │   ├── common/
-│   │   └── api.ts                  # 공통 API 타입
+│   │   ├── api.ts                  # 공통 API 타입
+│   │   └── course.types.ts         # Course 타입
 │   ├── sa/
 │   ├── ta/
-│   ├── to/
+│   ├── co/
 │   └── tu/
-│       ├── course.ts               # 강의 타입
-│       ├── content.ts              # 콘텐츠 타입
-│       └── learning.ts             # 학습객체 타입
+│       ├── content.types.ts        # 콘텐츠 타입
+│       └── learning.types.ts       # 학습객체 타입
 └── hooks/
     ├── common/
+    │   └── useCourses.ts           # Course React Query Hooks
     ├── sa/
     ├── ta/
-    ├── to/
+    ├── co/
     └── tu/
-        ├── useCourses.ts           # 강의 React Query Hooks
         ├── useContents.ts          # 콘텐츠 React Query Hooks
         └── useLearningObjects.ts   # 학습객체 React Query Hooks
 ```
+
+---
+
+## 7. 백엔드 API 매핑 요약
+
+| 모듈 | 프론트엔드 서비스 | 백엔드 문서 | 구현 상태 |
+|------|------------------|------------|----------|
+| Course CRUD | `common/courseService.ts` | [course/api.md](../backend/course/api.md) | ✅ 완료 |
+| Course Items | `common/courseService.ts` | [course/api.md](../backend/course/api.md) | ✅ 완료 |
+| Course Relations | - | [course/api.md](../backend/course/api.md) | ❌ 미구현 |
+| Content | `tu/contentService.ts` | [content/api.md](../backend/content/api.md) | ✅ 대부분 완료 |
+| Learning Object | `tu/learningObjectService.ts` | [learning/api.md](../backend/learning/api.md) | ✅ 대부분 완료 |
+| Content Folder | `tu/contentFolderService.ts` | [learning/api.md](../backend/learning/api.md) | ✅ 완료 |
