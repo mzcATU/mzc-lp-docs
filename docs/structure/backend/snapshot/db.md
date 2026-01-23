@@ -14,6 +14,7 @@
 | **ON DELETE SET NULL** | 템플릿(Course) 삭제해도 스냅샷 유지 |
 | **상태 기반 수정 제한** | DRAFT만 전면 수정 가능, 진행 중 강의 보호 |
 | **cm_ 접두어** | Course Matrix 도메인 일관성 유지 |
+| **version (낙관적 락)** | 동시 수정 충돌 감지, JPA @Version 활용 |
 
 ---
 
@@ -67,13 +68,14 @@ cm_courses (템플릿)
 CREATE TABLE cm_snapshots (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id           BIGINT NOT NULL,
+    jpa_version         BIGINT NOT NULL DEFAULT 0,  -- 낙관적 락 (JPA @Version)
     source_course_id    BIGINT NULL,                -- 원본 템플릿 (삭제 시 NULL)
     snapshot_name       VARCHAR(255) NOT NULL,
     description         TEXT,
     hashtags            VARCHAR(255),
     created_by          BIGINT NOT NULL,
     status              VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
-    version             INT NOT NULL DEFAULT 1,
+    version             INT NOT NULL DEFAULT 1,     -- 비즈니스 버전
     created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -91,13 +93,14 @@ CREATE TABLE cm_snapshots (
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | 테넌트 ID |
+| jpa_version | BIGINT | NO | 낙관적 락 버전 (JPA @Version) |
 | source_course_id | BIGINT | YES | FK → cm_courses (삭제 시 NULL) |
 | snapshot_name | VARCHAR(255) | NO | 스냅샷 이름 |
 | description | TEXT | YES | 설명 |
 | hashtags | VARCHAR(255) | YES | 해시태그 |
 | created_by | BIGINT | NO | 생성자 ID |
 | status | VARCHAR(20) | NO | 상태 (DRAFT/ACTIVE/COMPLETED/ARCHIVED) |
-| version | INT | NO | 버전 (기본값 1) |
+| version | INT | NO | 비즈니스 버전 (기본값 1) |
 | created_at | DATETIME | NO | 생성일시 |
 | updated_at | DATETIME | NO | 수정일시 |
 
@@ -107,6 +110,7 @@ CREATE TABLE cm_snapshots (
 CREATE TABLE cm_snapshot_items (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id           BIGINT NOT NULL,
+    version             BIGINT NOT NULL DEFAULT 0,  -- 낙관적 락 (JPA @Version)
     snapshot_id         BIGINT NOT NULL,
     source_item_id      BIGINT NULL,                -- 원본 CourseItem ID (추적용)
     parent_id           BIGINT NULL,
@@ -135,6 +139,7 @@ CREATE TABLE cm_snapshot_items (
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | 테넌트 ID |
+| version | BIGINT | NO | 낙관적 락 버전 (JPA @Version) |
 | snapshot_id | BIGINT | NO | FK → cm_snapshots |
 | source_item_id | BIGINT | YES | 원본 CourseItem ID (추적용) |
 | parent_id | BIGINT | YES | FK → cm_snapshot_items (self-reference) |
@@ -155,15 +160,19 @@ CREATE TABLE cm_snapshot_items (
 CREATE TABLE cm_snapshot_los (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id           BIGINT NOT NULL,
+    version             BIGINT NOT NULL DEFAULT 0,  -- 낙관적 락 (JPA @Version)
     source_lo_id        BIGINT NULL,                -- 원본 LO ID (추적용)
     content_id          BIGINT NOT NULL,            -- Content 공유 참조
     display_name        VARCHAR(255) NOT NULL,
+    description         VARCHAR(500),               -- 학습객체 설명
     duration            INT,                        -- 재생시간 (초)
     thumbnail_url       VARCHAR(500),
     resolution          VARCHAR(50),
     codec               VARCHAR(50),
     bitrate             BIGINT,
     page_count          INT,                        -- 문서 페이지 수
+    external_url        VARCHAR(2000),              -- 외부 URL (링크형 콘텐츠)
+    downloadable        BOOLEAN,                    -- 다운로드 허용 여부
     is_customized       BOOLEAN NOT NULL DEFAULT FALSE,
     created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -181,15 +190,19 @@ CREATE TABLE cm_snapshot_los (
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | 테넌트 ID |
+| version | BIGINT | NO | 낙관적 락 버전 (JPA @Version) |
 | source_lo_id | BIGINT | YES | 원본 LO ID (추적용) |
 | content_id | BIGINT | NO | FK → cms_contents (공유 참조) |
 | display_name | VARCHAR(255) | NO | 표시명 |
+| description | VARCHAR(500) | YES | 학습객체 설명 |
 | duration | INT | YES | 재생시간 (초) |
 | thumbnail_url | VARCHAR(500) | YES | 썸네일 URL |
 | resolution | VARCHAR(50) | YES | 해상도 |
 | codec | VARCHAR(50) | YES | 코덱 |
 | bitrate | BIGINT | YES | 비트레이트 |
 | page_count | INT | YES | 페이지 수 (문서) |
+| external_url | VARCHAR(2000) | YES | 외부 URL (링크형 콘텐츠) |
+| downloadable | BOOLEAN | YES | 다운로드 허용 여부 |
 | is_customized | BOOLEAN | NO | 수정 여부 (기본값 false) |
 | created_at | DATETIME | NO | 생성일시 |
 | updated_at | DATETIME | NO | 수정일시 |
@@ -239,34 +252,36 @@ CREATE TABLE cm_snapshot_relations (
 ## 3. ER 다이어그램
 
 ```
-┌─────────────────────┐                    ┌─────────────────────┐
-│    cm_courses       │◄──SET NULL─────────│    cm_snapshots     │
-│     (템플릿)        │                    │    (개설 강의)       │
-├─────────────────────┤                    ├─────────────────────┤
-│ id (PK)             │                    │ id (PK)             │
-│ tenant_id           │                    │ tenant_id           │
-│ title               │                    │ source_course_id(FK)│
-│ description         │                    │ snapshot_name       │
-│ ...                 │                    │ status              │
-└─────────────────────┘                    │ version             │
-                                           └──────────┬──────────┘
-                                                      │ 1:N
-                                                      ▼
 ┌─────────────────────┐                    ┌─────────────────────────┐
-│  cm_snapshot_los    │◄───────────────────│   cm_snapshot_items     │
-│ (LO 메타데이터)     │     N:1            ├─────────────────────────┤
-├─────────────────────┤                    │ id (PK)                 │
-│ id (PK)             │                    │ tenant_id               │
-│ tenant_id           │                    │ snapshot_id (FK)        │◄──────┐
-│ source_lo_id        │                    │ parent_id (FK, self)    │───────┘
-│ content_id (FK)     │────► cms_contents  │ snapshot_lo_id (FK)     │
-│ display_name        │                    │ item_name               │
-│ duration            │                    │ depth                   │
-│ is_customized       │                    │ item_type               │
-└─────────────────────┘                    └──────────┬──────────────┘
-                                                      │
-                                                      ▼
-                                           ┌─────────────────────────┐
+│    cm_courses       │◄──SET NULL─────────│      cm_snapshots       │
+│     (템플릿)        │                    │      (개설 강의)         │
+├─────────────────────┤                    ├─────────────────────────┤
+│ id (PK)             │                    │ id (PK)                 │
+│ tenant_id           │                    │ tenant_id               │
+│ title               │                    │ jpa_version             │◄─ 낙관적 락
+│ description         │                    │ source_course_id(FK)    │
+│ ...                 │                    │ snapshot_name           │
+└─────────────────────┘                    │ status                  │
+                                           │ version                 │◄─ 비즈니스 버전
+                                           └───────────┬─────────────┘
+                                                       │ 1:N
+                                                       ▼
+┌──────────────────────────┐               ┌─────────────────────────┐
+│    cm_snapshot_los       │◄──────────────│   cm_snapshot_items     │
+│   (LO 메타데이터)        │     N:1       ├─────────────────────────┤
+├──────────────────────────┤               │ id (PK)                 │
+│ id (PK)                  │               │ tenant_id               │
+│ tenant_id                │               │ version                 │◄─ 낙관적 락
+│ version                  │◄─ 낙관적 락   │ snapshot_id (FK)        │◄──────┐
+│ source_lo_id             │               │ parent_id (FK, self)    │───────┘
+│ content_id (FK)          │──► cms_cont   │ snapshot_lo_id (FK)     │
+│ display_name             │               │ item_name               │
+│ description              │◄─ 추가됨      │ depth                   │
+│ duration                 │               │ item_type               │
+│ external_url             │◄─ 추가됨      └──────────┬──────────────┘
+│ downloadable             │◄─ 추가됨                 │
+│ is_customized            │                          ▼
+└──────────────────────────┘               ┌─────────────────────────┐
                                            │ cm_snapshot_relations   │
                                            ├─────────────────────────┤
                                            │ id (PK)                 │

@@ -64,9 +64,12 @@
 
 Course(템플릿)로부터 스냅샷을 생성합니다. 구조와 콘텐츠 메타데이터가 깊은 복사됩니다.
 
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
 **Request**
 ```
-POST /api/courses/{courseId}/snapshots?createdBy=1
+POST /api/courses/{courseId}/snapshots
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (201 Created)
@@ -94,9 +97,12 @@ POST /api/courses/{courseId}/snapshots?createdBy=1
 
 템플릿 없이 새 스냅샷을 생성합니다.
 
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
 **Request**
 ```
 POST /api/snapshots
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -198,9 +204,12 @@ GET /api/snapshots/{snapshotId}
 
 ### 5. 스냅샷 수정
 
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
 **Request**
 ```
 PUT /api/snapshots/{snapshotId}
+Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
@@ -220,19 +229,24 @@ Content-Type: application/json
 
 ### 6. 상태 변경
 
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
 **발행** (DRAFT → ACTIVE)
 ```
 POST /api/snapshots/{snapshotId}/publish
+Authorization: Bearer {accessToken}
 ```
 
 **완료** (ACTIVE → COMPLETED)
 ```
 POST /api/snapshots/{snapshotId}/complete
+Authorization: Bearer {accessToken}
 ```
 
 **보관** (COMPLETED → ARCHIVED)
 ```
 POST /api/snapshots/{snapshotId}/archive
+Authorization: Bearer {accessToken}
 ```
 
 **Response** (200 OK)
@@ -389,9 +403,15 @@ GET /api/snapshots/{snapshotId}/relations/ordered
 | sourceLoId | Long | 원본 LO ID |
 | contentId | Long | Content ID |
 | displayName | String | 표시명 |
+| description | String | 학습객체 설명 |
 | duration | Integer | 재생시간 (초) |
 | thumbnailUrl | String | 썸네일 URL |
 | resolution | String | 해상도 |
+| codec | String | 코덱 |
+| bitrate | Long | 비트레이트 |
+| pageCount | Integer | 페이지 수 (문서) |
+| externalUrl | String | 외부 URL (링크형 콘텐츠) |
+| downloadable | Boolean | 다운로드 허용 여부 |
 | isCustomized | Boolean | 수정 여부 |
 
 ---

@@ -14,13 +14,32 @@ Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
 **Request Body**:
 ```json
 {
-  "courseName": "React 기초 과정",
-  "instructorId": 1
+  "title": "React 기초 과정",
+  "description": "React의 기본 개념을 학습합니다.",
+  "level": "BEGINNER",
+  "type": "ONLINE",
+  "estimatedHours": 10,
+  "categoryId": 1,
+  "thumbnailUrl": "https://example.com/thumbnail.jpg",
+  "tags": ["React", "Frontend", "입문"]
 }
 ```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| title | String | O | 강의명 (최대 255자) |
+| description | String | X | 강의 설명 |
+| level | String | X | 난이도 (BEGINNER, INTERMEDIATE, ADVANCED) |
+| type | String | X | 유형 (ONLINE, OFFLINE, BLENDED) |
+| estimatedHours | Integer | X | 예상 학습 시간 |
+| categoryId | Long | X | 카테고리 ID |
+| thumbnailUrl | String | X | 썸네일 URL |
+| tags | String[] | X | 태그 목록 |
 
 **Response** (`201 Created`):
 ```json
@@ -28,8 +47,16 @@ Content-Type: application/json
   "success": true,
   "data": {
     "courseId": 1,
-    "courseName": "React 기초 과정",
-    "instructorId": 1,
+    "title": "React 기초 과정",
+    "description": "React의 기본 개념을 학습합니다.",
+    "level": "BEGINNER",
+    "type": "ONLINE",
+    "status": "DRAFT",
+    "estimatedHours": 10,
+    "categoryId": 1,
+    "thumbnailUrl": "https://example.com/thumbnail.jpg",
+    "tags": ["React", "Frontend", "입문"],
+    "createdBy": 100,
     "createdAt": "2025-01-15T10:00:00",
     "updatedAt": "2025-01-15T10:00:00"
   }
@@ -47,7 +74,8 @@ Authorization: Bearer {accessToken}
 | 파라미터 | 타입 | 필수 | 설명 |
 |----------|------|------|------|
 | keyword | String | X | 강의명 검색 |
-| instructorId | Long | X | 강사 ID 필터 |
+| categoryId | Long | X | 카테고리 ID 필터 |
+| status | String | X | 상태 필터 (DRAFT, READY, REGISTERED) |
 | page | Int | X | 페이지 번호 (기본: 0) |
 | size | Int | X | 페이지 크기 (기본: 20) |
 
@@ -59,9 +87,14 @@ Authorization: Bearer {accessToken}
     "content": [
       {
         "courseId": 1,
-        "courseName": "React 기초 과정",
-        "instructorId": 1,
+        "title": "React 기초 과정",
+        "description": "React의 기본 개념을 학습합니다.",
+        "level": "BEGINNER",
+        "type": "ONLINE",
+        "status": "DRAFT",
         "itemCount": 5,
+        "tags": ["React", "Frontend"],
+        "createdBy": 100,
         "createdAt": "2025-01-15T10:00:00"
       }
     ],
@@ -73,7 +106,26 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-### 1.3 강의 상세 조회
+### 1.3 내 강의 목록 조회
+
+```http
+GET /api/courses/my
+Authorization: Bearer {accessToken}
+```
+
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
+> 로그인한 사용자가 생성한 강의 목록 조회
+
+**Query Parameters**:
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| page | Int | X | 페이지 번호 (기본: 0) |
+| size | Int | X | 페이지 크기 (기본: 20) |
+
+**Response** (`200 OK`): 목록 조회와 동일한 형식
+
+### 1.4 강의 상세 조회
 
 ```http
 GET /api/courses/{courseId}
@@ -86,53 +138,19 @@ Authorization: Bearer {accessToken}
   "success": true,
   "data": {
     "courseId": 1,
-    "courseName": "React 기초 과정",
-    "instructorId": 1,
+    "title": "React 기초 과정",
+    "description": "React의 기본 개념을 학습합니다.",
+    "level": "BEGINNER",
+    "type": "ONLINE",
+    "status": "DRAFT",
+    "estimatedHours": 10,
+    "categoryId": 1,
+    "thumbnailUrl": "https://example.com/thumbnail.jpg",
+    "tags": ["React", "Frontend", "입문"],
     "items": [],
+    "createdBy": 100,
     "createdAt": "2025-01-15T10:00:00",
     "updatedAt": "2025-01-15T10:00:00"
-  }
-}
-```
-
-### 1.4 강사별 강의 목록 조회
-
-```http
-GET /api/courses/instructor/{instructorId}
-Authorization: Bearer {accessToken}
-```
-
-**Query Parameters**:
-| 파라미터 | 타입 | 필수 | 설명 |
-|----------|------|------|------|
-| page | Int | X | 페이지 번호 (기본: 0) |
-| size | Int | X | 페이지 크기 (기본: 20) |
-
-**Response** (`200 OK`):
-```json
-{
-  "success": true,
-  "data": {
-    "content": [
-      {
-        "courseId": 1,
-        "courseName": "React 기초 과정",
-        "instructorId": 1,
-        "itemCount": 5,
-        "createdAt": "2025-01-15T10:00:00"
-      },
-      {
-        "courseId": 3,
-        "courseName": "React 심화 과정",
-        "instructorId": 1,
-        "itemCount": 8,
-        "createdAt": "2025-01-20T10:00:00"
-      }
-    ],
-    "page": 0,
-    "size": 20,
-    "totalElements": 2,
-    "totalPages": 1
   }
 }
 ```
@@ -145,26 +163,25 @@ Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
+> DRAFT, READY 상태에서만 수정 가능
+
 **Request Body**:
 ```json
 {
-  "courseName": "React 심화 과정",
-  "instructorId": 2
+  "title": "React 심화 과정",
+  "description": "React 심화 내용을 학습합니다.",
+  "level": "INTERMEDIATE",
+  "type": "ONLINE",
+  "estimatedHours": 20,
+  "categoryId": 1,
+  "thumbnailUrl": "https://example.com/thumbnail2.jpg",
+  "tags": ["React", "Frontend", "심화"]
 }
 ```
 
-**Response** (`200 OK`):
-```json
-{
-  "success": true,
-  "data": {
-    "courseId": 1,
-    "courseName": "React 심화 과정",
-    "instructorId": 2,
-    "updatedAt": "2025-01-15T11:00:00"
-  }
-}
-```
+**Response** (`200 OK`): 생성 응답과 동일한 형식
 
 ### 1.6 강의 삭제
 
@@ -173,13 +190,88 @@ DELETE /api/courses/{courseId}
 Authorization: Bearer {accessToken}
 ```
 
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
 **Response** (`204 No Content`)
 
 ---
 
-## 2. 차시/폴더 (CourseItem) API
+## 2. 강의 상태 관리 API
 
-### 2.1 차시 추가
+### 2.1 상태 전이 다이어그램
+
+```
+DRAFT ──ready()──► READY ──register()──► REGISTERED
+  ▲                  │
+  └──unready()───────┘
+```
+
+| 상태 | 설명 | 수정 가능 | 차수 생성 |
+|------|------|:--------:|:--------:|
+| DRAFT | 작성중 | O | X |
+| READY | 작성완료 | O | X |
+| REGISTERED | 등록됨 | X | O |
+
+### 2.2 작성완료 (DRAFT → READY)
+
+```http
+POST /api/courses/{courseId}/ready
+Authorization: Bearer {accessToken}
+```
+
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
+**Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "courseId": 1,
+    "title": "React 기초 과정",
+    "status": "READY",
+    "updatedAt": "2025-01-15T11:00:00"
+  }
+}
+```
+
+### 2.3 작성중으로 변경 (READY → DRAFT)
+
+```http
+POST /api/courses/{courseId}/unready
+Authorization: Bearer {accessToken}
+```
+
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
+**Response** (`200 OK`): 위와 동일한 형식 (status: "DRAFT")
+
+### 2.4 등록 (READY → REGISTERED)
+
+```http
+POST /api/courses/{courseId}/register
+Authorization: Bearer {accessToken}
+```
+
+**권한**: `DESIGNER`, `OPERATOR`, `TENANT_ADMIN`
+
+> 등록 후에는 되돌릴 수 없음
+
+**Response** (`200 OK`): 위와 동일한 형식 (status: "REGISTERED")
+
+### 2.5 (Deprecated) 발행/발행취소
+
+```http
+POST /api/courses/{courseId}/publish      # deprecated, use /ready
+POST /api/courses/{courseId}/unpublish    # deprecated, use /unready
+```
+
+> 하위 호환성을 위해 유지, `/ready`, `/unready` 사용 권장
+
+---
+
+## 3. 차시/폴더 (CourseItem) API
+
+### 3.1 차시 추가
 
 ```http
 POST /api/courses/{courseId}/items
@@ -192,7 +284,9 @@ Content-Type: application/json
 {
   "itemName": "1-1. 환경설정",
   "parentId": 1,
-  "learningObjectId": 10
+  "learningObjectId": 10,
+  "displayName": "개발 환경 구축하기",
+  "description": "VS Code, Node.js 설치 및 설정"
 }
 ```
 
@@ -201,6 +295,8 @@ Content-Type: application/json
 | itemName | String | O | 차시 이름 |
 | parentId | Long | X | 부모 폴더 ID (NULL이면 최상위) |
 | learningObjectId | Long | O | 학습객체 ID |
+| displayName | String | X | 표시명 (커스텀) |
+| description | String | X | 차시 설명 |
 
 **Response** (`201 Created`):
 ```json
@@ -209,6 +305,8 @@ Content-Type: application/json
   "data": {
     "itemId": 2,
     "itemName": "1-1. 환경설정",
+    "displayName": "개발 환경 구축하기",
+    "description": "VS Code, Node.js 설치 및 설정",
     "depth": 1,
     "parentId": 1,
     "learningObjectId": 10,
@@ -217,7 +315,7 @@ Content-Type: application/json
 }
 ```
 
-### 2.2 폴더 생성
+### 3.2 폴더 생성
 
 ```http
 POST /api/courses/{courseId}/folders
@@ -253,7 +351,7 @@ Content-Type: application/json
 }
 ```
 
-### 2.3 항목 삭제
+### 3.3 항목 삭제
 
 ```http
 DELETE /api/courses/{courseId}/items/{itemId}
@@ -264,7 +362,7 @@ Authorization: Bearer {accessToken}
 
 > 폴더 삭제 시 하위 항목도 함께 삭제됨
 
-### 2.4 계층 구조 조회
+### 3.4 계층 구조 조회
 
 ```http
 GET /api/courses/{courseId}/items/hierarchy
@@ -285,17 +383,11 @@ Authorization: Bearer {accessToken}
         {
           "itemId": 2,
           "itemName": "1-1. 환경설정",
+          "displayName": "개발 환경 구축하기",
+          "description": "VS Code, Node.js 설치",
           "depth": 1,
           "isFolder": false,
           "learningObjectId": 10,
-          "children": []
-        },
-        {
-          "itemId": 3,
-          "itemName": "1-2. 기본 문법",
-          "depth": 1,
-          "isFolder": false,
-          "learningObjectId": 11,
           "children": []
         }
       ]
@@ -304,7 +396,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-### 2.5 순서대로 항목 조회
+### 3.5 순서대로 항목 조회
 
 ```http
 GET /api/courses/{courseId}/items/ordered
@@ -319,22 +411,9 @@ Authorization: Bearer {accessToken}
     {
       "itemId": 2,
       "itemName": "1-1. 환경설정",
+      "displayName": "개발 환경 구축하기",
       "order": 1,
       "learningObjectId": 10,
-      "isFolder": false
-    },
-    {
-      "itemId": 3,
-      "itemName": "1-2. 기본 문법",
-      "order": 2,
-      "learningObjectId": 11,
-      "isFolder": false
-    },
-    {
-      "itemId": 5,
-      "itemName": "2-1. 컴포넌트",
-      "order": 3,
-      "learningObjectId": 12,
       "isFolder": false
     }
   ]
@@ -343,7 +422,7 @@ Authorization: Bearer {accessToken}
 
 > CourseRelation 기반으로 학습 순서대로 정렬된 차시 목록 반환
 
-### 2.6 항목 이동
+### 3.6 항목 이동
 
 ```http
 PUT /api/courses/{courseId}/items/move
@@ -379,7 +458,7 @@ Content-Type: application/json
 }
 ```
 
-### 2.7 항목 이름 변경
+### 3.7 항목 이름 변경
 
 ```http
 PATCH /api/courses/{courseId}/items/{itemId}/name
@@ -406,7 +485,25 @@ Content-Type: application/json
 }
 ```
 
-### 2.8 차시 LearningObject 변경
+### 3.8 차시 표시 정보 변경
+
+```http
+PATCH /api/courses/{courseId}/items/{itemId}/display-info
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "displayName": "새로운 표시명",
+  "description": "새로운 설명"
+}
+```
+
+> 폴더가 아닌 차시 항목에만 적용 가능
+
+### 3.9 차시 LearningObject 변경
 
 ```http
 PATCH /api/courses/{courseId}/items/{itemId}/learning-object
@@ -442,9 +539,9 @@ Content-Type: application/json
 
 ---
 
-## 3. 학습 순서 (CourseRelation) API
+## 4. 학습 순서 (CourseRelation) API
 
-### 3.1 학습 순서 설정
+### 4.1 학습 순서 설정
 
 ```http
 POST /api/courses/{courseId}/relations
@@ -477,7 +574,7 @@ Content-Type: application/json
 }
 ```
 
-### 3.2 학습 순서 조회
+### 4.2 학습 순서 조회
 
 ```http
 GET /api/courses/{courseId}/relations
@@ -504,7 +601,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-### 3.3 학습 순서 수정
+### 4.3 학습 순서 수정
 
 ```http
 PUT /api/courses/{courseId}/relations
@@ -525,7 +622,7 @@ Content-Type: application/json
 
 > 기존 순서 전체 삭제 후 새로 설정
 
-### 3.4 순서 연결 삭제
+### 4.4 순서 연결 삭제
 
 ```http
 DELETE /api/courses/{courseId}/relations/{relationId}
@@ -534,7 +631,7 @@ Authorization: Bearer {accessToken}
 
 **Response** (`204 No Content`)
 
-### 3.5 시작점 설정
+### 4.5 시작점 설정
 
 ```http
 PUT /api/courses/{courseId}/relations/start
@@ -567,7 +664,7 @@ Content-Type: application/json
 
 > 기존 시작점(fromItemId=null)을 새 차시로 변경
 
-### 3.6 자동 순서 생성
+### 4.6 자동 순서 생성
 
 ```http
 POST /api/courses/{courseId}/relations/auto
@@ -590,7 +687,7 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 4. 에러 응답
+## 5. 에러 응답
 
 ### 공통 에러 형식
 
@@ -610,36 +707,54 @@ Authorization: Bearer {accessToken}
 | 코드 | HTTP Status | 설명 |
 |------|-------------|------|
 | COURSE_NOT_FOUND | 404 | 강의 없음 |
-| ITEM_NOT_FOUND | 404 | 차시/폴더 없음 |
+| COURSE_ITEM_NOT_FOUND | 404 | 차시/폴더 없음 |
+| COURSE_NOT_MODIFIABLE | 400 | REGISTERED 상태에서 수정 시도 |
+| INVALID_STATUS_TRANSITION | 400 | 잘못된 상태 전이 |
 | INVALID_PARENT | 400 | 잘못된 부모 폴더 |
 | MAX_DEPTH_EXCEEDED | 400 | 최대 깊이(10) 초과 |
-| CIRCULAR_RELATION | 400 | 순환 참조 감지 |
+| CIRCULAR_REFERENCE | 400 | 순환 참조 감지 |
 | LEARNING_OBJECT_NOT_FOUND | 404 | 학습객체 없음 |
+| COURSE_OWNERSHIP_EXCEPTION | 403 | 강의 소유권 없음 |
 
 ---
 
-## 5. 소스 위치
+## 6. 소스 위치
 
 ```
-backend/src/main/java/com/lms/platform/domain/course/
+mzc-lp-backend/src/main/java/com/mzc/lp/domain/course/
+├── constant/
+│   ├── CourseStatus.java          # DRAFT, READY, REGISTERED
+│   ├── CourseLevel.java           # BEGINNER, INTERMEDIATE, ADVANCED
+│   └── CourseType.java            # ONLINE, OFFLINE, BLENDED
 ├── controller/
 │   ├── CourseController.java
+│   ├── CourseItemController.java
 │   └── CourseRelationController.java
 ├── service/
 │   ├── CourseService.java
+│   ├── CourseItemService.java
 │   └── CourseRelationService.java
 ├── repository/
 │   ├── CourseRepository.java
 │   ├── CourseItemRepository.java
 │   └── CourseRelationRepository.java
-└── dto/
-    ├── request/
-    └── response/
+├── entity/
+│   ├── Course.java
+│   ├── CourseItem.java
+│   └── CourseRelation.java
+├── dto/
+│   ├── request/
+│   └── response/
+└── exception/
+    ├── CourseNotFoundException.java
+    ├── CourseItemNotFoundException.java
+    ├── CourseNotModifiableException.java
+    └── ...
 ```
 
 ---
 
-## 6. 관련 문서
+## 7. 관련 문서
 
 | 문서 | 내용 |
 |------|------|
