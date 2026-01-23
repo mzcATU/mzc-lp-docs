@@ -67,8 +67,14 @@ CREATE TABLE um_users (
 
 **TenantRole Enum:**
 - `USER`: 일반 사용자 (수강)
+- `DESIGNER`: 강의 설계자 (커리큘럼 구성)
+- `INSTRUCTOR`: 강사 (강의 진행, 수강생 관리)
 - `OPERATOR`: 운영자 (강의 검토, 차수 생성, 역할 부여)
 - `TENANT_ADMIN`: 테넌트 관리자
+- `SYSTEM_ADMIN`: 시스템 최고 관리자
+
+> **다중 역할 지원**: 사용자는 기본 역할(role)과 추가 역할(user_roles)을 가질 수 있습니다.
+> 상세: [user-roles.md](../../context/user-roles.md)
 
 **UserStatus Enum:**
 - `ACTIVE`: 활성
@@ -76,7 +82,41 @@ CREATE TABLE um_users (
 - `SUSPENDED`: 정지
 - `WITHDRAWN`: 탈퇴
 
-### 1.2 um_user_course_roles (강의별 역할)
+### 1.2 um_user_roles (다중 역할 - 2026-01 추가)
+
+> 사용자의 추가 역할을 관리합니다. 기본 역할(User.role)과 별도로 여러 역할을 부여할 수 있습니다.
+
+```sql
+CREATE TABLE um_user_roles (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT NOT NULL,
+    role            VARCHAR(20) NOT NULL,
+    assigned_at     DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    assigned_by     BIGINT,
+
+    CONSTRAINT fk_user_role_user FOREIGN KEY (user_id)
+        REFERENCES um_users(id) ON DELETE CASCADE,
+
+    UNIQUE KEY uk_user_role (user_id, role),
+    INDEX idx_user (user_id),
+    INDEX idx_role (role)
+);
+```
+
+| 컬럼 | 타입 | NULL | 설명 |
+|------|------|------|------|
+| id | BIGINT | NO | PK, Auto Increment |
+| user_id | BIGINT | NO | FK → um_users |
+| role | VARCHAR(20) | NO | TenantRole (DESIGNER, INSTRUCTOR, OPERATOR 등) |
+| assigned_at | DATETIME(6) | NO | 역할 부여 시점 |
+| assigned_by | BIGINT | YES | 부여자 ID (OPERATOR/TENANT_ADMIN) |
+
+**사용 예시:**
+- 기본 역할이 USER인 사용자에게 INSTRUCTOR 역할 추가
+- OPERATOR가 여러 역할을 동시에 가질 수 있음
+- JWT 토큰에 `roles` 배열로 모든 역할 포함
+
+### 1.3 um_user_course_roles (강의별 역할)
 
 ```sql
 CREATE TABLE um_user_course_roles (

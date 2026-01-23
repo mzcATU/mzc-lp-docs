@@ -96,8 +96,10 @@
 
 | 모듈 | 역할 | 핵심 개념 |
 |------|------|----------|
-| **Program** | 강의 개설 신청/승인 워크플로우 | DRAFT → PENDING → APPROVED/REJECTED → CLOSED |
 | **Snapshot** | 개설 강의 (템플릿의 깊은 복사본) | Content는 공유 참조, 메타데이터는 깊은 복사 |
+
+> **Note**: Program 모듈은 제거되었습니다. 강의 상태 관리는 Course 엔티티의 `CourseStatus`로 직접 처리합니다.
+> - DRAFT → PENDING_APPROVAL → APPROVED/REJECTED → CLOSED
 
 ---
 
@@ -116,7 +118,7 @@
 │                  CR (학습 순서 설정)                                         │
 │                                                                              │
 │  3. 강의 개설                                                                │
-│     USER ──────► Program (개설 신청) ──────► OPERATOR (검토/승인)            │
+│     USER ──────► CM (승인 요청) ──────► OPERATOR (검토/승인)                 │
 │                        │                                                     │
 │                        ▼                                                     │
 │                  TS (차수 생성)                                              │
@@ -138,8 +140,8 @@
 | 1 | CMS → LO | 영상/문서 업로드 → Content 생성 → LO 자동 생성 |
 | 2 | CM | Course 생성, CourseItem 계층 구성, LO 연결 |
 | 3 | CR | 학습 순서 설정 (Linked List) |
-| 4 | Program | 강의 개설 신청 (DRAFT → PENDING) |
-| 5 | Program | OPERATOR 검토/승인 (PENDING → APPROVED) |
+| 4 | CM | 강의 승인 요청 (DRAFT → PENDING_APPROVAL) |
+| 5 | CM | OPERATOR 검토/승인 (PENDING_APPROVAL → APPROVED/REJECTED) |
 | 6 | Snapshot | Course 템플릿에서 Snapshot 생성 (깊은 복사) |
 | 7 | TS | CourseTime 차수 생성 |
 | 8 | IIS | 강사 배정 기록: `{ userKey, timeKey, assignedAt }` |
@@ -158,7 +160,7 @@
 | Snapshot (개설 강의) | [structure/backend/snapshot/](../structure/backend/snapshot/) |
 | LearningObject | [structure/backend/learning/](../structure/backend/learning/) |
 | Content | [structure/backend/content/](../structure/backend/content/) |
-| Program (개설 신청) | [structure/backend/schedule/](../structure/backend/schedule/) |
+| CourseTime (차수) | [structure/backend/schedule/](../structure/backend/schedule/) |
 
 ### 설계 의도 (Why)
 

@@ -208,37 +208,45 @@ frontend/
 └── package.json             # Workspace 설정
 ```
 
-### 5.2 단일 앱 + 동적 렌더링 (권장)
+### 5.2 현재 구현: 서브도메인 기반 B2B/B2C 분리
 
 ```
-frontend/
-├── src/
-│   ├── features/
-│   │   ├── common/          # 공통 기능
-│   │   ├── b2c/             # B2C 전용 기능
-│   │   ├── b2b/             # B2B 전용 기능
-│   │   └── kpop/            # K-Pop 전용 기능
+frontend/src/
+├── pages/
+│   ├── b2c/                 # B2C 전용 페이지 (/b2c/*)
+│   │   ├── B2CLandingPage.tsx
+│   │   ├── B2CCoursesPage.tsx
+│   │   └── ...
 │   │
-│   ├── providers/
-│   │   └── TenantProvider.tsx
+│   ├── b2b/                 # B2B 전용 페이지 (/b2b/*)
+│   │   ├── B2BLandingPage.tsx
+│   │   ├── B2BCoursesPage.tsx
+│   │   └── ...
 │   │
-│   └── App.tsx
+│   └── common/              # 공통 페이지
+│       └── ...
+│
+├── layouts/
+│   ├── B2CLayout.tsx        # B2C 레이아웃 (헤더/푸터)
+│   └── B2BLayout.tsx        # B2B 레이아웃 (브랜딩 적용)
+│
+└── router/
+    └── index.tsx            # 서브도메인 기반 라우팅
 ```
 
+**서브도메인 라우팅:**
 ```tsx
-// App.tsx
-function App() {
-  const { tenant } = useTenant();
+// useTenantRouting.ts
+const { subdomain } = useTenant();
 
-  return (
-    <TenantThemeProvider>
-      {tenant?.type === 'B2C' && <B2CLayout />}
-      {tenant?.type === 'B2B' && <B2BLayout />}
-      {tenant?.type === 'KPOP' && <KpopLayout />}
-    </TenantThemeProvider>
-  );
-}
+// 서브도메인별 자동 리다이렉트
+// www.example.com    → /b2c/landing
+// company.example.com → /b2b/landing
 ```
+
+**X-Subdomain 헤더:**
+- 프론트엔드에서 API 호출 시 `X-Subdomain` 헤더 포함
+- 백엔드 TenantFilter가 헤더에서 테넌트 식별
 
 ---
 

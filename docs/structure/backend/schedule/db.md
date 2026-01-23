@@ -1,6 +1,8 @@
 # Schedule DB 스키마
 
-> TS (Time Schedule) 모듈 데이터베이스 - 강의(Program) 및 차수(Time) 관리
+> TS (Time Schedule) 모듈 데이터베이스 - 차수(CourseTime) 관리
+>
+> **Note**: Program 엔티티는 제거되었습니다. 차수는 Course/Snapshot을 직접 참조합니다.
 
 ---
 
@@ -8,117 +10,49 @@
 
 | 설계 결정 | 이유 |
 |----------|------|
-| **Program ↔ CourseTime 분리** | 강의 정보와 운영(차수) 정보 분리, 1:N 관계로 재사용성 확보 |
-| **Program status 관리** | DRAFT → PENDING → APPROVED 워크플로우, OPERATOR 검토 프로세스 |
+| **Course → CourseTime 관계** | 승인된 Course의 차수 운영, 1:N 관계로 재사용성 확보 |
+| **DurationType 도입** | FIXED(고정 기간) / FLEXIBLE(유연 기간) 지원 |
 | **CourseTime capacity** | 차수별 정원 관리, NULL이면 무제한 |
 | **enrollment_period** | 수강신청 기간 별도 관리, 차수 운영 기간과 분리 |
+| **EnrollmentPolicy** | OPEN(자유신청) / APPROVAL(승인필요) / INVITATION_ONLY(초대만) |
 
 ---
 
 ## 1. 테이블 구조
 
-### 1.1 cm_programs (강의/프로그램) - ✅ 구현 완료
+> **Note**: Program 엔티티는 제거되었습니다. 차수(CourseTime)는 승인된 Course를 직접 참조합니다.
+> Course 상태 관리는 [course/db.md](../course/db.md) 참조
 
-> **실제 구현 테이블명**: `cm_programs` (CM 도메인에서 관리)
-
-```sql
-CREATE TABLE cm_programs (
-    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id           BIGINT NOT NULL,
-    title               VARCHAR(255) NOT NULL,
-    description         TEXT,
-    thumbnail_url       VARCHAR(500),
-    level               VARCHAR(20),
-    type                VARCHAR(20),
-    estimated_hours     INT,
-    snapshot_id         BIGINT,                              -- CourseSnapshot 연결
-    status              VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
-    creator_id          BIGINT NOT NULL,
-    approved_at         DATETIME(6),
-    approved_by         BIGINT,
-    approval_comment    VARCHAR(500),                        -- 승인 코멘트
-    rejected_at         DATETIME(6),
-    rejection_reason    VARCHAR(500),
-    submitted_at        DATETIME(6),                         -- 제출 시점
-    created_at          DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at          DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-
-    INDEX idx_program_tenant (tenant_id),
-    INDEX idx_program_status (status),
-    INDEX idx_program_creator (creator_id),
-    INDEX idx_program_snapshot (snapshot_id)
-);
-```
-
-| 컬럼 | 타입 | NULL | 설명 |
-|------|------|------|------|
-| id | BIGINT | NO | PK, Auto Increment |
-| tenant_id | BIGINT | NO | 테넌트 ID |
-| title | VARCHAR(255) | NO | 강의 제목 |
-| description | TEXT | YES | 강의 설명 |
-| thumbnail_url | VARCHAR(500) | YES | 썸네일 이미지 URL |
-| level | VARCHAR(20) | YES | 난이도 (BEGINNER, INTERMEDIATE, ADVANCED) |
-| type | VARCHAR(20) | YES | 유형 (ONLINE, OFFLINE, BLENDED, SELF_PACED) |
-| estimated_hours | INT | YES | 예상 학습 시간 |
-| snapshot_id | BIGINT | YES | FK → cm_snapshots (개설 강의 연결) |
-| status | VARCHAR(20) | NO | 상태 (DRAFT, PENDING, APPROVED, REJECTED, CLOSED) |
-| creator_id | BIGINT | NO | 생성자 ID (um_users.id 참조) |
-| approved_at | DATETIME(6) | YES | 승인 시점 |
-| approved_by | BIGINT | YES | 승인자 ID (OPERATOR) |
-| approval_comment | VARCHAR(500) | YES | 승인 코멘트 |
-| rejected_at | DATETIME(6) | YES | 반려 시점 |
-| rejection_reason | VARCHAR(500) | YES | 반려 사유 |
-| submitted_at | DATETIME(6) | YES | 승인 요청 제출 시점 |
-| created_at | DATETIME(6) | NO | 생성일시 |
-| updated_at | DATETIME(6) | NO | 수정일시 |
-
-**ProgramLevel Enum:**
-- `BEGINNER`: 입문
-- `INTERMEDIATE`: 중급
-- `ADVANCED`: 고급
-
-**ProgramType Enum:**
-- `ONLINE`: 온라인 (비대면)
-- `OFFLINE`: 오프라인 (대면)
-- `BLENDED`: 블렌디드 (혼합)
-- `SELF_PACED`: 자기 주도형
-
-**ProgramStatus Enum:**
-- `DRAFT`: 작성 중
-- `PENDING`: 검토 대기
-- `APPROVED`: 승인됨 (운영 가능)
-- `REJECTED`: 반려됨
-- `CLOSED`: 종료됨
-
-### 1.2 ts_course_times (차수) - ⏳ 구현 예정
-
-> **실제 구현 테이블명**: `ts_course_times` (TS 도메인에서 관리)
-> **참고**: `program_id` FK 추가됨 (cm_programs 연결)
+### 1.1 ts_course_times (차수)
 
 ```sql
 CREATE TABLE ts_course_times (
     id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id               BIGINT NOT NULL,
-    program_id              BIGINT,                             -- cm_programs 연결 (신규 추가)
-    cm_course_id            BIGINT,                             -- deprecated (program.snapshot 사용)
-    cm_course_version_id    BIGINT,                             -- deprecated (program.snapshot 사용)
-    time_number             INT NOT NULL,
-    start_date              DATETIME(6) NOT NULL,
-    end_date                DATETIME(6) NOT NULL,
-    enrollment_start_date   DATETIME(6),
-    enrollment_end_date     DATETIME(6),
-    capacity                INT,
+    course_id               BIGINT NOT NULL,                    -- cm_courses 연결
+    snapshot_id             BIGINT,                             -- cm_snapshots 연결 (깊은 복사)
+    name                    VARCHAR(255) NOT NULL,              -- 차수명 (예: "2026년 1기")
+    duration_type           VARCHAR(20) NOT NULL DEFAULT 'FIXED', -- FIXED/FLEXIBLE
+    start_date              DATE,                               -- FIXED 타입: 시작일
+    end_date                DATE,                               -- FIXED 타입: 종료일
+    duration_days           INT,                                -- FLEXIBLE 타입: 수강 기간(일)
+    enrollment_start_date   DATE,
+    enrollment_end_date     DATE,
+    capacity                INT,                                -- 정원 (NULL이면 무제한)
+    enrollment_policy       VARCHAR(20) NOT NULL DEFAULT 'OPEN', -- 수강신청 정책
+    auto_approve            BOOLEAN NOT NULL DEFAULT TRUE,      -- 자동 승인 여부
     status                  VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
     created_by              BIGINT NOT NULL,
     created_at              DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at              DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
 
-    CONSTRAINT fk_time_program FOREIGN KEY (program_id)
-        REFERENCES cm_programs(id) ON DELETE SET NULL,
+    CONSTRAINT fk_time_course FOREIGN KEY (course_id)
+        REFERENCES cm_courses(id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_snapshot FOREIGN KEY (snapshot_id)
+        REFERENCES cm_snapshots(id) ON DELETE SET NULL,
 
-    UNIQUE KEY uk_program_time_number (program_id, time_number),
     INDEX idx_tenant (tenant_id),
-    INDEX idx_program (program_id),
+    INDEX idx_course (course_id),
     INDEX idx_status (status),
     INDEX idx_start_date (start_date),
     INDEX idx_end_date (end_date)
@@ -129,19 +63,31 @@ CREATE TABLE ts_course_times (
 |------|------|------|------|
 | id | BIGINT | NO | PK, Auto Increment |
 | tenant_id | BIGINT | NO | 테넌트 ID |
-| program_id | BIGINT | YES | FK → cm_programs (신규 추가) |
-| cm_course_id | BIGINT | YES | @Deprecated - program.snapshot 사용 권장 |
-| cm_course_version_id | BIGINT | YES | @Deprecated - program.snapshot 사용 권장 |
-| time_number | INT | NO | 차수 번호 (1, 2, 3...) |
-| start_date | DATETIME(6) | NO | 수강 시작일 |
-| end_date | DATETIME(6) | NO | 수강 종료일 |
-| enrollment_start_date | DATETIME(6) | YES | 수강신청 시작일 |
-| enrollment_end_date | DATETIME(6) | YES | 수강신청 종료일 |
+| course_id | BIGINT | NO | FK → cm_courses (승인된 강의) |
+| snapshot_id | BIGINT | YES | FK → cm_snapshots (깊은 복사본) |
+| name | VARCHAR(255) | NO | 차수명 |
+| duration_type | VARCHAR(20) | NO | 기간 유형 (FIXED/FLEXIBLE) |
+| start_date | DATE | YES | 수강 시작일 (FIXED 타입) |
+| end_date | DATE | YES | 수강 종료일 (FIXED 타입) |
+| duration_days | INT | YES | 수강 기간 일수 (FLEXIBLE 타입) |
+| enrollment_start_date | DATE | YES | 수강신청 시작일 |
+| enrollment_end_date | DATE | YES | 수강신청 종료일 |
 | capacity | INT | YES | 정원 (NULL이면 무제한) |
+| enrollment_policy | VARCHAR(20) | NO | 수강신청 정책 |
+| auto_approve | BOOLEAN | NO | 자동 승인 여부 |
 | status | VARCHAR(20) | NO | 상태 |
 | created_by | BIGINT | NO | 생성자 ID (OPERATOR) |
 | created_at | DATETIME(6) | NO | 생성일시 |
 | updated_at | DATETIME(6) | NO | 수정일시 |
+
+**DurationType Enum:**
+- `FIXED`: 고정 기간 (startDate ~ endDate)
+- `FLEXIBLE`: 유연 기간 (수강신청일로부터 N일)
+
+**EnrollmentPolicy Enum:**
+- `OPEN`: 자유 신청 (누구나 신청 가능)
+- `APPROVAL`: 승인 필요 (OPERATOR 승인 후 수강)
+- `INVITATION_ONLY`: 초대만 (OPERATOR가 직접 배정)
 
 **TimeStatus Enum:**
 - `SCHEDULED`: 예정 (수강신청 불가)

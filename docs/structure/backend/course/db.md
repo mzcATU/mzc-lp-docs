@@ -174,25 +174,35 @@ CREATE TABLE cr_course_relations (
 
 ```java
 public enum CourseStatus {
-    DRAFT("작성중"),      // 수정 가능, 차수 생성 불가
-    READY("작성완료"),    // 수정 가능, 차수 생성 불가
-    REGISTERED("등록됨"); // 수정 불가, 차수 생성 가능
+    DRAFT("작성중"),           // 수정 가능, 승인 요청 가능
+    PENDING_APPROVAL("승인대기"), // 수정 불가, OPERATOR 검토 대기
+    APPROVED("승인됨"),        // 수정 불가, 차수 생성 가능
+    REJECTED("반려됨"),        // 수정 가능, 재제출 가능
+    CLOSED("종료됨");          // 수정 불가, 운영 종료
 }
 ```
 
 ### 상태 전이
 
 ```
-DRAFT ──ready()──► READY ──register()──► REGISTERED
-  ▲                  │
-  └──unready()───────┘
+DRAFT ──submit()──► PENDING_APPROVAL ──approve()──► APPROVED ──close()──► CLOSED
+                         │                              │
+                         │ reject()                     │
+                         ▼                              │
+                    REJECTED ──resubmit()──► PENDING_APPROVAL
+                         │
+                         └──edit()──► DRAFT
 ```
 
-| 상태 | 수정 가능 | 차수(CourseTime) 생성 |
-|------|:--------:|:--------------------:|
-| DRAFT | O | X |
-| READY | O | X |
-| REGISTERED | X | O |
+| 상태 | 수정 가능 | 승인 요청 | 차수(CourseTime) 생성 |
+|------|:--------:|:--------:|:--------------------:|
+| DRAFT | O | O | X |
+| PENDING_APPROVAL | X | X | X |
+| APPROVED | X | X | O |
+| REJECTED | O | O (재제출) | X |
+| CLOSED | X | X | X |
+
+> **Note**: Program 엔티티는 제거되었습니다. Course 엔티티가 직접 승인 워크플로우를 관리합니다.
 
 ---
 

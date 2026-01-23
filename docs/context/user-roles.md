@@ -47,6 +47,7 @@ public enum TenantRole {
     SYSTEM_ADMIN,   // 시스템 최고 관리자
     TENANT_ADMIN,   // 테넌트 관리자
     OPERATOR,       // 운영자 (강의 검토, 차수 생성, 역할 부여)
+    INSTRUCTOR,     // 강사 (강의 진행, 수강생 관리)
     DESIGNER,       // 설계자 (강의 개설 신청)
     USER            // 일반 사용자 (수강)
 }
@@ -54,10 +55,52 @@ public enum TenantRole {
 
 | 역할 | 핵심 책임 |
 |------|----------|
+| SYSTEM_ADMIN | 전체 시스템 관리, 테넌트 생성/삭제 |
 | TENANT_ADMIN | 테넌트 설정, 브랜딩, 전체 통계 |
 | OPERATOR | 강의 승인, 차수/강사 관리, 역할 부여(B2B) |
+| INSTRUCTOR | 강의 진행, 수강생 관리, 성적 부여 |
 | DESIGNER | 강의 설계, 개설 신청 |
 | USER | 수강, 리뷰 작성 |
+
+### 2.1.1 다중 역할 지원 (2026-01 추가)
+
+사용자는 **기본 역할(User.role)**과 **추가 역할(UserRole 엔티티)**을 가질 수 있습니다.
+
+```java
+// User 엔티티
+@Entity
+public class User {
+    private TenantRole role;           // 기본 역할
+
+    @OneToMany(mappedBy = "user")
+    private Set<UserRole> userRoles;   // 추가 역할들
+}
+
+// UserRole 엔티티 (N:M 관계 테이블)
+@Entity
+public class UserRole {
+    private User user;
+    private TenantRole role;
+    private LocalDateTime assignedAt;
+    private Long assignedBy;
+}
+```
+
+**JWT 토큰 구조:**
+```json
+{
+  "sub": "1",
+  "tenantId": 2,
+  "roles": ["USER", "DESIGNER", "OPERATOR"],  // 모든 역할
+  "currentRole": "OPERATOR"                    // 현재 활성 역할
+}
+```
+
+**역할 전환 API:**
+```
+PUT /api/users/me/current-role
+{ "role": "DESIGNER" }
+```
 
 ### 2.2 강의 레벨 역할 (CourseRole)
 
