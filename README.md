@@ -291,9 +291,9 @@ npm run dev
 
 | 역할 | 이메일 | 비밀번호 |
 |------|--------|----------|
-| SYSTEM_ADMIN | admin@system.com | admin123! |
-| TENANT_ADMIN | admin@tenant.com | admin123! |
-| USER | user@test.com | user123! |
+| SYSTEM_ADMIN | sysadmin@mzc.com | 1q2w3e4r! |
+| TENANT_ADMIN | admin@company-a.com | 1q2w3e4r! |
+| USER | user1@company-a.com | 1q2w3e4r! |
 
 ---
 
