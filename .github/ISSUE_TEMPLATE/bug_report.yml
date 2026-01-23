@@ -3,18 +3,12 @@ description: 버그 리포트
 title: "[Bug] "
 labels: ["bug"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## 버그 리포트
-        발생한 버그에 대해 상세히 설명해주세요.
-
   - type: textarea
     id: description
     attributes:
       label: 버그 설명
       description: 어떤 버그가 발생했는지 설명해주세요.
-      placeholder: 로그인 버튼 클릭 시 에러가 발생합니다.
+      placeholder: 로그인 시 500 에러가 발생합니다.
     validations:
       required: true
 
@@ -22,12 +16,11 @@ body:
     id: steps
     attributes:
       label: 재현 방법
-      description: 버그를 재현하는 방법을 단계별로 설명해주세요.
+      description: 버그를 재현하는 방법을 설명해주세요.
       placeholder: |
-        1. 로그인 페이지로 이동
-        2. 이메일/비밀번호 입력
-        3. 로그인 버튼 클릭
-        4. 에러 발생
+        1. POST /api/auth/login 호출
+        2. 잘못된 비밀번호 입력
+        3. 500 에러 발생
     validations:
       required: true
 
@@ -35,62 +28,28 @@ body:
     id: expected
     attributes:
       label: 예상 동작
-      description: 정상적으로 동작했을 때 기대하는 결과를 설명해주세요.
-      placeholder: 로그인 성공 후 메인 페이지로 이동해야 합니다.
-    validations:
-      required: true
-
-  - type: textarea
-    id: actual
-    attributes:
-      label: 실제 동작
-      description: 실제로 발생한 결과를 설명해주세요.
-      placeholder: "500 Internal Server Error 발생"
-    validations:
-      required: true
-
-  - type: dropdown
-    id: severity
-    attributes:
-      label: 심각도
-      description: 버그의 심각도를 선택해주세요.
-      options:
-        - "Critical - 서비스 불가"
-        - "High - 주요 기능 장애"
-        - "Medium - 일부 기능 장애"
-        - "Low - 사소한 문제"
-    validations:
-      required: true
-
-  - type: dropdown
-    id: environment
-    attributes:
-      label: 환경
-      description: 버그가 발생한 환경을 선택해주세요.
-      options:
-        - "Local"
-        - "Dev"
-        - "Staging"
-        - "Production"
+      description: 정상적으로 동작했을 때 기대하는 결과
+      placeholder: 401 Unauthorized 응답이 반환되어야 합니다.
     validations:
       required: true
 
   - type: textarea
     id: logs
     attributes:
-      label: 로그 / 스크린샷
-      description: 관련 에러 로그나 스크린샷이 있다면 첨부해주세요.
+      label: 로그 / 스크린샷 (선택)
+      description: 관련 에러 로그나 스크린샷
       placeholder: |
         ```
-        에러 로그를 여기에 붙여넣기
+        에러 로그
         ```
     validations:
       required: false
 
-  - type: textarea
-    id: additional
+  - type: input
+    id: branch
     attributes:
-      label: 추가 정보
-      description: 브라우저, OS 등 추가 정보가 있다면 작성해주세요.
+      label: 관련 브랜치
+      description: 수정할 브랜치명을 입력해주세요.
+      placeholder: fix/login-error
     validations:
       required: false

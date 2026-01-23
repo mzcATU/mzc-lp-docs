@@ -52,9 +52,38 @@ https://github.com/shsh99/lms-architecture
 └─────────────────────────────────────────────────┘
 ```
 
+**핵심 개념**: B2C가 코어 시스템이고, B2B와 KPOP은 B2C를 기반으로 테넌트화
+
+### 플랫폼별 특징
+
+| 플랫폼 | 컨셉 | 대상 |
+|--------|------|------|
+| **B2C** | 인프런/Udemy 스타일 오픈 마켓플레이스 | 일반 사용자 |
+| **B2B** | 기업 맞춤형 LMS (화이트라벨) | 기업 임직원 |
+| **KPOP** | K-POP 교육 (2~3주 연수 프로그램) | 외국인 연수생 |
+
 ---
 
-## 2. 기술 스택
+## 2. 저장소 구조 (Poly-Repo)
+
+```
+GitHub Organization: mzcATU/
+├── mzc-lp-docs/         # 공통 문서 저장소 (현재)
+├── mzc-lp-backend/      # Backend API 서버
+└── mzc-lp-frontend/     # Frontend 웹 앱
+```
+
+| 저장소 | 역할 | 기술 스택 |
+|--------|------|----------|
+| **mzc-lp-docs** | 공통 문서, 컨벤션, 설계 문서 | Markdown |
+| **mzc-lp-backend** | REST API, 비즈니스 로직 | Java 21, Spring Boot 3.x |
+| **mzc-lp-frontend** | 웹 UI, 사용자 인터페이스 | React 19, TypeScript, Vite |
+
+> 상세 구조 및 설정 → [docs/POLY-REPO.md](docs/POLY-REPO.md)
+
+---
+
+## 3. 기술 스택
 
 | 구분 | 기술 | 버전 |
 |------|------|------|
