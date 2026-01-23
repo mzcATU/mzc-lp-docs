@@ -1,8 +1,9 @@
 # 시드 데이터 구조 최적화
 
-> **작업일**: 2026-01-20
-> **작업 범위**: `mzc-lp-backend/src/main/resources/db/seed/`
+> **작업일**: 2026-01-20 ~ 2026-01-21
+> **작업 범위**: `mzc-lp-backend/src/main/resources/db/seed/`, `DataSourceInitConfig`
 > **관련 모듈**: CM(Course Management), TS(Training Session), Snapshot
+> **관련 PR**: #421, #427
 
 ## 개요
 
@@ -178,3 +179,47 @@ Content (콘텐츠)
 1. **스냅샷 LO/Item 확장**: 현재 스냅샷별 LO/Item 데이터가 최소화되어 있음. 필요시 확장 가능.
 2. **테넌트별 데이터 균형**: 테넌트 1에 데이터가 집중되어 있음. 테넌트 2, 3 데이터 보강 검토.
 3. **성능 테스트**: 대량 데이터 시드 시 성능 검증 필요.
+
+---
+
+## 추가 작업: DepartmentInitializer 조건부 실행 (#427)
+
+> **작업일**: 2026-01-21
+
+### 배경
+
+서버 재부팅 시 DB 데이터가 초기화되는 문제가 있었습니다. 원인은 `sql.init.mode=always` 설정으로 인해 매번 seed 데이터가 TRUNCATE → 재삽입되기 때문입니다.
+
+데이터 보존을 위해 `sql.init.mode=never`로 변경하면, `DepartmentInitializer`가 seed 데이터 없이 실행되어 트랜잭션 롤백 오류(`UnexpectedRollbackException`)가 발생했습니다.
+
+### 해결
+
+`DepartmentInitializer`에 `@ConditionalOnProperty` 추가하여 `sql.init.mode=always`일 때만 실행되도록 수정.
+
+```java
+@ConditionalOnProperty(name = "spring.sql.init.mode", havingValue = "always")
+public class DepartmentInitializer { ... }
+```
+
+### 로컬에서 데이터 보존하려면
+
+`application.yml` 또는 환경변수에서 다음과 같이 설정:
+
+```yaml
+spring:
+  sql:
+    init:
+      mode: never
+```
+
+또는 `.env` 파일에:
+```
+SQL_INIT_MODE=never
+```
+
+> ⚠️ 이 설정은 로컬 개발용입니다. 기본값(`always`)은 seed 데이터 초기화가 필요한 경우를 위해 유지됩니다.
+
+### 검증 결과
+
+- `sql.init.mode=always`로 서버 시작 → 정상 동작 확인
+- `sql.init.mode=never`로 서버 시작 → 오류 없이 시작, 데이터 보존 확인
