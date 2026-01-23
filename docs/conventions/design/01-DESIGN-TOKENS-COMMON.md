@@ -10,7 +10,7 @@
 
 ```
 ✅ 디자인 토큰 사용 → 하드코딩 금지
-✅ CSS 변수 + TypeScript 토큰 동기화 → 일관성 유지
+✅ CSS 변수 + TypeScript 토큰 동기화
 ✅ Tailwind 클래스로 토큰 참조
 ✅ WCAG AA 준수 → 4.5:1 대비율 필수
 ```
@@ -21,34 +21,40 @@
 
 ```css
 :root {
-  /* === Background and Neutral Tones === */
-  --color-bg-default: #FFFFFF;       /* 주요 콘텐츠/카드 배경 */
-  --color-bg-app: #FAFAFA;           /* 전체 앱 배경 */
-  --color-bg-secondary: #F4F4F4;     /* Admin 페이지/테이블 헤더 */
-  --color-bg-card-static: #F0F0F0;   /* 정적 카드 배경 (통계, 설정 등 클릭 불가) */
-  --color-border: #E0E0E0;           /* 경계선, 인풋 테두리 */
+  /* Background */
+  --color-bg-default: #FFFFFF;
+  --color-bg-app: #FAFAFA;
+  --color-bg-secondary: #F4F4F4;
+  --color-bg-card-static: #F0F0F0;
+  --color-border: #E0E0E0;
 
-  /* === Text Colors === */
-  --color-text-primary: #333333;     /* 핵심 텍스트 */
-  --color-text-secondary: #666666;   /* 보조 텍스트/아이콘 */
-  --color-text-placeholder: #999999; /* 플레이스홀더 */
+  /* Text */
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-placeholder: #999999;
 
-  /* === Button - Neutral === */
+  /* Action Colors */
+  --color-action-primary: #2A2A2A;
+  --color-action-primary-hover: #3D3D3D;
+  --color-action-text: #FFFFFF;
+  --color-action-delete: #F44336;
+
+  /* Button - Neutral */
   --color-btn-neutral: #2A2A2A;
   --color-btn-neutral-hover: #3D3D3D;
   --color-btn-neutral-text: #FFFFFF;
 
-  /* === Button - Brand === */
-  --color-btn-brand: #4C2D9A;        /* 브랜드 컬러 (Indigo) */
+  /* Button - Brand */
+  --color-btn-brand: #4C2D9A;
   --color-btn-brand-hover: #3D2478;
   --color-btn-brand-text: #FFFFFF;
 
-  /* === Tenant Brand (동적으로 변경 가능, 기본값은 Brand와 동일) === */
-  --color-tenant-primary: var(--color-btn-brand);
-  --color-tenant-primary-hover: var(--color-btn-brand-hover);
+  /* Tenant Brand (동적) */
+  --color-tenant-primary: #4C2D9A;
+  --color-tenant-primary-hover: #3D2478;
   --color-tenant-primary-text: #FFFFFF;
 
-  /* === Status Colors === */
+  /* Status */
   --color-status-success: #388E3C;
   --color-status-success-bg: #D4EDDA;
   --color-status-warning: #FFA000;
@@ -58,49 +64,31 @@
   --color-status-disabled: #666666;
   --color-status-disabled-bg: #E0E0E0;
 
-  /* === Badge Colors (태그/카테고리용 - 뮤트 톤) === */
-  --color-badge-red: #9E3A3A;
-  --color-badge-red-bg: #FAECEC;
-  --color-badge-orange: #B5663A;
-  --color-badge-orange-bg: #FDF3EC;
-  --color-badge-yellow: #8C7A35;
-  --color-badge-yellow-bg: #FBF8E8;
-  --color-badge-green: #3D7A4A;
-  --color-badge-green-bg: #EDF5EF;
-  --color-badge-blue: #3A6B9E;
-  --color-badge-blue-bg: #ECF3FA;
-  --color-badge-indigo: #4C2D9A;
-  --color-badge-indigo-bg: #EDE7F6;
-  --color-badge-purple: #7A4A8C;
-  --color-badge-purple-bg: #F5EDF8;
-  --color-badge-gray: #616161;
-  --color-badge-gray-bg: #F5F5F5;
+  /* Badge (태그/카테고리) */
+  --color-badge-red: #9E3A3A; --color-badge-red-bg: #FAECEC;
+  --color-badge-orange: #B5663A; --color-badge-orange-bg: #FDF3EC;
+  --color-badge-yellow: #8C7A35; --color-badge-yellow-bg: #FBF8E8;
+  --color-badge-green: #3D7A4A; --color-badge-green-bg: #EDF5EF;
+  --color-badge-blue: #3A6B9E; --color-badge-blue-bg: #ECF3FA;
+  --color-badge-indigo: #4C2D9A; --color-badge-indigo-bg: #EDE7F6;
+  --color-badge-purple: #7A4A8C; --color-badge-purple-bg: #F5EDF8;
+  --color-badge-gray: #616161; --color-badge-gray-bg: #F5F5F5;
 
-  /* === Sidebar - Dark Mode === */
+  /* Sidebar - Dark */
   --sidebar-dark-bg: #2A2A2A;
-  --sidebar-dark-border: #3F3F3F;
-  --sidebar-dark-text-primary: #D4D4D4;
-  --sidebar-dark-text-secondary: #9E9E9E;
   --sidebar-dark-hover: #353535;
   --sidebar-dark-active-bg: #4A4A4A;
-  --sidebar-dark-active-text: #E8E8E8;
+  --sidebar-dark-text-primary: #D4D4D4;
+  --sidebar-dark-tooltip-bg: #353535;
 
-  /* === Sidebar - Light Mode === */
+  /* Sidebar - Light */
   --sidebar-light-bg: #EFEFEF;
-  --sidebar-light-border: #D0D0D0;
-  --sidebar-light-text-primary: #333333;
-  --sidebar-light-text-secondary: #666666;
   --sidebar-light-hover: #E0E0E0;
   --sidebar-light-active-bg: #D5D5D5;
-  --sidebar-light-active-text: #1F1F1F;
+  --sidebar-light-text-primary: #333333;
+  --sidebar-light-tooltip-bg: #FFFFFF;
 
-  /* === Typography === */
-  --font-size-base: 16px;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-
-  /* === Spacing & Radius === */
+  /* Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -110,22 +98,32 @@
 
 ---
 
-## 2. TypeScript 디자인 토큰 (design-tokens.ts)
+## 2. TypeScript 토큰 (admin-design-tokens.ts)
 
 ```typescript
-// src/styles/design-tokens.ts
 export const designTokens = {
   bg: {
     default: '#FFFFFF',
     app_default: '#FAFAFA',
     secondary: '#F4F4F4',
-    card_static: '#F0F0F0',  // 정적 카드 배경 (통계, 설정 등 클릭 불가)
+    card_static: '#F0F0F0',
     border: '#E0E0E0',
+    brand_active: '#D4CDEF',
+    sidebar_light_hover: '#F5F5F5',
+    sidebar_light_active: '#E8E8E8',
   },
   text: {
     primary: '#333333',
     secondary: '#666666',
     placeholder: '#999999',
+    on_brand_active: '#4C2D9A',
+    on_neutral_active: '#333333',
+  },
+  action: {
+    primary_default: '#2A2A2A',
+    primary_hover: '#3D3D3D',
+    primary_text: '#FFFFFF',
+    delete_text: '#F44336',
   },
   button: {
     neutral_default: '#2A2A2A',
@@ -133,443 +131,84 @@ export const designTokens = {
     brand_default: '#4C2D9A',
     brand_hover: '#3D2478',
   },
-  status: {
-    success_text: '#388E3C',
-    success_background: '#D4EDDA',
-    warning_text: '#FFA000',
-    warning_background: '#FFF3CD',
-    error_text: '#D32F2F',
-    error_background: '#FFEBEE',
-    disabled_text: '#666666',
-    disabled_background: '#E0E0E0',
-  },
-  badge: {
-    red: { text: '#9E3A3A', bg: '#FAECEC' },
-    orange: { text: '#B5663A', bg: '#FDF3EC' },
-    yellow: { text: '#8C7A35', bg: '#FBF8E8' },
-    green: { text: '#3D7A4A', bg: '#EDF5EF' },
-    blue: { text: '#3A6B9E', bg: '#ECF3FA' },
-    indigo: { text: '#4C2D9A', bg: '#EDE7F6' },
-    purple: { text: '#7A4A8C', bg: '#F5EDF8' },
-    gray: { text: '#616161', bg: '#F5F5F5' },
-  },
-  sidebar: {
-    dark: {
-      bg: '#2A2A2A',
-      border: '#3F3F3F',
-      textPrimary: '#D4D4D4',
-      textSecondary: '#9E9E9E',
-      hover: '#353535',
-      activeBg: '#4A4A4A',
-      activeText: '#E8E8E8',
-    },
-    light: {
-      bg: '#EFEFEF',
-      border: '#D0D0D0',
-      textPrimary: '#333333',
-      textSecondary: '#666666',
-      hover: '#E0E0E0',
-      activeBg: '#D5D5D5',
-      activeText: '#1F1F1F',
-    },
-  },
-  radius: {
-    sm: '4px',
-    md: '8px',
-    lg: '12px',
-    xl: '16px',
-  },
+  status: { /* success, warning, error, disabled */ },
+  badge: { /* red, orange, yellow, green, blue, indigo, purple, gray */ },
+  darkMode: { /* 사이드바 다크 */ tooltipBg: '#353535' },
+  lightMode: { /* 사이드바 라이트 */ tooltipBg: '#FFFFFF' },
 } as const;
-
-export type DesignTokens = typeof designTokens;
 ```
 
 ---
 
-## 3. Tailwind Config (tailwind.config.js)
-
-```javascript
-export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  theme: {
-    extend: {
-      colors: {
-        // Background
-        'bg-default': 'var(--color-bg-default)',
-        'bg-app': 'var(--color-bg-app)',
-        'bg-secondary': 'var(--color-bg-secondary)',
-        'bg-card-static': 'var(--color-bg-card-static)',
-        border: 'var(--color-border)',
-
-        // Text
-        'text-primary': 'var(--color-text-primary)',
-        'text-secondary': 'var(--color-text-secondary)',
-        'text-placeholder': 'var(--color-text-placeholder)',
-
-        // Button - Neutral
-        'btn-neutral': 'var(--color-btn-neutral)',
-        'btn-neutral-hover': 'var(--color-btn-neutral-hover)',
-
-        // Button - Brand
-        'btn-brand': 'var(--color-btn-brand)',
-        'btn-brand-hover': 'var(--color-btn-brand-hover)',
-
-        // Tenant Brand (동적)
-        'tenant-primary': 'var(--color-tenant-primary)',
-        'tenant-primary-hover': 'var(--color-tenant-primary-hover)',
-        'tenant-primary-text': 'var(--color-tenant-primary-text)',
-
-        // Status
-        'status-success': 'var(--color-status-success)',
-        'status-success-bg': 'var(--color-status-success-bg)',
-        'status-warning': 'var(--color-status-warning)',
-        'status-warning-bg': 'var(--color-status-warning-bg)',
-        'status-error': 'var(--color-status-error)',
-        'status-error-bg': 'var(--color-status-error-bg)',
-        'status-disabled': 'var(--color-status-disabled)',
-        'status-disabled-bg': 'var(--color-status-disabled-bg)',
-
-        // Badge (태그/카테고리용)
-        'badge-red': 'var(--color-badge-red)',
-        'badge-red-bg': 'var(--color-badge-red-bg)',
-        'badge-orange': 'var(--color-badge-orange)',
-        'badge-orange-bg': 'var(--color-badge-orange-bg)',
-        'badge-yellow': 'var(--color-badge-yellow)',
-        'badge-yellow-bg': 'var(--color-badge-yellow-bg)',
-        'badge-green': 'var(--color-badge-green)',
-        'badge-green-bg': 'var(--color-badge-green-bg)',
-        'badge-blue': 'var(--color-badge-blue)',
-        'badge-blue-bg': 'var(--color-badge-blue-bg)',
-        'badge-indigo': 'var(--color-badge-indigo)',
-        'badge-indigo-bg': 'var(--color-badge-indigo-bg)',
-        'badge-purple': 'var(--color-badge-purple)',
-        'badge-purple-bg': 'var(--color-badge-purple-bg)',
-        'badge-gray': 'var(--color-badge-gray)',
-        'badge-gray-bg': 'var(--color-badge-gray-bg)',
-
-        // Sidebar (Nested)
-        'sidebar-dark': {
-          bg: 'var(--sidebar-dark-bg)',
-          border: 'var(--sidebar-dark-border)',
-          'text-primary': 'var(--sidebar-dark-text-primary)',
-          'text-secondary': 'var(--sidebar-dark-text-secondary)',
-          hover: 'var(--sidebar-dark-hover)',
-          'active-bg': 'var(--sidebar-dark-active-bg)',
-          'active-text': 'var(--sidebar-dark-active-text)',
-        },
-        'sidebar-light': {
-          bg: 'var(--sidebar-light-bg)',
-          border: 'var(--sidebar-light-border)',
-          'text-primary': 'var(--sidebar-light-text-primary)',
-          'text-secondary': 'var(--sidebar-light-text-secondary)',
-          hover: 'var(--sidebar-light-hover)',
-          'active-bg': 'var(--sidebar-light-active-bg)',
-          'active-text': 'var(--sidebar-light-active-text)',
-        },
-      },
-      borderRadius: {
-        sm: 'var(--radius-sm)',
-        md: 'var(--radius-md)',
-        lg: 'var(--radius-lg)',
-        xl: 'var(--radius-xl)',
-      },
-    },
-  },
-};
-```
-
----
-
-## 4. 컬러 팔레트
+## 3. 컬러 팔레트
 
 ### 브랜드 컬러
 
-| 용도 | 색상 | HEX | 사용처 |
-|------|------|-----|--------|
-| Brand Primary | Indigo | `#4C2D9A` | 브랜드 버튼, 강조 |
-| Brand Hover | Dark Indigo | `#3D2478` | 브랜드 버튼 호버 |
-| Neutral Primary | Dark Gray | `#2A2A2A` | 주요 액션 버튼 |
-| Neutral Hover | Gray | `#3D3D3D` | 주요 버튼 호버 |
+| 용도 | HEX | 사용처 |
+|------|-----|--------|
+| Brand Primary | `#4C2D9A` | 브랜드 버튼, 강조 |
+| Brand Hover | `#3D2478` | 브랜드 버튼 호버 |
+| Neutral Primary | `#2A2A2A` | 주요 액션 버튼 |
+| Neutral Hover | `#3D3D3D` | 주요 버튼 호버 |
 
-### 테넌트 브랜드 컬러 (동적)
+### Status 컬러
 
-> 테넌트별 브랜드 색상을 동적으로 적용할 수 있는 시스템입니다.
+| 상태 | 텍스트 | 배경 |
+|------|--------|------|
+| Success | `#388E3C` | `#D4EDDA` |
+| Warning | `#FFA000` | `#FFF3CD` |
+| Error | `#D32F2F` | `#FFEBEE` |
+| Disabled | `#666666` | `#E0E0E0` |
 
-| Token | 기본값 | 설명 |
-|-------|-------|------|
-| `--color-tenant-primary` | `var(--color-btn-brand)` | 테넌트 메인 컬러 |
-| `--color-tenant-primary-hover` | `var(--color-btn-brand-hover)` | 호버 상태 |
-| `--color-tenant-primary-text` | `#FFFFFF` | 텍스트 색상 |
+### Badge 컬러 (태그/카테고리)
 
-**적용 범위:**
-- ✅ 등록 페이지 Step 인디케이터 (완료된 step, 연결선)
-- ✅ CTA 버튼 (`variant="tenant"`) - 등록, 다음, 이전, 발행 등
-- ❌ Input focus ring (뉴트럴 유지)
-- ❌ 보조 버튼 (임시저장, 닫기 등)
-
-**Tailwind 사용 예시:**
-```jsx
-// Step 인디케이터
-<div className="bg-tenant-primary text-white">1</div>
-<div className="bg-tenant-primary h-0.5" /> {/* 연결선 */}
-
-// Button 컴포넌트
-<Button variant="tenant">다음</Button>
-<Button variant="tenant">강의 등록</Button>
-```
-
-**동적 색상 변경 (추후 구현):**
-```typescript
-// 테넌트 색상 적용
-const applyTenantBrandColor = (color: string) => {
-  document.documentElement.style.setProperty('--color-tenant-primary', color);
-  document.documentElement.style.setProperty('--color-tenant-primary-hover', darkenColor(color, 10));
-
-  // 명도에 따라 텍스트 색상 자동 결정
-  const textColor = calculateLightness(color) > 60 ? '#000000' : '#FFFFFF';
-  document.documentElement.style.setProperty('--color-tenant-primary-text', textColor);
-};
-
-// 사용 예시
-useEffect(() => {
-  if (tenantData?.brandColor) {
-    applyTenantBrandColor(tenantData.brandColor);
-  }
-}, [tenantData]);
-```
-
-### 시맨틱 컬러 (Status)
-
-| 상태 | 텍스트 | 배경 | 용도 |
+| 이름 | 텍스트 | 배경 | 용도 |
 |------|--------|------|------|
-| Success | `#388E3C` | `#D4EDDA` | 완료, 성공 |
-| Warning | `#FFA000` | `#FFF3CD` | 경고, 주의 |
-| Error | `#D32F2F` | `#FFEBEE` | 에러, 삭제 |
-| Disabled | `#666666` | `#E0E0E0` | 비활성 |
-
-### Badge 컬러 (태그/카테고리용)
-
-> 노션 스타일의 다중 선택 컬러 팔레트. 카테고리, 태그, 라벨 등에 사용.
-
-| 이름 | 텍스트 | 배경 | 용도 예시 |
-|------|--------|------|----------|
 | Red | `#9E3A3A` | `#FAECEC` | 긴급, 중요 |
-| Orange | `#B5663A` | `#FDF3EC` | 안내, 공지 |
+| Orange | `#B5663A` | `#FDF3EC` | 안내 |
 | Yellow | `#8C7A35` | `#FBF8E8` | 주의, 대기 |
-| Green | `#3D7A4A` | `#EDF5EF` | 참고자료, 완료 |
-| Blue | `#3A6B9E` | `#ECF3FA` | 과제, 프로그래밍 |
-| Indigo | `#4C2D9A` | `#EDE7F6` | 브랜드 관련 |
-| Purple | `#7A4A8C` | `#F5EDF8` | 프론트엔드 |
-| Gray | `#616161` | `#F5F5F5` | 기본, 기타 |
-
-### 설정 카드 색상 규칙
-
-> 설정 페이지의 카드 아이콘/테두리 색상은 `badge` 토큰을 사용합니다.
-
-| 설정 카드 | 토큰 | 용도 |
-|----------|------|------|
-| 계정 및 보안 | `badge.indigo` | 보안, 인증 관련 |
-| 알림 | `badge.orange` | 알림, 공지 관련 |
-| 외관 | `badge.purple` | UI, 테마 관련 |
-| 언어 및 지역 | `badge.green` | 지역화, 국제화 |
-| 데이터/저장소 | `badge.blue` | 데이터, 백업 관련 |
-| 위험/삭제 | `badge.red` | 계정 삭제, 위험 작업 |
-
-**사용 예시:**
-```typescript
-// SettingsPage.tsx
-const settingCards = [
-  {
-    id: 'security',
-    icon: Shield,
-    title: '계정 및 보안',
-    color: designTokens.badge.indigo.text,  // 아이콘 색상
-  },
-  // 배경은 `${color}15` 형태로 투명도 적용
-];
-```
-
-### 배경 컬러
-
-| 용도 | HEX | 설명 |
-|------|-----|------|
-| Default | `#FFFFFF` | 카드, 콘텐츠 배경 |
-| App | `#FAFAFA` | 전체 앱 배경 |
-| Secondary | `#F4F4F4` | 테이블 헤더, 섹션 구분 |
-| Card Static | `#F0F0F0` | 정적 카드 배경 (통계, 설정 등 클릭 불가) |
-| Border | `#E0E0E0` | 경계선, 인풋 테두리 |
-
-### 텍스트 컬러
-
-| 용도 | HEX | 대비율 | 설명 |
-|------|-----|--------|------|
-| Primary | `#333333` | 12.6:1 | 핵심 텍스트 |
-| Secondary | `#666666` | 5.7:1 | 보조 텍스트 |
-| Placeholder | `#999999` | 2.8:1 | 플레이스홀더 |
+| Green | `#3D7A4A` | `#EDF5EF` | 완료 |
+| Blue | `#3A6B9E` | `#ECF3FA` | 과제 |
+| Indigo | `#4C2D9A` | `#EDE7F6` | 브랜드 |
+| Purple | `#7A4A8C` | `#F5EDF8` | 기타 |
+| Gray | `#616161` | `#F5F5F5` | 기본 |
 
 ---
 
-## 5. 사이드바 테마
+## 4. 접근성 대비율 (WCAG AA)
 
-### 다크 모드
-
-| 요소 | HEX | 용도 |
-|------|-----|------|
-| Background | `#2A2A2A` | 배경 |
-| Border | `#3F3F3F` | 구분선 |
-| Text Primary | `#D4D4D4` | 주요 텍스트 |
-| Text Secondary | `#9E9E9E` | 보조 텍스트 |
-| Hover | `#353535` | 호버 배경 |
-| Active BG | `#4A4A4A` | 활성 배경 |
-| Active Text | `#E8E8E8` | 활성 텍스트 |
-
-### 라이트 모드
-
-| 요소 | HEX | 용도 |
-|------|-----|------|
-| Background | `#EFEFEF` | 배경 |
-| Border | `#D0D0D0` | 구분선 |
-| Text Primary | `#333333` | 주요 텍스트 |
-| Text Secondary | `#666666` | 보조 텍스트 |
-| Hover | `#E0E0E0` | 호버 배경 |
-| Active BG | `#D5D5D5` | 활성 배경 |
-| Active Text | `#1F1F1F` | 활성 텍스트 |
-
-### 스크롤바 스타일
-
-```css
-/* 다크 모드 스크롤바 */
-.sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #606060;
-}
-.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #707070;
-}
-
-/* 라이트 모드 스크롤바 */
-.sidebar-scrollbar-light::-webkit-scrollbar-thumb {
-  background-color: #C8C8C8;
-}
-.sidebar-scrollbar-light::-webkit-scrollbar-thumb:hover {
-  background-color: #B0B0B0;
-}
-```
+| 조합 | 대비율 | 상태 |
+|------|--------|------|
+| `#333333` on `#FFFFFF` | 12.6:1 | ✅ |
+| `#666666` on `#FFFFFF` | 5.7:1 | ✅ |
+| `#D4D4D4` on `#2A2A2A` (Dark) | 9.7:1 | ✅ |
+| `#333333` on `#EFEFEF` (Light) | 10.3:1 | ✅ |
 
 ---
 
-## 6. 타이포그래피
-
-### 기본 설정
-
-```css
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 16px;
-}
-
-h1 { @apply text-2xl; }  /* 24px */
-h2 { @apply text-xl; }   /* 20px */
-h3 { @apply text-lg; }   /* 18px */
-h4 { @apply text-base; } /* 16px */
-```
-
-### Font Weight
-
-| 이름 | 값 | 용도 |
-|------|-----|------|
-| normal | 400 | 본문 |
-| medium | 500 | 헤딩, 레이블 |
-| semibold | 600 | 강조 |
-
----
-
-## 7. Spacing & Radius
-
-### Border Radius
-
-| 토큰 | 값 | 용도 |
-|------|-----|------|
-| sm | 4px | 작은 요소 (태그, 뱃지) |
-| md | 8px | 기본 (버튼, 인풋) |
-| lg | 12px | 카드, 모달 |
-| xl | 16px | 큰 컨테이너 |
-
-### 사용 예시
-
-```typescript
-// Tailwind 클래스 사용
-<button className="rounded-md">기본 버튼</button>
-<div className="rounded-lg">카드</div>
-
-// CSS 변수 직접 사용
-<div style={{ borderRadius: 'var(--radius-lg)' }}>카드</div>
-
-// TypeScript 토큰 사용
-import { designTokens } from '@/styles/design-tokens';
-<div style={{ borderRadius: designTokens.radius.lg }}>카드</div>
-```
-
----
-
-## 8. 접근성 대비율
-
-### WCAG AA 기준
-
-| 항목 | 요구사항 | 현재 상태 |
-|------|----------|-----------|
-| 일반 텍스트 | 4.5:1 이상 | ✅ Primary: 12.6:1 |
-| 대형 텍스트 | 3:1 이상 | ✅ Secondary: 5.7:1 |
-| 포커스 표시 | 명확한 표시 | ✅ `focus:ring-2` |
-
-### 다크 모드 대비율
-
-| 요소 | 조합 | 대비율 | 상태 |
-|------|------|--------|------|
-| Primary Text | `#D4D4D4` on `#2A2A2A` | 9.7:1 | ✅ |
-| Secondary Text | `#9E9E9E` on `#2A2A2A` | 5.2:1 | ✅ |
-| Active Text | `#E8E8E8` on `#4A4A4A` | 6.8:1 | ✅ |
-
-### 라이트 모드 대비율
-
-| 요소 | 조합 | 대비율 | 상태 |
-|------|------|--------|------|
-| Primary Text | `#333333` on `#EFEFEF` | 10.3:1 | ✅ |
-| Secondary Text | `#666666` on `#EFEFEF` | 4.8:1 | ✅ |
-| Active Text | `#1F1F1F` on `#D5D5D5` | 9.1:1 | ✅ |
-
----
-
-## 9. 체크리스트
-
-### 토큰 동기화
-- [ ] CSS 변수 정의 완료
-- [ ] TypeScript 토큰 동기화
-- [ ] Tailwind config 연동
-
-### 색상 사용
-- [ ] 하드코딩 색상 사용 금지
-- [ ] 시맨틱 컬러 올바르게 적용
-- [ ] 상태 색상 일관성 유지
-
-### 접근성
-- [ ] WCAG AA 대비율 준수
-- [ ] 다크/라이트 모드 모두 검증
-- [ ] 포커스 스타일 명확
-
----
-
-## 10. 파일 구조
+## 5. 파일 구조
 
 ```
 src/
 ├── styles/
-│   └── design-tokens.ts     # TypeScript 디자인 토큰
-├── index.css                # CSS 변수 + 글로벌 스타일
-└── tailwind.config.js       # Tailwind 설정
+│   ├── admin-design-tokens.ts      # Admin 토큰 (SA, TA, TO)
+│   └── user-site-design-tokens.ts  # User Site 토큰 (TU)
+├── index.css                       # CSS 변수
+└── tailwind.config.js              # Tailwind 설정
 ```
 
 ---
 
-> 디자인 컨벤션 → [00-DESIGN-CONVENTIONS](./00-DESIGN-CONVENTIONS.md)
-> 테넌트 토큰 템플릿 → [02-DESIGN-TOKENS-TENANT-TEMPLATE](./02-DESIGN-TOKENS-TENANT-TEMPLATE.md)
-> 컴포넌트 컨벤션 → [12-REACT-COMPONENT-CONVENTIONS](../12-REACT-COMPONENT-CONVENTIONS.md)
+## 소스 참조
+
+| 파일 | 설명 |
+|------|------|
+| [admin-design-tokens.ts](../../../mzc-lp-frontend/src/styles/admin-design-tokens.ts) | Admin 토큰 (SA, TA, TO) |
+| [user-site-design-tokens.ts](../../../mzc-lp-frontend/src/styles/user-site-design-tokens.ts) | User Site 토큰 (TU) |
+| [index.css](../../../mzc-lp-frontend/src/index.css) | CSS 변수 정의 |
+| [tailwind.config.js](../../../mzc-lp-frontend/tailwind.config.js) | Tailwind 설정 |
+
+---
+
+> 테넌트 토큰 → [02-DESIGN-TOKENS-TENANT-TEMPLATE](./02-DESIGN-TOKENS-TENANT-TEMPLATE.md)
+> 랜딩 페이지 → [11-UX-LANDING-PAGE](./11-UX-LANDING-PAGE.md)

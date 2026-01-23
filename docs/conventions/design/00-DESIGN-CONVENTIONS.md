@@ -53,7 +53,7 @@ const buttonVariants = cva(
         neutral: 'bg-btn-neutral text-white hover:bg-btn-neutral-hover',
         brand: 'bg-btn-brand text-white hover:bg-btn-brand-hover',
         ghost: 'bg-transparent text-text-secondary hover:bg-bg-secondary',
-        danger: 'bg-status-error-bg text-status-error hover:bg-red-100',
+        danger: 'bg-status-error-bg text-status-error hover:opacity-80',
       },
       size: {
         sm: 'h-8 px-3 text-sm gap-1',
