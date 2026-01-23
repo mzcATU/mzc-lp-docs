@@ -273,7 +273,7 @@ mysql -u root -p -e "CREATE DATABASE mzclp CHARACTER SET utf8mb4 COLLATE utf8mb4
 cd mzc-lp-backend
 ./gradlew bootRun --args='--spring.profiles.active=local'
 
-# 3. Frontend 실행 (Port 5173)
+# 3. Frontend 실행 (Port 3000)
 cd mzc-lp-frontend
 npm install
 npm run dev
@@ -283,7 +283,7 @@ npm run dev
 
 | 항목 | URL |
 |------|-----|
-| Frontend | http://localhost:5173 |
+| Frontend | http://localhost:3000 |
 | Backend API | http://localhost:8080/api/* |
 | Swagger UI | http://localhost:8080/swagger-ui/index.html |
 
@@ -443,7 +443,7 @@ function UserCard({ user, onSelect }: UserCardProps) {
 
 | 환경 | Backend | Frontend | Database |
 |------|---------|----------|----------|
-| **Local** | Port 8080 | Port 5173 | MySQL 8.0 |
+| **Local** | Port 8080 | Port 3000 | MySQL 8.0 |
 | **Dev** | EC2 (Private) | S3 + CloudFront | RDS db.t3.micro |
 | **Prod** | EC2 (Multi-AZ) | S3 + CloudFront | RDS Multi-AZ |
 
